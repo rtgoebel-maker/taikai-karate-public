@@ -1,0 +1,6 @@
+/vendor/
+/data/*
+!/data/.htaccess
+!/data/.gitkeep
+/config/config.php
+/VERSION

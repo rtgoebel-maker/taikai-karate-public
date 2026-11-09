@@ -1,0 +1,17 @@
+/* App-Dialog (Wettkampf.dialog/frage/hinweis): ersetzt die Browser-Fenster – Leitung und Tablets */
+.app-dialog-hinter { position: fixed; inset: 0; z-index: 90; background: rgba(15, 23, 42, .5); display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.app-dialog { background: #fff; color: #1f2937; border-radius: 16px; padding: 1.3rem 1.5rem; width: min(520px, 100%); text-align: center;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .35); border-top: 10px solid #1d2b45; font-family: inherit; }
+.app-dialog.gefahr, .app-dialog.aka { border-top-color: #c62828; }
+.app-dialog.shiro { border-top-color: #9aa3b2; }
+.app-dialog-symbol { font-size: 2rem; line-height: 1; margin-bottom: .3rem; }
+.app-dialog h2 { margin: .1rem 0 .4rem; font-size: 1.45rem; }
+.app-dialog.gefahr h2, .app-dialog.aka h2 { color: #9b1c1c; }
+.app-dialog p { margin: 0 0 1rem; font-size: 1.05rem; line-height: 1.4; }
+.app-dialog p:empty { display: none; }
+.app-dialog-eingabe { width: 100%; box-sizing: border-box; font-size: 1.6rem; padding: .6rem; letter-spacing: .3em; text-align: center; border: 2px solid #c5ccd8; border-radius: 10px; margin-bottom: 1rem; }
+.app-dialog-knoepfe { display: flex; gap: .6rem; flex-wrap: wrap; }
+.app-dialog-knoepfe button { flex: 1 1 180px; min-height: 3.2rem; border-radius: 12px; border: 0; font: inherit; font-size: 1.1rem; font-weight: 800; cursor: pointer; }
+.app-dialog-nein { background: #e8ecf4; color: #1f2937; }
+.app-dialog-ja { background: #1f7a3d; color: #fff; }
+.app-dialog.gefahr .app-dialog-ja { background: #c62828; }

@@ -1,0 +1,280 @@
+/* Tablet-Oberfläche der Tischbesatzung: große Touch-Flächen, hoher Kontrast. */
+:root {
+    --aka: #c62828; --aka-dunkel: #8e1b1b; --shiro: #ffffff; --linie: #cfd5de; --text: #111827;
+    --leise: #5b6577; --primaer: #1d2b45; --ok: #1f7a3d; --warn: #b26a00;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 17px; color: var(--text);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { margin: 0; background: #eef1f5; }
+button { font: inherit; cursor: pointer; touch-action: manipulation; }
+.klein { font-size: .8rem; color: var(--leise); }
+
+.leiste { display: flex; align-items: center; gap: 1rem; background: var(--primaer); color: #fff; padding: .6rem 1rem; }
+.leiste .klein { color: #c9d3e6; }
+.tatami-name { font-size: 1.4rem; }
+#fortschritt { margin-left: auto; color: #fff; }
+.verbindung { padding: .25rem .7rem; border-radius: 999px; font-size: .8rem; font-weight: 700; }
+.verbindung.ok { background: #2e7d32; }
+.verbindung.weg { background: #c62828; }
+.knopf-leise { background: transparent; border: 1px solid #8fa0bf; color: #fff; border-radius: 8px; padding: .4rem .8rem; }
+
+/* Meldung schwebt über der Kopfzeile – kein Verschieben der Eingabeflächen */
+.meldung { position: fixed; top: .45rem; left: 50%; transform: translateX(-50%); z-index: 50; width: max-content; max-width: min(720px, calc(100vw - 2rem));
+    padding: .6rem 1.1rem; border-radius: 999px; font-weight: 700; box-shadow: 0 6px 20px rgba(0, 0, 0, .25); cursor: pointer; text-align: center; }
+.meldung[hidden] { display: none; }
+.meldung.ok { background: #e6f4ea; color: var(--ok); }
+.meldung.fehler { background: #fdeaea; color: #8e1b1b; border-radius: 14px; }
+.meldung.fehler::after { content: '  ✕'; opacity: .6; }
+
+.haupt { display: grid; grid-template-columns: 1fr 320px; gap: 1rem; padding: 1rem; }
+@media (max-width: 1000px) { .haupt { grid-template-columns: 1fr; } }
+.karte-gross { background: #fff; border-radius: 14px; padding: 1rem 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,.08); min-height: 60vh; }
+.leer { color: var(--leise); text-align: center; margin-top: 20vh; font-size: 1.3rem; }
+.seitenleiste h2 { font-size: 1rem; margin: .4rem 0; color: var(--leise); text-transform: uppercase; letter-spacing: .05em; }
+.liste { list-style: none; padding: 0; margin: 0 0 1rem; }
+.liste li { background: #fff; border-radius: 10px; padding: .6rem .8rem; margin-bottom: .5rem; font-size: .9rem; }
+.liste li button { margin-top: .4rem; }
+.liste li .knopf-korrektur { min-height: 2.4rem; padding: 0 .9rem; border: 2px solid var(--primaer); border-radius: 8px; background: #fff; color: var(--primaer); font-weight: 700; font-size: .9rem; }
+.liste li .knopf-korrektur:active { background: #e6ebf3; }
+
+.kopfzeile { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
+.kopfzeile .titel { font-size: 1.3rem; font-weight: 800; }
+.marke { display: inline-block; padding: .15rem .6rem; border-radius: 999px; background: #e8ecf4; font-size: .8rem; font-weight: 700; margin-left: .3rem; }
+.marke.laeuft { background: #fff4dc; color: var(--warn); }
+.marke.korrektur { background: #fdeaea; color: #8e1b1b; }
+
+.seiten { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin: .8rem 0; }
+.seite { border-radius: 12px; padding: .8rem 1rem; border: 3px solid var(--linie); }
+.seite.aka { border-color: var(--aka); background: #fff5f5; }
+.seite.shiro { border-color: #9aa3b2; background: #fff; }
+.seite.gewinnt { box-shadow: 0 0 0 4px #2e7d32 inset; }
+.seite .kennung { font-weight: 800; font-size: .85rem; letter-spacing: .1em; }
+.seite.aka .kennung { color: var(--aka); }
+.seite .name { font-size: 1.5rem; font-weight: 800; line-height: 1.2; margin-top: .2rem; }
+.seite .verein { color: var(--leise); margin-bottom: .6rem; }
+
+.zeile { display: flex; align-items: center; gap: .5rem; margin: .5rem 0; flex-wrap: wrap; }
+.zeile > label { min-width: 6.5rem; font-weight: 700; }
+.zaehler { display: flex; align-items: center; gap: .4rem; }
+.zaehler button { width: 3.2rem; height: 3.2rem; border-radius: 10px; border: 2px solid var(--linie); background: #f6f7f9; font-size: 1.6rem; font-weight: 800; }
+.zaehler .wert { min-width: 2.2rem; text-align: center; font-size: 1.8rem; font-weight: 800; }
+.flaggen { display: flex; gap: .4rem; flex-wrap: wrap; }
+.flaggen button { min-width: 3.4rem; height: 3.4rem; border-radius: 10px; border: 2px solid var(--linie); background: #f6f7f9; font-size: 1.4rem; font-weight: 800; }
+.flaggen button.aktiv { background: var(--primaer); color: #fff; border-color: var(--primaer); }
+input.gross, select.gross { font-size: 1.3rem; padding: .55rem .6rem; border: 2px solid var(--linie); border-radius: 10px; width: 100%; background: #fff; }
+input.kr { width: 4.6rem; font-size: 1.3rem; padding: .5rem; text-align: center; border: 2px solid var(--linie); border-radius: 10px; }
+.summe { font-size: 1.4rem; font-weight: 800; margin-left: .5rem; }
+
+.aktionen { display: flex; gap: .7rem; flex-wrap: wrap; margin-top: 1rem; }
+.gross-knopf { flex: 1; min-height: 4rem; border-radius: 12px; border: 0; font-size: 1.25rem; font-weight: 800; padding: 0 1.2rem; }
+.gross-knopf.senden { background: var(--ok); color: #fff; }
+.gross-knopf.start { background: var(--warn); color: #fff; }
+.gross-knopf.neutral { background: #e8ecf4; color: var(--primaer); flex: 0 1 auto; }
+.gross-knopf[disabled] { opacity: .45; }
+details.kampflos { margin-top: 1rem; }
+details.kampflos summary { font-weight: 700; padding: .6rem 0; cursor: pointer; }
+.kampflos-knoepfe { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.kampflos-knoepfe button { min-height: 3.2rem; border-radius: 10px; border: 2px solid var(--linie); background: #fff; font-weight: 700; }
+.kampflos-knoepfe button.aktiv { background: #fdeaea; border-color: var(--aka); }
+.team-tabelle { width: 100%; border-collapse: collapse; }
+.team-tabelle td { padding: .3rem; border-bottom: 1px solid var(--linie); }
+.team-tabelle .flaggen button { min-width: 3rem; height: 2.8rem; font-size: 1rem; }
+
+/* Erklärungen, Ergebnisbanner, Flaggen */
+.erklaerung { display: block; font-size: .78rem; font-weight: 400; color: var(--leise); margin-top: .15rem; }
+.zeile > .erklaerung { display: inline; margin: 0 0 0 .3rem; }
+.kampflos-knoepfe button { padding: .5rem .6rem; line-height: 1.25; }
+.kampflos-knoepfe button .erklaerung { margin-top: .2rem; }
+.unentschieden { margin: .2rem 0 .4rem; font-size: .95rem; color: var(--text); }
+.unentschieden .klein { margin-left: .3rem; }
+.ergebnis-banner { margin: .8rem 0 .2rem; padding: .8rem 1rem; border-radius: 12px; font-size: 1.25rem; border: 2px solid; }
+.ergebnis-banner.aka { background: #fff5f5; border-color: var(--aka); color: var(--aka-dunkel); }
+.ergebnis-banner.shiro { background: #f4f6f9; border-color: #9aa3b2; color: var(--text); }
+.ergebnis-banner.offen { background: #fff8e6; border-color: #e0a100; color: #7a4d00; font-size: 1.05rem; }
+.hantei-block { margin-top: .8rem; padding: .7rem 1rem; border: 2px dashed #e0a100; border-radius: 12px; background: #fffdf5; }
+.hantei-titel { font-weight: 800; margin-bottom: .3rem; }
+.hantei-zeilen { display: flex; gap: 2rem; flex-wrap: wrap; }
+.aka-text { color: var(--aka); }
+.gross-knopf.senden[disabled] { background: #9aa3b2; }
+details.begriffe { margin-top: 1.2rem; border-top: 1px solid var(--linie); padding-top: .4rem; }
+details.begriffe summary { font-weight: 700; padding: .5rem 0; cursor: pointer; color: var(--primaer); }
+details.begriffe dl { display: grid; grid-template-columns: max-content 1fr; gap: .35rem 1rem; margin: .3rem 0 0; font-size: .92rem; }
+details.begriffe dt { font-weight: 700; }
+details.begriffe dd { margin: 0; color: var(--leise); }
+
+/* Verwarnungen: Schnellauswahl */
+.verwarnung { margin-top: .4rem; }
+.verwarnung-knoepfe { display: flex; flex-wrap: wrap; gap: .35rem; }
+.verwarnung-knoepfe button { min-height: 2.6rem; padding: 0 .7rem; border-radius: 10px; border: 2px solid var(--linie); background: #f6f7f9; font-weight: 700; }
+.verwarnung-liste { display: flex; flex-wrap: wrap; gap: .35rem; margin: .3rem 0 .2rem 7rem; min-height: 1.6rem; align-items: center; }
+.verwarnung-liste .gesetzt { border: 2px solid #e0a100; background: #fff4dc; color: #7a4d00; border-radius: 999px; padding: .2rem .7rem; font-weight: 700; }
+.hantei-start { margin-top: .8rem; width: 100%; min-height: 3.2rem; font-size: 1.05rem; }
+.stand { margin-top: .5rem; font-size: 1rem; }
+.zeit-abgelaufen { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin: .8rem 0 .4rem; padding: .6rem .9rem; border-radius: 10px; background: #fff8e6; border: 2px solid #e0a100; color: #7a4d00; }
+.saishiai-hinweis { margin: .8rem 0 .4rem; padding: .6rem .9rem; border-radius: 10px; background: #eef3fb; border: 2px solid #9db4d8; font-weight: 700; }
+.zeit-abgelaufen button { margin-left: auto; min-height: 2.6rem; padding: 0 .9rem; border-radius: 8px; border: 2px solid var(--linie); background: #fff; font-weight: 700; }
+.banner-hinweis { margin-top: .4rem; padding: .4rem .6rem; border-radius: 8px; background: #fff8e6; color: #7a4d00; font-size: .95rem; font-weight: 600; }
+.zuruecksetzen { margin-top: .8rem; }
+.verwarnung-knoepfe button.eskalation { border-color: var(--aka); color: var(--aka-dunkel); }
+.zuruecksetzen .knopf-korrektur { min-height: 2.8rem; padding: 0 1rem; border: 2px solid var(--aka); border-radius: 10px; background: #fff; color: var(--aka-dunkel); font-weight: 700; font-size: 1rem; }
+.phase-hinweis { margin: .6rem 0 .2rem; padding: .7rem 1rem; border-radius: 10px; background: #fff8e6; border: 2px solid #e0a100; color: #7a4d00; font-weight: 700; }
+.marke.ausruf-offen { background: #eef1f5; color: #5b6577; }
+.marke.ausruf-bereit { background: #e6f4ea; color: var(--ok); }
+.marke.ausruf-fehlt { background: #fdeaea; color: #8e1b1b; }
+a.knopf-leise { text-decoration: none; }
+
+/* Gruppen-Abschluss und Übergang zur nächsten Gruppe */
+.abschluss, .uebergang { display: grid; gap: .6rem; }
+.abschluss-kopf { font-size: 1.6rem; font-weight: 800; color: var(--ok); }
+.podest-liste { list-style: none; padding: 0; margin: 0 0 .4rem; display: grid; gap: .35rem; font-size: 1.15rem; }
+.podest-liste .platz { display: inline-grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: 50%; font-weight: 800; background: #e8ecf4; margin-right: .4rem; }
+.podest-liste .platz-1 { background: #f3e2a4; } .podest-liste .platz-2 { background: #e2e6ea; } .podest-liste .platz-3 { background: #ecd2bd; }
+.uebergang { text-align: center; padding: 1.5rem 1rem; }
+.uebergang-symbol { font-size: 3rem; }
+.uebergang h2 { margin: 0; font-size: 1.7rem; }
+.uebergang .code { background: var(--primaer); color: #fff; border-radius: 8px; padding: 0 .5rem; }
+.uebergang-hinweis { font-size: 1.15rem; background: #fff8e6; border: 2px solid #e0a100; border-radius: 12px; padding: .8rem 1rem; color: #7a4d00; }
+.uebergang .aktionen { justify-content: center; }
+
+/* Runde gut sichtbar */
+.runde-marke { display: inline-block; vertical-align: middle; margin-left: .4rem; padding: .2rem .75rem; border-radius: 999px; font-size: 1rem; font-weight: 800; letter-spacing: .02em; border: 2px solid; }
+.runde-marke.klein { font-size: .72rem; padding: .05rem .5rem; border-width: 1px; margin-left: .2rem; }
+.r-vorrunde { background: #eef1f5; color: #475569; border-color: #cbd2dc; }
+.r-viertelfinale { background: #e8f0fe; color: #1d4ed8; border-color: #b6cdfb; }
+.r-halbfinale { background: #f3e8ff; color: #6b21a8; border-color: #dcc2f5; }
+.r-platz3 { background: #f6e4d4; color: #7a4317; border-color: #d9a77d; }
+.r-finale { background: #fbefc4; color: #7a5a00; border-color: #d4ad2f; }
+.marke.unterbrochen { background: #fdecec; color: var(--aka-dunkel); }
+
+/* Ausruf der nächsten Gruppe starten */
+.ausruf-leiste { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-top: 1rem; padding: .7rem .9rem; border: 1px dashed #cfd5de; border-radius: 10px; background: #f8fafc; }
+.ausruf-leiste .knopf-ausruf { margin-left: auto; background: var(--primaer); color: #fff; border: 0; border-radius: 8px; padding: .6rem 1rem; font: inherit; font-weight: 700; cursor: pointer; }
+.ausruf-leiste.gestartet { color: var(--ok); border-color: #b5dcc0; background: #f1faf3; font-weight: 600; }
+
+/* Nachrichten der Wettkampfleitung: über der Kopfzeile, bis „Gelesen“ getippt wird */
+.nachrichten { position: fixed; top: .35rem; left: 50%; transform: translateX(-50%); z-index: 60; display: grid; gap: .4rem; width: min(680px, calc(100vw - 1rem)); }
+.nachrichten[hidden] { display: none; }
+.nachricht { display: flex; align-items: center; gap: .7rem; background: #fff4dc; color: #3d2a00; border: 2px solid #e0a100; border-radius: 12px; padding: .55rem .7rem; box-shadow: 0 6px 20px rgba(0, 0, 0, .25); animation: nachricht-auf .35s ease-out; }
+.nachricht-symbol { font-size: 1.4rem; }
+.nachricht-text { flex: 1; display: grid; gap: .1rem; }
+.nachricht-text span { font-size: .8rem; color: #6b5310; }
+.nachricht button { background: var(--primaer); color: #fff; border: 0; border-radius: 8px; padding: .55rem .9rem; font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.nachricht-offen { font-size: .8rem; color: #6b5310; }
+@keyframes nachricht-auf { from { transform: translateY(-.6rem); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Ausruf-Stand der Gruppe für die Tischbesatzung (Notfall: selbst abhaken) */
+.ausruf-stand { margin-bottom: 1rem; border: 2px solid #e0a100; border-radius: 10px; background: #fff; padding: .6rem .8rem; text-align: left; }
+.ausruf-stand h2 { margin: 0 0 .3rem; text-transform: none; letter-spacing: 0; color: var(--primaer); font-size: 1.05rem; display: flex; flex-wrap: wrap; gap: .4rem; align-items: baseline; }
+.ausruf-stand h2 .zahl { font-size: .85rem; font-weight: 600; color: var(--leise); text-transform: none; letter-spacing: 0; }
+.ausruf-stand ul { list-style: none; margin: .4rem 0; padding: 0; }
+.ausruf-stand li { display: flex; align-items: center; gap: .3rem .5rem; flex-wrap: wrap; padding: .35rem 0; border-top: 1px solid #e6e9ee; }
+.ausruf-stand li .klein { flex-basis: 100%; padding-left: 4.7rem; }
+.ausruf-stand li .name { font-weight: 700; }
+.ausruf-stand .knoepfe { margin-left: auto; display: flex; gap: .3rem; }
+.ausruf-stand .knoepfe button { border: 1px solid #cfd5de; background: #fff; border-radius: 8px; padding: .35rem .7rem; font: inherit; font-weight: 700; cursor: pointer; }
+.ausruf-stand .knoepfe button.aktiv { background: var(--primaer); color: #fff; border-color: var(--primaer); }
+.stand-marke { font-size: .75rem; font-weight: 700; padding: .1rem .45rem; border-radius: 999px; min-width: 4.2rem; text-align: center; }
+.stand-marke.da { background: #e6f4ea; color: var(--ok); }
+.stand-marke.fehlt { background: #fdecec; color: var(--aka-dunkel); }
+.stand-marke.offen { background: #eef1f5; color: var(--leise); }
+.ausruf-stand .fehlt-text { color: var(--aka-dunkel); }
+.ausruf-stand .knopf-ausruf { background: var(--primaer); color: #fff; border: 0; border-radius: 8px; padding: .6rem 1rem; font: inherit; font-weight: 700; cursor: pointer; }
+.ausruf-stand .knopf-ausruf[disabled] { opacity: .45; cursor: not-allowed; }
+.knopf-leise-hell { background: #fff; border: 1px solid #cfd5de; border-radius: 8px; padding: .55rem .9rem; font: inherit; cursor: pointer; margin-left: .4rem; }
+
+/* Ausrufer meldet „fehlt“: Bestätigung durch die Tischbesatzung */
+.fehlt-bestaetigung { margin: .6rem 0 .2rem; padding: .8rem 1rem; border: 2px solid var(--aka); border-radius: 12px; background: #fdecec; color: #5c1414; }
+.fehlt-bestaetigung strong { font-size: 1.15rem; }
+.fehlt-bestaetigung p { margin: .3rem 0 .6rem; }
+.fehlt-bestaetigung .knoepfe { display: flex; gap: .6rem; flex-wrap: wrap; }
+.fehlt-bestaetigung .gross-knopf { flex: 1 1 260px; margin: 0; }
+
+/* Kumite (Ippon/Wazaari) kompakt: Ippon und Wazaari nebeneinander, kleinere Knöpfe – passt ohne Scrollen auf ein Tablet */
+.seiten.kompakt { margin: .5rem 0; }
+.seiten.kompakt .seite { padding: .5rem .8rem; }
+.seiten.kompakt .name { font-size: 1.3rem; }
+.seiten.kompakt .verein { margin-bottom: .2rem; }
+.punkte-reihe { display: flex; flex-wrap: wrap; gap: 0 1.2rem; }
+.punkte-reihe .zeile { margin: .25rem 0; }
+.punkte-reihe .zeile > label, .seiten.kompakt .verwarnung .zeile > label { min-width: 0; }
+.seiten.kompakt .zaehler button { width: 2.8rem; height: 2.8rem; font-size: 1.4rem; }
+.seiten.kompakt .zaehler .wert { min-width: 1.8rem; font-size: 1.5rem; }
+.seiten.kompakt .verwarnung { margin-top: .2rem; }
+.seiten.kompakt .verwarnung .zeile { margin: .2rem 0; }
+.seiten.kompakt .verwarnung-knoepfe button { min-height: 2.3rem; padding: 0 .55rem; font-size: .9rem; }
+.seiten.kompakt .verwarnung-liste { margin: .2rem 0 0; min-height: 0; }
+.seiten.kompakt .verwarnung-liste:empty { display: none; }
+.seiten.kompakt .stand { margin-top: .2rem; }
+.punkte-reihe .zeile { flex-direction: column; align-items: flex-start; gap: .1rem; }
+.punkte-reihe .zeile > label { font-size: .85rem; }
+.seiten.kompakt .verwarnung .zeile > label { display: none; }
+.seiten.kompakt .verwarnung-knoepfe { gap: .25rem; }
+.seiten.kompakt .verwarnung-knoepfe button { padding: 0 .45rem; font-size: .85rem; }
+
+
+/* Übergang: Ausruf der neuen Gruppe abgeschlossen */
+.uebergang-fertig { margin: 1rem auto; padding: .9rem 1.2rem; max-width: 46rem; border: 2px solid #b5dcc0; border-radius: 12px; background: #e6f4ea; color: var(--ok); font-size: 1.25rem; font-weight: 700; }
+.uebergang-fertig strong { color: var(--aka-dunkel); }
+
+/* Jiyu-Kumite: Starter tritt direkt wieder an – Pause anbieten */
+.pause-hinweis { margin: .5rem 0 .2rem; padding: .6rem .9rem; border: 2px solid #e0a100; border-radius: 10px; background: #fff4dc; color: #5c3d00; font-size: 1.05rem; }
+
+/* Wertung außerhalb des erlaubten Bereichs */
+input.kr.ungueltig { border-color: var(--aka); background: #fdecec; color: var(--aka-dunkel); box-shadow: 0 0 0 3px rgba(198, 40, 40, .2); }
+
+/* Gruppe fertig: Punktzahl je Platz (Kata) */
+.podest-liste .punktzahl { margin-left: auto; padding-left: 1rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.podest-liste li { display: flex; align-items: baseline; gap: .4rem; flex-wrap: wrap; }
+
+/* Kampfuhr (Turniereinstellung): Hajime/Yame, Ato shibaraku, Ende */
+.kampfuhr { display: flex; align-items: center; gap: .8rem; margin: 0 0 .7rem; padding: .5rem .9rem; border-radius: 12px; border: 2px solid var(--linie); background: #f6f7f9; }
+.kampfuhr .uhr-zeit { font-size: 2.6rem; font-weight: 800; font-variant-numeric: tabular-nums; min-width: 6.5rem; }
+.kampfuhr .uhr-status { flex: 1; font-weight: 700; color: #4b5563; }
+.kampfuhr .uhr-knopf { min-height: 3rem; padding: 0 1.1rem; border-radius: 10px; border: 2px solid var(--linie); background: #fff; font-weight: 800; font-size: 1.05rem; }
+.kampfuhr .uhr-knopf.start { background: var(--erfolg, #1f7a3d); border-color: var(--erfolg, #1f7a3d); color: #fff; }
+.kampfuhr .uhr-knopf.stopp { background: #fff4dc; border-color: #e0a100; color: #7a4d00; }
+.kampfuhr.laeuft { border-color: var(--erfolg, #1f7a3d); background: #eef8f1; }
+.kampfuhr.ato { border-color: #e0a100; background: #fff4dc; }
+.kampfuhr.ato .uhr-status { color: #7a4d00; }
+.kampfuhr.ende { border-color: var(--aka, #c62828); background: #fdecec; }
+.kampfuhr.ende .uhr-zeit, .kampfuhr.ende .uhr-status { color: var(--aka-dunkel, #9b1c1c); }
+
+/* Kumite am Tablet quer (z. B. 1280×632): alles bis „Ergebnis senden“ ohne Scrollen */
+.seiten.kompakt .seite { padding: .4rem .7rem; }
+.seiten.kompakt .kennung { display: inline; margin-right: .5rem; }
+.seiten.kompakt .name { display: inline; font-size: 1.15rem; }
+.seiten.kompakt .verein { display: inline; margin: 0 0 0 .5rem; font-size: .85rem; }
+.seiten.kompakt .punkte-reihe { margin-top: .2rem; }
+.seiten.kompakt .punkte-reihe .zeile { flex-direction: row; align-items: center; gap: .35rem; margin: .15rem 0; }
+.seiten.kompakt .zaehler button { width: 2.6rem; height: 2.6rem; }
+.seiten.kompakt .stand { display: none; }
+.strafe-stufe { display: inline-block; margin-left: .35rem; padding: 0 .4rem; border-radius: 999px; background: #fff4dc; color: #7a4d00; font-size: .75rem; }
+.kampfuhr { padding: .2rem .7rem; margin-bottom: .4rem; gap: .6rem; }
+.kampfuhr .uhr-zeit { font-size: 1.9rem; min-width: 5rem; }
+.kampfuhr .uhr-knopf { min-height: 2.5rem; }
+.saishiai-hinweis { margin: .4rem 0 .2rem; padding: .3rem .7rem; font-size: .95rem; }
+.zeit-abgelaufen { margin: .5rem 0 .3rem; padding: .35rem .7rem; font-size: .95rem; }
+.zeit-abgelaufen button { min-height: 2.3rem; margin-left: 0; }
+.zeit-abgelaufen button:first-of-type { margin-left: auto; }
+.hantei-block { margin-top: .5rem; padding: .35rem .8rem; display: flex; flex-wrap: wrap; align-items: center; gap: .2rem 1.2rem; }
+.hantei-titel { margin: 0; font-size: .95rem; }
+.hantei-block .zaehler button { width: 2.6rem; height: 2.6rem; }
+.hantei-block .zeile { margin: .1rem 0; }
+.hantei-block .unentschieden { font-size: .85rem; }
+.ergebnis-banner { margin: .5rem 0 .2rem; padding: .5rem .8rem; font-size: 1.1rem; }
+.ergebnis-banner.offen { font-size: .95rem; }
+.aktionen { margin-top: .6rem; }
+.aktionen .gross-knopf { min-height: 3.2rem; }
+@media (max-height: 760px) {
+    .leiste { padding: .35rem 1rem; }
+    .haupt { padding: .6rem; gap: .6rem; }
+    .karte-gross { padding: .7rem 1rem; }
+}
+
+.zeit-abgelaufen { flex-wrap: nowrap; }
+.zeit-abgelaufen .klein { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zeit-abgelaufen button { white-space: nowrap; }
+.hantei-zeilen { gap: .3rem 1.2rem; }
+.haupt > * { min-width: 0; } /* nicht umbrechende Zeilen dürfen die Spalte nicht verbreitern */
+.verwarnung-knoepfe button.gesetzt { border-color: #e0a100; background: #fff4dc; color: #7a4d00; }
+.verwarnung-knoepfe button.gesetzt.eskalation { border-color: var(--aka); background: #fdecec; color: var(--aka-dunkel); }

@@ -1,0 +1,43 @@
+{
+    "name": "wettkampf/karate-turnier",
+    "description": "Taikai – Karate: Turnierverwaltung für Karate-Wettkämpfe (Kata, Kumite, Teams)",
+    "homepage": "https://taikai-karate.de",
+    "type": "project",
+    "license": "AGPL-3.0-or-later",
+    "authors": [
+        {"name": "Robert Göbel", "role": "Urheber"},
+        {"name": "Wolfgang Maier", "role": "Urheber"}
+    ],
+    "require": {
+        "php": ">=8.3",
+        "ext-mbstring": "*",
+        "ext-pdo": "*",
+        "chillerlan/php-qrcode": "^5.0",
+        "phpmailer/phpmailer": "^6.10",
+        "slim/psr7": "^1",
+        "slim/slim": "^4"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "phpstan/phpstan": "^2.3",
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Wettkampf\\": "src/"
+        },
+        "files": ["src/Kern/Http/helpers.php"]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Wettkampf\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "serve": "php -S localhost:8080 -t public public/router.php"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

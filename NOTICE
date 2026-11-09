@@ -1,0 +1,28 @@
+Taikai – Karate (Karate-Wettkampfsoftware) · https://taikai-karate.de
+Copyright (C) 2026 Robert Göbel, Wolfgang Maier
+
+Urheber: Robert Göbel und Wolfgang Maier
+
+Dieses Programm ist freie Software: Sie können es unter den Bedingungen der
+GNU Affero General Public License, wie von der Free Software Foundation
+veröffentlicht, weitergeben und/oder verändern – entweder gemäß Version 3
+der Lizenz oder (nach Ihrer Wahl) jeder späteren Version. Den Lizenztext
+enthält die Datei LICENSE.
+
+Dieses Programm wird in der Hoffnung bereitgestellt, dass es nützlich ist,
+aber OHNE JEDE GEWÄHRLEISTUNG – sogar ohne die implizite Gewährleistung der
+MARKTFÄHIGKEIT oder EIGNUNG FÜR EINEN BESTIMMTEN ZWECK. Einzelheiten stehen
+in der GNU Affero General Public License.
+
+Zusätzliche Bedingung nach Abschnitt 7 Buchstabe b der AGPL-3.0
+(Urhebernennung): Wer dieses Programm oder eine veränderte Fassung
+weitergibt oder Nutzern über ein Netzwerk zur Verfügung stellt, muss die
+Nennung „Robert Göbel und Wolfgang Maier“ als Urheber erhalten – in dieser Datei und
+auf der Seite „Über diese Software“ der Benutzeroberfläche (Adresse /ueber),
+die von jeder Seite der Software aus erreichbar bleiben muss.
+
+Verwendete Bibliotheken stehen unter ihren eigenen Lizenzen (siehe
+vendor/ bzw. die Seite „Über diese Software“).
+
+Die Wertungsregeln folgen der Wettkampfordnung des Deutschen JKA-Karate
+Bund e.V. (DJKB). Die Software ist kein offizielles Produkt des DJKB.

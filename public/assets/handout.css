@@ -1,0 +1,112 @@
+/* Handouts (A4, mit Screenshots) – ergänzt druck.css */
+.handout .blatt { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 10.5pt; line-height: 1.4; }
+.handout h1 { font-size: 20pt; margin: 0 0 1mm; }
+.handout h2 { font-size: 13pt; margin: 5mm 0 2mm; padding-bottom: 1mm; border-bottom: 2px solid #1d2b45; }
+.handout h3 { font-size: 11pt; margin: 3mm 0 1mm; }
+.handout p { margin: 1mm 0 2mm; }
+.handout ul, .handout ol { margin: 1mm 0 2mm; padding-left: 6mm; }
+.handout li { margin: .6mm 0; }
+.ho-kopf { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid #1d2b45; padding-bottom: 2mm; margin-bottom: 3mm; }
+.ho-kopf .ho-art { font-size: 9pt; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #b4182d; }
+.ho-kopf .ho-stand { font-size: 8.5pt; color: #555; text-align: right; }
+.ho-schritt { display: grid; grid-template-columns: 1.35fr 1fr; gap: 4mm; align-items: start; margin: 2mm 0 4mm; break-inside: avoid; }
+.ho-schritt.breit { grid-template-columns: 1fr; }
+.ho-schritt.hoch { grid-template-columns: 52mm 1fr; }
+.ho-schritt.eng { grid-template-columns: 1fr 1.2fr; }
+.ho-bild { margin: 0; break-inside: avoid; }
+.ho-bild img { width: 100%; height: auto; border: 1px solid #9aa3b2; border-radius: 2mm; display: block; }
+.ho-bild figcaption { font-size: 8.5pt; color: #444; margin-top: 1mm; }
+.ho-nr { display: inline-flex; align-items: center; justify-content: center; width: 6.5mm; height: 6.5mm; border-radius: 50%; background: #1d2b45; color: #fff; font-weight: 800; font-size: 10pt; margin-right: 1.5mm; }
+.ho-hinweis { border: 1.5px solid #e0a100; background: #fff8e6; border-radius: 2mm; padding: 2mm 3mm; margin: 2mm 0; break-inside: avoid; }
+.ho-fehler { border: 2px solid #c62828; background: #fdecec; border-radius: 2mm; padding: 2mm 3mm; margin: 2mm 0; break-inside: avoid; }
+.ho-fehler h3, .ho-hinweis h3 { margin-top: 0; }
+.ho-tabelle { width: 100%; border-collapse: collapse; margin: 2mm 0; font-size: 9.5pt; }
+.ho-tabelle th, .ho-tabelle td { border: 1px solid #9aa3b2; padding: 1.5mm 2mm; text-align: left; vertical-align: top; }
+.ho-tabelle th { background: #eef1f5; }
+.ho-knopf { display: inline-block; padding: 0 1.5mm; border: 1px solid #555; border-radius: 1.5mm; background: #f2f4f7; font-weight: 700; font-size: 9pt; white-space: nowrap; }
+@media print {
+    .handout .blatt { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* Flyer (Überblick) */
+.fl h1 { font-size: 22pt; line-height: 1.15; margin: 1mm 0 2mm; color: #1d2b45; }
+.fl h2 { margin-top: 3mm; }
+.fl h2.fl-erste { margin-top: 0; }
+.fl-held { border-bottom: 3px solid #1d2b45; padding-bottom: 3mm; margin-bottom: 4mm; }
+.fl-marke { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0; }
+.fl-marke img { height: 11.5mm; width: auto; }
+.fl-marke span { font-size: 9.5pt; font-weight: 700; letter-spacing: .06em; color: #b4182d; }
+.fl-unterzeile { font-size: 11.5pt; color: #333; margin: 0; }
+.fl-gross img { border-radius: 2.5mm; height: 58mm; object-fit: cover; object-position: top; }
+.fl-ablauf { list-style: none; counter-reset: schritt; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2mm; padding: 0 !important; margin: 4mm 0 2mm !important; }
+.fl-ablauf li { counter-increment: schritt; background: #eef1f5; border-radius: 2mm; padding: 2mm 2.5mm; margin: 0; font-size: 9pt; line-height: 1.3; }
+.fl-ablauf li::before { content: counter(schritt); display: inline-flex; align-items: center; justify-content: center; width: 5.5mm; height: 5.5mm; border-radius: 50%; background: #b4182d; color: #fff; font-weight: 800; font-size: 9pt; margin-right: 1.5mm; }
+.fl-ablauf strong { font-size: 10.5pt; }
+.fl-ablauf span { display: block; margin-top: 1mm; color: #444; }
+.fl-drei { display: grid; grid-template-columns: 1.25fr .8fr 1.25fr; gap: 4mm; align-items: start; }
+.fl-kachel h3 { margin: 2mm 0 1mm; }
+.fl-kachel p { font-size: 9.5pt; margin: 0; }
+.fl-kachel .ho-bild figcaption { display: none; }
+.fl-hoch img { max-height: 50mm; width: auto; max-width: 100%; margin: 0 auto; }
+.fl-fuss { margin-top: 4mm !important; padding-top: 2mm; border-top: 1px solid #c9d0db; font-size: 10pt; color: #333; }
+.fl-zwei { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; align-items: start; }
+.fl-zwei ul { font-size: 9pt; }
+.fl-zwei p { font-size: 9pt; }
+.fl-urkunde { display: grid; grid-template-columns: 27mm 1fr; gap: 3mm; align-items: start; }
+.fl-urkunde .ho-bild figcaption { display: none; }
+.fl-urkunde ul { margin-top: 0; }
+.fl-betrieb { margin: 1mm 0 2mm; font-size: 9.5pt; }
+.fl-betrieb dt { font-weight: 800; color: #1d2b45; }
+.fl-betrieb dd { margin: 0 0 1.5mm; }
+.fl-blick ul { font-size: 9pt; margin-bottom: 0; }
+.fl-kontakt { margin-top: 3mm; padding-top: 2mm; border-top: 1px solid #c9d0db; font-size: 10pt; display: flex; gap: 2mm; }
+.fl-kontakt span { flex: 1; border-bottom: 1px dotted #777; }
+.fl-mitte { margin-top: 2mm; grid-template-columns: 72mm 1fr; }
+.fl-mitte .ho-bild figcaption { display: none; }
+.fl-anmeldung { grid-template-columns: 1.1fr 1fr; }
+.fl .ho-kopf { margin-bottom: 2mm; }
+.fl-seitentitel { font-size: 17pt !important; margin: 0 !important; }
+.fl-formular img { height: 46mm; object-fit: cover; object-position: top; }
+.fl-breit img { height: 44mm; object-fit: cover; object-position: top; }
+.fl-start { font-size: 9.5pt; margin-top: 3mm; }
+.fl-spalten { margin-top: 1mm; }
+.fl-steuerung { grid-template-columns: .6fr 1.2fr 1.2fr; }
+.fl-steuerung p { font-size: 9pt; margin-top: 1.5mm; }
+.fl-steuerung .ho-bild figcaption { display: block; }
+.fl-ehrung { grid-template-columns: .7fr 1fr 1.2fr; }
+.fl-ehrung p { font-size: 9pt; margin-top: 1.5mm; }
+.fl-ehrung .ho-bild + .ho-bild, .fl-zwei .ho-bild + .ho-bild { margin-top: 2mm; }
+.fl-tablets img { height: 40mm; object-fit: cover; object-position: top left; }
+.fl-steuerung .fl-kachel:not(:first-child) img { height: 34mm; object-fit: cover; object-position: top left; }
+.fl-medaillen img { height: 38mm; object-fit: cover; object-position: top; }
+.fl-ehrung .ho-bild:first-child img { max-height: 58mm; width: auto; max-width: 100%; }
+.fl-schmal img { width: 72%; }
+/* Flyer: Baukasten, Rollen, Sicherheit, Notfall */
+.fl-baukasten { border: 2px solid #1d2b45; border-radius: 2.5mm; padding: 2.5mm 3.5mm; margin-top: 4mm; break-inside: avoid; }
+.fl-baukasten h3 { margin: 0 0 1mm; font-size: 12pt; color: #1d2b45; }
+.fl-baukasten p { font-size: 9.5pt; margin: 0 0 1.5mm; }
+.fl-baukasten table, .fl-notfall table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+.fl-baukasten td, .fl-notfall td { padding: 1mm 1.5mm; border-top: 1px solid #d5dbe4; vertical-align: top; }
+.fl-baukasten td:first-child { width: 36mm; white-space: nowrap; }
+.fl-baukasten td:first-child::before { content: "☑ "; color: #1f7a3d; }
+.fl-rolle { display: flex; align-items: baseline; gap: 2.5mm; margin-top: 4mm !important; }
+.fl-rolle span { background: #1d2b45; color: #fff; border-radius: 1.5mm; padding: .6mm 2.5mm; font-size: 10.5pt; }
+.fl-liste2 { columns: 2; column-gap: 6mm; font-size: 9pt; margin-top: 1.5mm !important; }
+.fl-liste2 li { break-inside: avoid; }
+.fl-leitung img { height: 42mm; object-fit: cover; object-position: top left; }
+.fl-ausruf { display: grid; grid-template-columns: 38mm 1fr; gap: 5mm; align-items: start; font-size: 9.5pt; }
+.fl-ausruf .ho-bild figcaption { display: none; }
+.fl-kasten { border-radius: 2.5mm; padding: 2.5mm 4mm; margin: 0 0 3mm; break-inside: avoid; }
+.fl-kasten h2 { border-bottom: 0; padding-bottom: 0; }
+.fl-kasten p, .fl-kasten ul { font-size: 9pt; }
+.fl-kasten li { margin: .3mm 0; }
+.fl-sicher { background: #eef3fb; border: 2px solid #1d2b45; }
+.fl-notfall { background: #fff4f4; border: 2px solid #b4182d; }
+.fl-notfall td:first-child { width: 42mm; }
+.fl-unten3 { display: grid; grid-template-columns: 1.15fr 1fr 44mm; gap: 4mm; align-items: start; }
+.fl-unten3 ul { font-size: 9pt; }
+.fl-spenden { border: 1.5px solid #b4182d; border-radius: 2.5mm; padding: 2mm 3mm; text-align: center; break-inside: avoid; margin-top: 3mm; }
+.fl-spenden h3 { margin: 0 0 1.5mm; color: #b4182d; font-size: 10.5pt; }
+.fl-spenden img { width: 26mm; height: 26mm; image-rendering: pixelated; display: block; margin: 0 auto 1.5mm; }
+.fl-spenden p { margin: 0; font-size: 8.5pt; line-height: 1.3; }
+.fl-urheber { font-size: 8.5pt; color: #555; margin: 2mm 0 0 !important; }

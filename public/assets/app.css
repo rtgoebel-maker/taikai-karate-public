@@ -1,0 +1,601 @@
+/* Wettkampf – Bildschirm-Stylesheet. Druck: siehe druck.css */
+
+:root {
+    --text: #1b2433;
+    --text-leise: #5b6577;
+    --hintergrund: #f3f4f6;
+    --flaeche: #ffffff;
+    --linie: #dde1e7;
+    --primaer: #1d2b45;
+    --primaer-hell: #e8ecf4;
+    --akzent: #b4182d;
+    --aka: #c62828;
+    --aka-hell: #fdecec;
+    --shiro: #f5f5f5;
+    --erfolg: #1f7a3d;
+    --erfolg-hell: #e6f4ea;
+    --warnung: #8a5a00;
+    --warnung-hell: #fff4dc;
+    --fehler: #a11d1d;
+    --fehler-hell: #fdeaea;
+    --radius: 8px;
+    --schatten: 0 1px 2px rgba(16, 24, 40, .06);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    color: var(--text);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--hintergrund); line-height: 1.45; }
+a { color: var(--primaer); }
+h1 { font-size: 1.75rem; margin: 0 0 .75rem; letter-spacing: -.01em; }
+h2 { font-size: 1.25rem; margin: 1.5rem 0 .5rem; }
+h3 { font-size: 1.05rem; margin: 1rem 0 .4rem; }
+code, pre { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .9em; }
+
+/* Kopf und Navigation */
+.kopf {
+    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    background: var(--primaer); color: #fff; padding: .6rem 1.25rem;
+}
+.kopf a { color: #fff; text-decoration: none; }
+.marke { font-weight: 700; letter-spacing: .02em; }
+.kopf-turnier { opacity: .85; }
+.kopf-rechts { margin-left: auto; display: flex; gap: 1rem; align-items: center; }
+.kopf-rechts .link { color: #fff; }
+.menue {
+    display: flex; gap: .25rem; flex-wrap: wrap; padding: .4rem 1.25rem;
+    background: var(--flaeche); border-bottom: 1px solid var(--linie);
+}
+.menue a { padding: .45rem .75rem; border-radius: 6px; text-decoration: none; color: var(--text); }
+.menue a:hover { background: var(--primaer-hell); }
+.menue a.aktiv { background: var(--primaer); color: #fff; }
+.inhalt { padding: 1.25rem; max-width: 1400px; margin: 0 auto; }
+.fuehrung-band { max-width: calc(1400px - 2.5rem); margin: 1rem auto 0; } /* Hinweis „nur lesend“ (Sync, Schritt 9c) */
+@media (max-width: 1440px) { .fuehrung-band { margin: 1rem 1.25rem 0; } }
+.uebergabe-code { font: 700 1.6rem/1.2 ui-monospace, Consolas, monospace; letter-spacing: .08em; }
+
+/* Bausteine */
+.karte {
+    background: var(--flaeche); border: 1px solid var(--linie); border-radius: var(--radius);
+    padding: 1rem 1.25rem; box-shadow: var(--schatten); margin-bottom: 1rem;
+}
+.karte.schmal { max-width: 440px; margin: 8vh auto; }
+.karte.leer { text-align: center; color: var(--text-leise); }
+.karte > h2:first-child, .karte > h3:first-child { margin-top: 0; }
+.raster { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.zwei-spalten { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr; }
+.vorbereitung-rueckblick { margin-top: 1rem; }
+.vorbereitung-rueckblick > summary { cursor: pointer; color: var(--text-leise); font-weight: 600; padding: .4rem 0; }
+.vorbereitung-rueckblick[open] > summary { margin-bottom: .6rem; }
+@media (max-width: 900px) { .zwei-spalten { grid-template-columns: 1fr; } }
+.titelzeile { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; margin-bottom: .75rem; }
+.titelzeile h1 { margin: 0; margin-right: auto; }
+.obertitel { color: var(--akzent); font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .25rem; }
+.klein { font-size: .85rem; color: var(--text-leise); }
+.leise { color: var(--text-leise); }
+.inline { display: inline; }
+.rechts { text-align: right; }
+.nowrap { white-space: nowrap; }
+.zahl { font-variant-numeric: tabular-nums; }
+.fehlertext { white-space: pre-wrap; background: var(--hintergrund); padding: .75rem; border-radius: 6px; }
+
+/* Meldungen */
+.meldung { padding: .7rem 1rem; border-radius: var(--radius); margin-bottom: 1rem; border-left: 4px solid; }
+.meldung-erfolg { background: var(--erfolg-hell); border-color: var(--erfolg); }
+.meldung-fehler { background: var(--fehler-hell); border-color: var(--fehler); }
+.meldung-warnung, .meldung-hinweis { background: var(--warnung-hell); border-color: #e0a100; }
+.hinweisliste { margin: 0; padding-left: 1.2rem; }
+
+/* Knöpfe */
+.knopf, button.knopf {
+    display: inline-flex; align-items: center; justify-content: center; gap: .35rem;
+    padding: .5rem .9rem; border-radius: 6px; border: 1px solid var(--linie);
+    background: var(--flaeche); color: var(--text); font: inherit; font-weight: 600;
+    text-decoration: none; cursor: pointer; white-space: nowrap;
+}
+.knopf:hover { border-color: #b8c0cc; }
+.knopf.primaer { background: var(--primaer); border-color: var(--primaer); color: #fff; }
+.knopf.gefahr { color: var(--fehler); border-color: #e7b9b9; }
+.knopf.klein { padding: .25rem .55rem; font-size: .85rem; }
+.knopf[disabled] { opacity: .5; cursor: not-allowed; }
+button.link { background: none; border: 0; padding: 0; font: inherit; color: var(--primaer); text-decoration: underline; cursor: pointer; }
+.knopfleiste { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+
+/* Formulare */
+.formular { display: grid; gap: .8rem; }
+.formular label, label.feld { display: grid; gap: .25rem; font-weight: 600; font-size: .9rem; }
+.formular .zeile { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+.formular label.check, label.check { display: flex; gap: .5rem; align-items: center; font-weight: 400; }
+input, select, textarea {
+    font: inherit; padding: .45rem .6rem; border: 1px solid #c3cad5; border-radius: 6px;
+    background: #fff; color: var(--text); width: 100%;
+}
+input[type=checkbox], input[type=radio] { width: auto; }
+input:focus, select:focus, textarea:focus { outline: 2px solid #8aa2d0; outline-offset: 1px; }
+fieldset { border: 1px solid var(--linie); border-radius: var(--radius); padding: .75rem 1rem; margin: 0; }
+legend { font-weight: 700; padding: 0 .3rem; }
+.hilfe { font-weight: 400; color: var(--text-leise); font-size: .82rem; }
+
+/* Tabellen */
+.tabelle { width: 100%; border-collapse: collapse; background: var(--flaeche); border: 1px solid var(--linie); border-radius: var(--radius); overflow: hidden; }
+.tabelle th, .tabelle td { padding: .5rem .7rem; text-align: left; border-bottom: 1px solid var(--linie); vertical-align: top; }
+.tabelle th { background: #eef1f5; font-size: .8rem; color: var(--text-leise); font-weight: 700; }
+.tabelle tr:last-child td { border-bottom: 0; }
+.tabelle tr.inaktiv td { color: var(--text-leise); }
+.tabelle tr.inaktiv td:not(:last-child) { text-decoration: line-through; } /* letzte Spalte: Bearbeiten-Bereich lesbar lassen */
+.tabelle-scroll { overflow-x: auto; }
+
+/* Status-Marken */
+.marke-status, .tag {
+    display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .75rem; font-weight: 700;
+    border: 1px solid var(--linie); background: #fff; white-space: nowrap;
+}
+.tag.ok { background: var(--erfolg-hell); border-color: #b5dcc0; color: var(--erfolg); }
+.tag.warn { background: var(--warnung-hell); border-color: #f0d18a; color: var(--warnung); }
+.tag.fehler { background: var(--fehler-hell); border-color: #ecb8b8; color: var(--fehler); }
+.tag.info { background: var(--primaer-hell); border-color: #c9d3e6; color: var(--primaer); }
+.tag.aka { background: var(--aka); color: #fff; border-color: var(--aka); }
+.tag.shiro { background: #fff; color: var(--text); border-color: #999; }
+
+/* Klassenkarten */
+.klassenkarte { border-left: 4px solid var(--primaer); }
+.klassenkarte.warn { border-left-color: #e0a100; }
+.klassenkarte.fehler { border-left-color: var(--fehler); }
+.klassenkarte.zusammengelegt { opacity: .6; }
+.klassenkarte .kopfzeile { display: flex; align-items: baseline; gap: .5rem; }
+.klassenkarte .code { font-size: 1.2rem; font-weight: 800; }
+.klassenkarte .anzahl { margin-left: auto; font-size: 1.4rem; font-weight: 800; }
+
+/* Turnierbaum */
+.baum { display: flex; gap: 1.5rem; overflow-x: auto; padding: .5rem 0 1rem; }
+.baum-runde { display: flex; flex-direction: column; justify-content: space-around; gap: .75rem; min-width: 210px; }
+.baum-runde h4 { margin: 0 0 .25rem; font-size: .8rem; color: var(--text-leise); text-transform: uppercase; letter-spacing: .05em; }
+.paarung { background: var(--flaeche); border: 1px solid var(--linie); border-radius: 6px; font-size: .88rem; }
+.paarung .seite { display: flex; gap: .4rem; align-items: center; padding: .3rem .5rem; min-height: 2rem; }
+.paarung .seite + .seite { border-top: 1px dashed var(--linie); }
+.paarung .seite.aka { border-left: 4px solid var(--aka); }
+.paarung .seite.shiro { border-left: 4px solid #bbb; }
+.paarung .seite.sieger { font-weight: 700; background: var(--erfolg-hell); }
+.paarung .verein { color: var(--text-leise); font-size: .78rem; margin-left: auto; text-align: right; }
+.paarung .nr { color: var(--text-leise); font-size: .72rem; padding: .15rem .5rem; border-bottom: 1px solid var(--linie); display: flex; justify-content: space-between; }
+.paarung.freilos { opacity: .55; }
+.paarung.laeuft { outline: 2px solid #e0a100; }
+
+/* Tatami-Plan */
+.plan { display: grid; gap: .75rem; grid-template-columns: repeat(var(--spalten, 4), minmax(220px, 1fr)); overflow-x: auto; }
+.plan-spalte { background: #e9edf3; border-radius: var(--radius); padding: .5rem; min-height: 200px; }
+.plan-spalte h3 { margin: .2rem .3rem .5rem; display: flex; justify-content: space-between; }
+.plan-karte { background: var(--flaeche); border: 1px solid var(--linie); border-left: 4px solid var(--primaer); border-radius: 6px; padding: .5rem .6rem; margin-bottom: .5rem; cursor: grab; }
+.plan-karte.beendet { opacity: .55; border-left-color: var(--erfolg); }
+.plan-karte.laeuft { border-left-color: #e0a100; }
+.plan-karte.ziehen { opacity: .4; }
+.plan-spalte.ueber { outline: 2px dashed var(--primaer); }
+.plan-karte .titel { font-weight: 700; }
+
+/* Live-/Statusseite */
+.live-kopf { background: var(--primaer); color: #fff; border-radius: var(--radius); padding: 1rem 1.25rem; display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.live-kopf strong { font-size: 1.4rem; }
+.tatami-karte h2 { margin: 0 0 .5rem; display: flex; justify-content: space-between; align-items: center; }
+.aktuell { border: 2px solid #e0a100; border-radius: var(--radius); padding: .6rem .8rem; background: var(--warnung-hell); }
+.aktuell .name { font-weight: 700; }
+.naechste { list-style: none; margin: .5rem 0 0; padding: 0; }
+.naechste li { padding: .35rem 0; border-bottom: 1px solid var(--linie); font-size: .9rem; }
+
+/* Podest */
+.podest td.platz { font-weight: 800; width: 3rem; }
+
+/* Einfach-Layout */
+body.einfach { display: block; }
+
+/* Aushang „Starterlisten & Wettkampfbäume“ (öffentlich) */
+.sl-stand { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.sl-reiter { display: flex; gap: .3rem; border-bottom: 2px solid var(--linie); margin: 1rem 0; }
+.sl-reiter button { background: none; border: 0; padding: .6rem 1rem; font: inherit; font-weight: 700; color: var(--text-leise); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+.sl-reiter button.aktiv { color: var(--primaer); border-bottom-color: var(--akzent); }
+.sl-filter { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; }
+.sl-filter input { max-width: 320px; }
+.sl-filter select { max-width: 220px; }
+.sl-zusammenfassung { font-weight: 700; }
+.sl-aktionen { margin-left: auto; display: flex; gap: .5rem; }
+.sl-index { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
+.sl-chip { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .6rem; border: 1px solid var(--linie); border-radius: 999px; background: var(--flaeche); text-decoration: none; color: var(--text); font-size: .9rem; }
+.sl-chip span { background: var(--primaer-hell); border-radius: 999px; padding: 0 .45rem; font-size: .75rem; font-weight: 700; }
+.sl-chip.aus { opacity: .35; }
+.sl-gruppe { scroll-margin-top: 1rem; }
+.sl-gruppe h2 { margin: 0; font-size: 1.6rem; }
+.sl-gruppe .titelzeile h2 { margin-right: .5rem; }
+.sl-gruppe .titelzeile .sl-gruppe-drucken { margin-left: auto; }
+.sl-disziplin { margin-bottom: .1rem; text-decoration: underline; text-underline-offset: 3px; }
+.sl-regeln { margin: .2rem 0; }
+.sl-phase { margin: 1.2rem 0 .4rem; padding-top: .6rem; border-top: 1px solid var(--linie); }
+.sl-unter { margin: .8rem 0 .4rem; }
+.sl-liste { max-width: 760px; }
+.sl-nr { width: 3.5rem; }
+
+@media print {
+    body.live { background: #fff; }
+    .live .kopf, .live .menue, .sl-reiter, .sl-filter, .sl-index, .sl-neu, .sl-gruppe-drucken, #sl-namen { display: none !important; }
+    .live .inhalt { padding: 0; max-width: none; }
+    .sl-gruppe { break-before: page; border: 0; box-shadow: none; padding: 0; }
+    .sl-gruppe[hidden], body.sl-einzeldruck .sl-gruppe:not(.sl-druckziel) { display: none !important; }
+}
+
+/* Statusseite: Disziplin der laufenden/nächsten Begegnung */
+.disziplin-tag { display: inline-block; padding: .05rem .5rem; border-radius: 999px; font-size: .72rem; font-weight: 700; border: 1px solid; white-space: nowrap; vertical-align: middle; }
+.disziplin-tag.kata { background: #e6f4ea; border-color: #b5dcc0; color: #1f6b38; }
+.disziplin-tag.kumite { background: #fdecec; border-color: #ecb8b8; color: #8e1b1b; }
+.disziplin-tag.team { background: #efe9f8; border-color: #cdbfe6; color: #4b2f7f; }
+.aktuell-kopf { margin-bottom: .3rem; }
+.aktuell-kopf .disziplin-tag { font-size: .85rem; padding: .15rem .65rem; }
+
+/* Online-Anmeldung */
+.anmeldung-inhalt { max-width: 1200px; }
+.anmeldung-inhalt h2 { margin: .2rem 0 .6rem; font-size: 1.15rem; }
+.anmeldung-inhalt section.karte { margin-bottom: 1rem; }
+.unsichtbar { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.mitte { text-align: center; }
+.eingabe-tabelle td { padding: .3rem .35rem; vertical-align: middle; }
+.eingabe-tabelle input:not([type=checkbox]), .eingabe-tabelle select { width: 100%; min-width: 7rem; }
+.eingabe-tabelle input[type=checkbox] { width: 1.3rem; height: 1.3rem; }
+.eingabe-tabelle td.nr { color: var(--text-leise); width: 2rem; }
+fieldset.team { border: 1px solid var(--linie); border-radius: var(--radius); padding: .6rem .9rem .8rem; margin: 0 0 .8rem; display: grid; gap: .6rem; }
+fieldset.team .zeile { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+fieldset.team > button { justify-self: start; }
+.preis-tabelle tfoot th { font-size: 1.05rem; color: var(--text); background: #eef1f5; }
+.knopf.gross { padding: .7rem 1.4rem; font-size: 1.05rem; }
+.bearbeitungslink input { font-family: ui-monospace, monospace; }
+.zahlungshinweis { margin-top: .8rem; }
+.tabelle th.rechts, .tabelle td.rechts { text-align: right; }
+
+.startgeld-liste { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); margin-bottom: .6rem; }
+.startgeld-posten { display: flex; gap: .7rem; align-items: center; padding: .6rem .8rem; border: 1px solid var(--linie); border-radius: var(--radius); background: #f8fafc; }
+.startgeld-betrag { font-size: 1.35rem; font-weight: 800; color: var(--primaer); white-space: nowrap; }
+.eingabe-tabelle td.betrag { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.eingabe-tabelle th .klein { white-space: nowrap; }
+
+/* Turnierphasen */
+.phase-marke { display: inline-block; padding: .1rem .55rem; border-radius: 999px; font-size: .78rem; font-weight: 700; border: 1px solid; text-decoration: none; white-space: nowrap; }
+.kopf .phase-marke { margin-left: .5rem; }
+.phase-marke.phase-vorbereitung, .kopf a.phase-marke.phase-vorbereitung { background: #eef1f5; color: #475569; border-color: #cbd2dc; }
+.phase-marke.phase-meldephase, .kopf a.phase-marke.phase-meldephase { background: #e8f0fe; color: #1d4ed8; border-color: #b6cdfb; }
+.phase-marke.phase-laeuft, .kopf a.phase-marke.phase-laeuft { background: var(--erfolg-hell); color: var(--erfolg); border-color: #b5dcc0; }
+.phase-marke.phase-abgeschlossen, .kopf a.phase-marke.phase-abgeschlossen { background: #f3e8ff; color: #6b21a8; border-color: #dcc2f5; }
+.phasen { margin-bottom: 1rem; }
+.phasen-leiste { list-style: none; display: flex; flex-wrap: wrap; gap: .4rem; padding: 0; margin: 0 0 .8rem; }
+.phasen-leiste li { flex: 1 1 150px; padding: .5rem .7rem; border-radius: var(--radius); background: #eef1f5; color: var(--text-leise); font-weight: 600; }
+.phasen-leiste li .nr { display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: #fff; margin-right: .3rem; font-size: .8rem; }
+.phasen-leiste li.erledigt { background: var(--erfolg-hell); color: var(--erfolg); }
+.phasen-leiste li.aktiv { background: var(--primaer); color: #fff; }
+.phasen-leiste li.uebersprungen { text-decoration: line-through; text-decoration-color: #9aa3b2; }
+.phasen-leiste li.uebersprungen .klein { text-decoration: none; display: inline-block; }
+.phasen-leiste li.aktiv .nr { color: var(--primaer); }
+.phase-knoepfe { display: flex; flex-wrap: wrap; gap: .8rem; align-items: flex-start; }
+.phase-wechsel { display: grid; gap: .5rem; }
+.phase-wechsel .meldung { margin: 0; }
+.phase-wechsel ul { margin: .3rem 0; padding-left: 1.2rem; }
+
+/* Klassen: Besetzung */
+.umschalter { display: inline-flex; gap: .25rem; }
+.umschalter .knopf.aktiv { background: var(--primaer); border-color: var(--primaer); color: #fff; }
+.klassenkarte.leer-klasse { opacity: .6; }
+.klassentabelle tr.faellt-aus td { background: var(--fehler-hell); }
+.klassentabelle tr.leer td { color: var(--text-leise); }
+
+.team-suche input[type=search] { flex: 1 1 260px; }
+[data-team][hidden] { display: none; }
+.ansicht-wahl { border: 1px solid var(--linie); border-radius: var(--radius); padding: .4rem .8rem .6rem; display: grid; gap: .4rem; }
+
+/* Rückmeldung „nicht erschienen“ */
+.kopf a.phase-marke.warn-marke, .phase-marke.warn-marke { background: var(--fehler-hell); color: var(--fehler); border-color: #ecb8b8; }
+.nicht-erschienen { border: 2px solid #ecb8b8; margin-bottom: 1rem; }
+/* Meldung an die Leitung: alle Kata gelaufen – Pause möglich */
+.kopf a.phase-marke.pause-marke, .phase-marke.pause-marke { background: var(--erfolg-hell); color: var(--erfolg); border-color: var(--erfolg); }
+.kata-beendet { border: 2px solid var(--erfolg); background: var(--erfolg-hell); margin-bottom: 1rem; }
+.kata-beendet h2 { margin-top: 0; }
+.nicht-erschienen h2 { display: flex; gap: .5rem; align-items: center; margin-top: 0; }
+.nicht-erschienen td.knopfleiste { gap: .3rem; }
+
+/* Info-Knöpfe (ⓘ) */
+details.info { display: inline-block; position: relative; vertical-align: middle; margin-left: .35rem; font-size: 1rem; font-weight: 400; letter-spacing: 0; text-transform: none; }
+details.info > summary { list-style: none; cursor: pointer; width: 1.25rem; height: 1.25rem; border-radius: 50%; border: 1.5px solid var(--primaer); color: var(--primaer);
+    font: italic 700 .8rem/1.05rem Georgia, serif; text-align: center; user-select: none; }
+details.info > summary::-webkit-details-marker { display: none; }
+details.info[open] > summary, details.info > summary:hover { background: var(--primaer); color: #fff; }
+details.info .info-text { position: absolute; z-index: 30; top: 1.7rem; left: -.6rem; width: min(340px, 80vw); background: #fff; color: var(--text);
+    border: 1px solid var(--linie); border-radius: var(--radius); box-shadow: 0 8px 24px rgba(15, 23, 42, .18); padding: .75rem .9rem; font-size: .88rem; line-height: 1.45; }
+details.info .info-text p { margin: .35rem 0 .5rem; }
+.titelzeile details.info .info-text, h1 details.info .info-text { font-size: .88rem; }
+
+/* Hilfeseite */
+.hilfe-seite { display: grid; grid-template-columns: 240px 1fr; gap: 1.2rem; align-items: start; }
+.hilfe-inhalt { position: sticky; top: 1rem; }
+.hilfe-inhalt ol { padding-left: 1.2rem; margin: .4rem 0 0; line-height: 1.7; font-size: .92rem; }
+.hilfe-abschnitt { scroll-margin-top: 1rem; }
+.hilfe-abschnitt h2 { margin-top: 0; }
+.hilfe-abschnitt:target { box-shadow: 0 0 0 3px #b6cdfb; }
+.hilfe-abschnitt ul, .hilfe-abschnitt ol { padding-left: 1.2rem; line-height: 1.55; }
+.hilfe-abschnitt .wo { font-size: .85rem; color: var(--text-leise); }
+@media (max-width: 860px) { .hilfe-seite { grid-template-columns: 1fr; } .hilfe-inhalt { position: static; } }
+
+/* Logos im Druckcenter */
+fieldset.logos { border: 1px solid var(--linie); border-radius: var(--radius); padding: .5rem .8rem .7rem; display: grid; gap: .6rem; }
+.logo-zeile { display: grid; grid-template-columns: 64px 1fr auto; gap: .7rem; align-items: center; }
+.logo-vorschau { width: 64px; height: 48px; border: 1px dashed var(--linie); border-radius: 6px; display: grid; place-items: center; background: #fff; overflow: hidden; }
+.logo-vorschau img { display: block; max-width: 60px; max-height: 44px; width: auto; height: auto; }
+.raster > .karte-breit { grid-column: span 2; }
+@media (max-width: 860px) { .raster > .karte-breit { grid-column: auto; } }
+
+/* Tatami-Anzeige: jetzt / bereit machen / Aufruf */
+.tatami-anzeige h2 { margin: 0 0 .5rem; display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+.tatami-anzeige .block { border-radius: var(--radius); padding: .55rem .7rem; margin-bottom: .55rem; border: 2px solid var(--linie); }
+.tatami-anzeige .block.jetzt { border-color: #e0a100; background: var(--warnung-hell); }
+.tatami-anzeige .block.bereit { background: #f6f8fb; }
+.tatami-anzeige .block.aufruf { border-color: #b6cdfb; background: #eef4ff; }
+.anzeige-kopf { font-size: .85rem; margin-bottom: .3rem; display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; }
+.antritt.paar { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; margin-top: .3rem; }
+.antritt .seite { border-radius: 8px; padding: .4rem .55rem; display: flex; flex-direction: column; min-width: 0; }
+.antritt .seite.aka { background: var(--aka); color: #fff; }
+.antritt .seite.shiro { background: #fff; color: var(--text); border: 2px solid #9aa3b2; }
+.antritt .kennung { font-size: .68rem; font-weight: 800; letter-spacing: .08em; opacity: .9; }
+.antritt .name { font-weight: 800; font-size: 1.05rem; overflow-wrap: anywhere; }
+.antritt .verein { font-size: .78rem; opacity: .85; }
+.antritt.einzel { display: flex; flex-direction: column; margin-top: .2rem; }
+.aufruf-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: .2rem; }
+.aufruf-liste .name { font-weight: 700; }
+.aufruf-liste li.fehlt .name { color: var(--fehler); }
+.aka-text { color: var(--aka); }
+/* Vollbild an der Matte */
+.tatami-anzeige.vollbild { max-width: 1400px; margin: 0 auto; font-size: 1.4rem; }
+.tatami-anzeige.vollbild h2 { font-size: 2.6rem; }
+.tatami-anzeige.vollbild .anzeige-kopf { font-size: 1.3rem; }
+.tatami-anzeige.vollbild .antritt .name { font-size: 2.6rem; }
+.tatami-anzeige.vollbild .antritt .verein { font-size: 1.1rem; }
+.tatami-anzeige.vollbild .antritt .kennung { font-size: 1rem; }
+.tatami-anzeige.vollbild .antritt .seite { padding: .8rem 1.1rem; }
+.tatami-anzeige.vollbild .block.bereit .antritt .name { font-size: 1.9rem; }
+.tatami-anzeige.vollbild .aufruf-liste { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); font-size: 1.3rem; }
+
+/* Statusseite: alle Tatamis nebeneinander (bei vielen Tatamis seitlich scrollen) */
+.tatami-reihe-rahmen { overflow-x: auto; padding-bottom: .3rem; }
+.tatami-reihe { display: grid; gap: .8rem; grid-template-columns: repeat(var(--tatamis), minmax(250px, 1fr)); align-items: start; }
+.tatami-reihe .tatami-karte { min-width: 0; padding: .8rem; }
+.tatami-reihe .antritt .name { font-size: .98rem; }
+@media (max-width: 700px) { .tatami-reihe { grid-template-columns: 1fr; } }
+.folge-gruppe { border: 1px dashed var(--linie); border-radius: var(--radius); padding: .45rem .6rem; font-size: .88rem; margin-bottom: .5rem; background: #fafbfc; }
+body.live .inhalt { max-width: 1800px; }
+
+/* Feedback (Liste der Leitung) */
+.zaehler { display: inline-block; min-width: 1.3em; padding: 0 .35em; border-radius: 999px; background: #fff; color: var(--primaer); font-size: .75rem; font-weight: 700; text-align: center; line-height: 1.4; }
+.kopfzeile-karte { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
+.kopfzeile-karte h1 { margin-top: 0; font-size: 1.3rem; }
+.feedback-liste .filter { margin: .6rem 0; align-items: center; }
+.feedback-liste .filter select { width: auto; min-width: 180px; }
+.feedback-liste td { vertical-align: top; }
+.fb-beschreibung { margin-bottom: .2rem; }
+.fb-vorschau { width: 130px; border: 1px solid var(--linie); border-radius: 4px; display: block; }
+.fb-notiz { width: 100%; margin-top: .35rem; font: inherit; font-size: .9rem; }
+.fb-zeile { display: flex; justify-content: space-between; align-items: center; margin-top: .2rem; }
+button.link.gefahr { color: var(--fehler); }
+.tag.fb-art-fehler { background: var(--fehler-hell); border-color: #ecb8b8; color: var(--fehler); }
+.tag.fb-art-vorschlag { background: var(--primaer-hell); border-color: #c9d3e6; color: var(--primaer); }
+.tag.fb-art-frage { background: var(--warnung-hell); border-color: #f0d18a; color: var(--warnung); }
+
+/* Statusseite: Logos des Ausrichters (Systemeinstellungen) auf heller Fläche in der Kopfzeile */
+.live-logos { display: inline-flex; gap: .4rem; align-items: center; background: #fff; border-radius: 6px; padding: .2rem .4rem; margin-right: .3rem; }
+.live-logos img { height: 34px; width: auto; max-width: 110px; object-fit: contain; display: block; }
+
+/* Systemeinstellungen: Farbwahl */
+.system-formular { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+.system-formular .system-speichern { grid-column: 1 / -1; }
+.system-raster { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; margin-top: 1rem; }
+.system-raster > .karte { margin: 0; }
+@media (max-width: 1000px) { .system-formular, .system-raster { grid-template-columns: 1fr; } }
+.system-formular > .karte { margin: 0; }
+.farbwahl { display: flex; flex-wrap: wrap; gap: .5rem; }
+.formular .farbfeld, .farbfeld { display: inline-flex; align-items: center; gap: .45rem; font-weight: 400; font-size: .95rem; border: 1px solid var(--linie); border-radius: 8px; padding: .45rem .7rem; cursor: pointer; background: var(--flaeche); }
+.farbfeld:has(input:checked) { border-color: var(--primaer); box-shadow: 0 0 0 2px var(--primaer-hell); font-weight: 600; }
+.farbmuster { width: 1.4rem; height: 1.4rem; border-radius: 4px; display: inline-block; }
+.farbfeld input[type="radio"] { margin: 0; }
+.farbfeld input[type="color"] { width: 2.2rem; height: 1.6rem; padding: 0; border: 0; background: none; }
+.unterbrochen-hinweis { display: inline-block; margin: .3rem 0; padding: .15rem .55rem; border-radius: 4px; background: var(--fehler-hell); color: var(--fehler); font-weight: 700; font-size: .85rem; }
+
+/* Tatami-Plan: Verteilung, Nachrichten, Sperre */
+.steuerung { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); margin-bottom: 1rem; }
+.steuerung > .karte { margin: 0; }
+.nachrichten-liste td { vertical-align: top; }
+.plan-spalte.gesperrt { background: repeating-linear-gradient(135deg, #f1f3f6, #f1f3f6 10px, #e6e9ee 10px, #e6e9ee 20px); }
+.sperre { margin: 0 .3rem .6rem; }
+.sperre details input { width: 100%; margin: .3rem 0; }
+.sperr-hinweis { font-size: .8rem; font-weight: 700; color: var(--fehler); margin-bottom: .3rem; }
+
+/* Statusseite nur mit Tatamis (Starterlisten/Ergebnisse ausgeblendet): weniger Rand, mehr Inhalt */
+body.live.nur-tatamis .inhalt { padding: .8rem 1rem; max-width: none; }
+
+/* Statusseite: pulsierender Punkt neben „live“ (grau ohne Verbindung) */
+.live-anzeige { display: inline-flex; align-items: center; gap: .45rem; font-weight: 700; letter-spacing: .03em; }
+.live-punkt { position: relative; width: .7rem; height: .7rem; border-radius: 50%; background: #ef4444; box-shadow: 0 0 0 0 rgba(239, 68, 68, .7); animation: live-puls 1.6s ease-out infinite; }
+.live-anzeige.weg .live-punkt { background: #9aa3b2; animation: none; box-shadow: none; }
+@keyframes live-puls {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, .7); }
+    70% { box-shadow: 0 0 0 .55rem rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+@media (prefers-reduced-motion: reduce) { .live-punkt { animation: none; } }
+
+/* Tatami-Plan: beendete Gruppen je Spalte eingeklappt */
+.beendete-gruppen { margin: 0 .3rem .6rem; }
+.beendete-gruppen summary { cursor: pointer; font-size: .85rem; font-weight: 600; color: var(--erfolg); padding: .3rem .4rem; border-radius: 6px; background: var(--erfolg-hell); }
+.beendete-gruppen[open] summary { margin-bottom: .4rem; }
+.beendete-gruppen .plan-karte { cursor: default; }
+
+/* Statusseite: Stand des laufenden Ausrufs einer Gruppe */
+.ausruf-stand { margin: .5rem 0; padding: .5rem .7rem; border-radius: 8px; background: var(--warnung-hell); border: 1px solid #e0a100; font-size: .95rem; }
+.ausruf-stand.fertig { background: var(--erfolg-hell); border-color: var(--erfolg); }
+
+/* Coaching-Portal */
+.coach-reiter { display: flex; flex-wrap: wrap; gap: .3rem; border-bottom: 2px solid var(--linie); margin: 1rem 0; }
+.coach-reiter a { padding: .6rem 1rem; font-weight: 700; color: var(--text-leise); text-decoration: none; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+.coach-reiter a.aktiv { color: var(--primaer); border-bottom-color: var(--akzent); }
+.coach-bald { background: var(--warnung-hell); }
+.coach-jetzt { color: var(--aka-dunkel, #9b1c1c); }
+.antrag { border-bottom: 1px solid var(--linie); padding: .6rem 0; display: grid; gap: .2rem; }
+.antrag:last-child { border-bottom: 0; }
+.antrag-antwort { background: var(--erfolg-hell); border-radius: 8px; padding: .3rem .6rem; }
+.antrag-leitung { display: grid; gap: .3rem; }
+
+/* Schmale Bildschirme (Handy): Kopfzeile umbrechen, Tabellen waagerecht scrollbar statt abgeschnitten */
+@media (max-width: 700px) {
+    .kopf { padding: .5rem .8rem; gap: .4rem .8rem; }
+    .kopf-rechts { margin-left: 0; width: 100%; flex-wrap: wrap; gap: .35rem 1rem; font-size: .95rem; }
+    .menue { padding: .35rem .6rem; }
+    .menue a { padding: .4rem .55rem; }
+    .inhalt { padding: .8rem; }
+    .inhalt .tabelle { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .inhalt .tabelle th, .inhalt .tabelle td { padding: .45rem .55rem; }
+    .titelzeile h1 { font-size: 1.5rem; }
+}
+/* Fußzeile und „Über diese Software“ */
+.fuss-zeile { max-width: 1400px; margin: 1.5rem auto 1rem; padding: .75rem 1.25rem 0; border-top: 1px solid var(--linie, #d5dbe4); font-size: .8rem; color: var(--text-leise); text-align: center; }
+.fuss-zeile a { color: inherit; }
+body.einfach .fuss-zeile { border-top: 0; }
+.markdown h1 { margin-top: 0; }
+.markdown h2 { margin-top: 2rem; padding-top: .5rem; border-top: 1px solid var(--linie, #d5dbe4); }
+.markdown h3 { margin: 1.2rem 0 .4rem; font-size: 1rem; }
+.markdown li { margin: .25rem 0; }
+.markdown code { font-size: .9em; background: #eef1f5; padding: 0 .25rem; border-radius: 4px; }
+.lizenztext { white-space: pre-wrap; font-size: .8rem; line-height: 1.45; max-width: 80ch; }
+.spenden { display: flex; gap: 1.5rem; align-items: center; border-left: 4px solid var(--akzent); }
+.spenden > div { flex: 1; }
+.spenden-qr { margin: 0; text-align: center; font-size: .75rem; color: var(--text-leise); }
+.spenden-qr img { display: block; width: 152px; height: 152px; image-rendering: pixelated; }
+@media (max-width: 640px) { .spenden { flex-direction: column; align-items: flex-start; } }
+
+/* Bearbeitungsstand einer Online-Anmeldung (teile/anmeldestand) */
+.anmeldestand { list-style: none; margin: .5rem 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: .5rem; }
+.anmeldestand .schritt { display: grid; grid-template-columns: 1.8rem 1fr; column-gap: .4rem; padding: .55rem .7rem; border: 1px solid var(--rand, #d8dde6); border-radius: 8px; background: #fff; }
+.anmeldestand .zeichen { grid-row: span 3; display: inline-flex; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; font-weight: 700; border: 2px solid currentColor; }
+.anmeldestand .titel { font-weight: 600; }
+.anmeldestand .datum, .anmeldestand .text { font-size: .85rem; color: var(--leise, #5b6475); }
+.anmeldestand .erledigt .zeichen { color: var(--erfolg); background: var(--erfolg-hell); }
+.anmeldestand .aktiv { border-color: var(--warnung); background: var(--warnung-hell); }
+.anmeldestand .aktiv .zeichen { color: var(--warnung); }
+.anmeldestand .offen .zeichen, .anmeldestand .entfaellt .zeichen { color: #9aa3b2; }
+.anmeldestand .entfaellt { opacity: .6; }
+.anmeldestand .abgelehnt { border-color: var(--fehler); background: var(--fehler-hell); }
+.anmeldestand .abgelehnt .zeichen { color: var(--fehler); }
+
+/* Spam-Falle der öffentlichen Formulare (Kern\BotSchutz): für Menschen unsichtbar, Bots füllen sie aus */
+.bs-falle { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+/* Online-Anmeldung: Felder für den Dojo-Zugang nur bei Haken „Zugang anlegen“ */
+.formular:has(input[name="konto_anlegen"]:not(:checked)) .konto-felder { display: none; }
+/* Eingabefeld mit Knopf daneben (z. B. „Adresse dieser Seite übernehmen“) */
+.zeile-knopf { display: flex; gap: .5rem; align-items: stretch; }
+.zeile-knopf input { flex: 1; }
+
+/* Einrichtungs-Assistent: Schrittleiste und Fußleiste */
+.assistent-schritte { list-style: none; display: flex; flex-wrap: wrap; gap: .4rem; margin: .8rem 0; padding: 0; }
+.assistent-schritte li a { display: flex; align-items: center; gap: .45rem; padding: .35rem .7rem .35rem .4rem; border: 1px solid #d8dde6; border-radius: 999px; background: #fff; text-decoration: none; color: inherit; font-size: .92rem; }
+.assistent-schritte .nr { display: inline-flex; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: #e7eaf0; font-weight: 700; font-size: .85rem; }
+.assistent-schritte .erledigt .nr { background: var(--erfolg-hell); color: var(--erfolg); }
+.assistent-schritte .entfaellt a { opacity: .6; }
+.assistent-schritte .hier a { border-color: var(--primaer); box-shadow: 0 0 0 2px var(--primaer-hell); font-weight: 700; }
+.assistent-schritte .hier .nr { background: var(--primaer); color: #fff; }
+.assistent-fuss { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-top: 1rem; padding-top: .8rem; border-top: 1px solid #e7eaf0; }
+/* Bereich für endgültiges Löschen (Konten) */
+.gefahrzone { margin-top: .8rem; padding: .7rem .8rem; border: 1px solid #ecb8b8; border-radius: var(--radius); background: var(--fehler-hell); }
+
+/* Marke Taikai – Karate: Zeichen in der Kopfzeile, Logo über schlichten Seiten und auf „Über“ */
+.kopf .marke { display: inline-flex; align-items: center; gap: .45rem; text-decoration: none; }
+.kopf .marke img { display: block; }
+.einfach-logo { text-align: center; margin: 1.5rem 0 0; }
+.einfach-logo img { width: 225px; height: auto; }
+.ueber-titel img { width: 300px; max-width: 100%; height: auto; display: block; }
+/* Druckcenter: festes Raster mit drei gleich breiten Spalten, alles fluchtet */
+.druck-raster { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; align-items: stretch; }
+.druck-raster > .karte { margin: 0; }
+.druck-raster .spalten-2 { grid-column: span 2; }
+.druck-raster .spalten-3 { grid-column: 1 / -1; }
+.klassen-auswahl { max-height: 230px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0 1rem; padding: .4rem .6rem; border: 1px solid var(--linie); border-radius: 6px; background: #fbfcfd; }
+.knopf-stapel { display: flex; flex-direction: column; align-items: stretch; gap: .5rem; }
+.knopf-stapel .knopf { text-align: left; }
+.tabelle.kompakt td { padding: .35rem .4rem; vertical-align: middle; }
+.urkunden-gestalten > summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: .8rem; }
+.urkunden-gestalten > summary::-webkit-details-marker { display: none; }
+.urkunden-gestalten > summary h2 { margin: 0; }
+.urkunden-gestalten > summary::before { content: "▸"; font-size: 1.1rem; }
+.urkunden-gestalten[open] > summary::before { content: "▾"; }
+.urkunden-gestalten[open] > summary { margin-bottom: .8rem; }
+.urkunden-spalten { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; align-items: start; }
+@media (max-width: 1000px) { .druck-raster { grid-template-columns: 1fr 1fr; } .druck-raster .spalten-2 { grid-column: 1 / -1; } }
+@media (max-width: 700px) { .druck-raster, .urkunden-spalten { grid-template-columns: 1fr; } }
+/* Systemseite: Abschnitt Demo-Turniere (Schalter und Anlegen zusammen) */
+.demo-schalter { align-items: center; }
+.demo-anlegen { margin-top: .8rem; padding-top: .8rem; border-top: 1px solid #e7eaf0; }
+.demo-anlegen h3 { margin: 0; }
+
+/* Hallen-Laptop: Ablauf in drei Schritten (wo – was – wie) */
+.halle-ablauf { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; margin: 1rem 0; padding: 0; counter-reset: schritt; }
+.halle-ablauf li { counter-increment: schritt; display: flex; flex-direction: column; gap: .2rem; padding: .7rem .9rem; background: #fff; border: 1px solid var(--linie); border-radius: var(--radius); }
+.halle-ablauf li strong::before { content: counter(schritt) ". "; }
+.halle-ablauf .wo { align-self: flex-start; font-size: .75rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: .1rem .5rem; border-radius: 999px; background: var(--primaer-hell); color: var(--primaer); }
+.halle-ablauf li span:last-child { font-size: .9rem; color: var(--text-leise); }
+.halle-abschnitt { margin-top: 1.6rem; }
+@media (max-width: 800px) { .halle-ablauf { grid-template-columns: 1fr; } }
+/* E-Mail-Versand: Werkzeuge, Warteschlange, Diagnose */
+.mail-werkzeuge { margin-top: .6rem; }
+.mail-warteschlange { margin-top: .8rem; }
+.mail-warteschlange > summary { cursor: pointer; font-weight: 600; }
+.diagnose { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.diagnose li { display: grid; grid-template-columns: 1.8rem 1fr; gap: .5rem; padding: .55rem .7rem; border: 1px solid var(--linie); border-radius: 8px; }
+.diagnose .zeichen { display: inline-flex; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; font-weight: 700; }
+.diagnose .ok .zeichen { background: var(--erfolg-hell); color: var(--erfolg); }
+.diagnose .fehler { border-color: #ecb8b8; background: var(--fehler-hell); }
+.diagnose .fehler .zeichen { background: #fff; color: var(--fehler); }
+.diagnose .hinweis .zeichen { background: var(--warnung-hell); color: var(--warnung); }
+pre.protokoll { max-height: 360px; overflow: auto; background: #0f172a; color: #e2e8f0; padding: .8rem; border-radius: 8px; font-size: .8rem; white-space: pre-wrap; word-break: break-all; }
+/* Druckcenter: Vorschau des Urkunden-Hintergrunds hochkant (A4) */
+.logo-vorschau.hochkant { width: 64px; height: 90px; }
+.logo-vorschau.hochkant img { max-width: 62px; max-height: 88px; }
+/* Anmeldecode (zweiter Faktor) */
+.code-eingabe { font-size: 1.6rem; letter-spacing: .3em; text-align: center; font-variant-numeric: tabular-nums; }
+
+/* Geräte-Kopplung (QR-Code mit Freigabe) */
+.pruefwort { font: 700 3rem/1.1 ui-monospace, Consolas, monospace; letter-spacing: .12em; text-align: center; margin: 1rem 0; padding: .6rem; border: 2px dashed var(--linie); border-radius: 10px; }
+.pruefwort.klein { font-size: 1.15rem; margin: 0; padding: .1rem .4rem; border-width: 1px; display: inline-block; }
+.karte-hinweis { border-left: 4px solid #e0a100; }
+.qr-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+.qr-tatami { border: 1px solid var(--linie); border-radius: 10px; padding: .8rem; }
+.qr-tatami h3 { margin: 0 0 .5rem; }
+.qr-paar { display: flex; gap: .8rem; flex-wrap: wrap; }
+.qr-paar figure { margin: 0; flex: 1 1 120px; text-align: center; }
+.qr-paar svg.qr-code { width: 100%; max-width: 180px; height: auto; background: #fff; }
+.qr-paar figcaption { font-weight: 600; }
+.qr-paar .qr-link { font-weight: 400; margin-left: .3rem; }
+
+/* Authenticator-App */
+.app-qr { margin: .6rem 0; }
+.app-qr svg.qr-code { width: 200px; height: 200px; background: #fff; }
+.schluessel { font-size: 1rem; letter-spacing: .05em; user-select: all; }
+.wiederherstellung { columns: 2; list-style: none; padding: 0; font-size: 1.15rem; }
+.wiederherstellung li { padding: .2rem 0; }
+.einrichten-schritte li { margin-bottom: .6rem; }
+
+/* Seitenkopf mit Aktion rechts (z. B. Konten: „+ Neues Konto“) */
+.seitenkopf { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.neues-konto > summary { cursor: pointer; list-style: none; }
+.neues-konto > summary::-webkit-details-marker { display: none; }
+.neues-konto > summary h2 { display: inline; margin: 0; }
+.neues-konto > summary::after { content: ' ▾'; color: var(--text-leise); }
+.neues-konto[open] > summary { margin-bottom: .8rem; }
+.neues-konto:not([open]) { padding-top: .7rem; padding-bottom: .7rem; }
+.suche-konten { display: block; max-width: 360px; margin: .8rem 0 .5rem; }
+
+/* Vereine */
+ul.schlicht { list-style: none; padding: 0; margin: 0 0 .8rem; }
+ul.schlicht li { padding: .25rem 0; border-bottom: 1px solid var(--linie); }
+ul.schlicht li:last-child { border-bottom: 0; }
+.doppelt-liste { margin: 0; padding-left: 1.1rem; }
+.doppelt-liste li { margin: .35rem 0; }
+.verein-bearbeiten > summary { cursor: pointer; color: var(--text-leise); display: inline-block; margin-top: .15rem; }
+.verein-bearbeiten[open] input { margin-top: .3rem; width: 100%; }

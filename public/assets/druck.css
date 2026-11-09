@@ -1,0 +1,218 @@
+/* Druck-Layout: A4, schwarz-weiß-tauglich. Wird auch am Bildschirm als Vorschau genutzt. */
+
+@page { size: A4 portrait; margin: 12mm 10mm 14mm; }
+@page quer { size: A4 landscape; margin: 10mm; }
+
+:root { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #000; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #e5e7eb; }
+.blatt { background: #fff; width: 210mm; min-height: 297mm; margin: 8mm auto; padding: 12mm 10mm; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+.blatt.quer { width: 297mm; min-height: 210mm; page: quer; }
+.werkzeug { position: sticky; top: 0; background: #1d2b45; color: #fff; padding: .5rem 1rem; display: flex; gap: 1rem; align-items: center; z-index: 5; font-family: system-ui, sans-serif; }
+.werkzeug button, .werkzeug a { background: #fff; color: #1d2b45; border: 0; border-radius: 4px; padding: .35rem .8rem; font-weight: 700; cursor: pointer; text-decoration: none; font-size: 10pt; }
+
+@media print {
+    body { background: #fff; }
+    .werkzeug { display: none; }
+    .blatt { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
+    .blatt + .blatt { break-before: page; }
+}
+
+.kopf { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #000; padding-bottom: 2mm; margin-bottom: 4mm; }
+.kopf h1 { font-size: 15pt; margin: 0; }
+.kopf .rechts { text-align: right; font-size: 9pt; }
+h2 { font-size: 12pt; margin: 4mm 0 2mm; }
+h3 { font-size: 10.5pt; margin: 3mm 0 1.5mm; }
+.klein { font-size: 8pt; }
+.leise { color: #444; }
+.zahl { font-variant-numeric: tabular-nums; }
+.keinumbruch { break-inside: avoid; }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { border: 1px solid #000; padding: 1.2mm 1.5mm; text-align: left; vertical-align: top; }
+th { background: #eee; font-size: 8.5pt; }
+td.feld { height: 8mm; }
+.kasten { display: inline-block; width: 4.5mm; height: 4.5mm; border: 1px solid #000; vertical-align: middle; margin-right: 1mm; }
+.unterschrift { margin-top: 8mm; display: flex; gap: 10mm; }
+.unterschrift div { flex: 1; border-top: 1px solid #000; padding-top: 1mm; font-size: 8pt; }
+
+/* AKA/SHIRO ohne Farbe unterscheidbar: AKA mit dickem Rand und Kennung */
+.aka-kennung { font-weight: 700; border: 2px solid #000; padding: 0 1.2mm; font-size: 8pt; }
+.shiro-kennung { font-weight: 700; border: 1px dashed #000; padding: 0 1.2mm; font-size: 8pt; }
+
+/* Kampfliste */
+.kampf { border: 1.5px solid #000; margin-bottom: 3mm; break-inside: avoid; }
+.kampf .kampfkopf { display: flex; justify-content: space-between; background: #eee; border-bottom: 1px solid #000; padding: 1mm 2mm; font-weight: 700; }
+.kampf table { border: 0; }
+.kampf td, .kampf th { border-left: 0; border-right: 1px solid #000; }
+.kampf tr:last-child td { border-bottom: 0; }
+.kampf td:last-child, .kampf th:last-child { border-right: 0; }
+.kampf .name { font-weight: 700; font-size: 10.5pt; }
+.kampf .seite-aka td:first-child { border-left: 4px solid #000; }
+.kampf .seite-shiro td:first-child { border-left: 4px double #888; }
+
+/* Turnierbaum */
+.baum { display: flex; gap: 4mm; }
+.baum-runde { display: flex; flex-direction: column; justify-content: space-around; gap: 2mm; flex: 1; min-width: 0; }
+.baum-runde h4 { margin: 0 0 1mm; font-size: 8pt; text-transform: uppercase; }
+.paarung { border: 1px solid #000; font-size: 8.5pt; break-inside: avoid; }
+.paarung .nr { font-size: 7pt; border-bottom: 1px solid #000; padding: .3mm 1mm; display: flex; justify-content: space-between; }
+.paarung .seite { padding: .8mm 1mm; min-height: 6mm; display: flex; gap: 1mm; align-items: center; }
+.paarung .seite + .seite { border-top: 1px dashed #000; }
+.paarung .seite.aka { border-left: 3px solid #000; }
+.paarung .seite.sieger { font-weight: 700; text-decoration: underline; }
+.paarung .verein { font-size: 7pt; margin-left: auto; text-align: right; color: #333; }
+.paarung.freilos { color: #777; }
+
+.podest td.platz { width: 12mm; font-weight: 700; text-align: center; }
+
+/* Anmeldung */
+.bildschirm-meldung { max-width: 210mm; margin: 6mm auto 0; padding: 3mm 4mm; background: #e6f4ea; border-left: 4px solid #1f7a3d; font-family: system-ui, sans-serif; }
+.angaben th { width: 18%; }
+.preis tfoot th { font-size: 11pt; }
+.rechts { text-align: right; }
+.hinweis { border: 1px solid #000; padding: 2mm 3mm; margin-top: 3mm; }
+@media print { .bildschirm-meldung { display: none; } }
+
+/* --- Urkunden (A4 hoch, farbecht, auch schwarz-weiß lesbar) ------------------------- */
+@page urkunde { size: A4 portrait; margin: 10mm; }
+.blatt.urkunde { page: urkunde; padding: 10mm; display: flex; position: relative; --farbe: #b08d1e; --hell: #f6ecc8; --dunkel: #7a5f0c; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.blatt.urkunde.silber { --farbe: #7d8894; --hell: #eceff2; --dunkel: #4f5965; }
+.blatt.urkunde.bronze { --farbe: #a8652f; --hell: #f3e3d4; --dunkel: #6e3d16; }
+.u-rahmen { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; overflow: hidden;
+    border: 2.5mm double var(--farbe); outline: .4mm solid var(--farbe); outline-offset: -5mm; padding: 16mm 14mm 12mm; font-family: Georgia, "Palatino Linotype", "Book Antiqua", serif; }
+/* Wasserzeichen zwischen Logo-Zeile und Unterschriften, damit die Logos es nicht verdecken */
+.u-wasserzeichen { position: absolute; top: 44mm; bottom: 26mm; left: 0; right: 0; display: grid; place-items: center; font-family: "Yu Mincho", "MS Mincho", "Noto Serif CJK JP", serif;
+    font-size: 92mm; line-height: 1; color: var(--dunkel); opacity: .13; writing-mode: vertical-rl; pointer-events: none; }
+.u-kopf, .u-titel, .u-text, .u-name, .u-verein, .u-platz, .u-klasse, .u-disziplin, .u-fuss { position: relative; }
+.u-untertitel { font-size: 11pt; letter-spacing: .12em; text-transform: uppercase; color: #333; }
+.u-turnier { font-size: 17pt; font-weight: 700; margin-top: 2mm; }
+.u-titel { font-size: 46pt; font-weight: 400; letter-spacing: .32em; text-transform: uppercase; margin: 12mm 0 8mm; padding-left: .32em; color: var(--farbe);
+    border-top: .4mm solid var(--farbe); border-bottom: .4mm solid var(--farbe); padding-top: 2mm; padding-bottom: 2mm; }
+.u-text { font-style: italic; font-size: 13pt; margin: 4mm 0 2mm; color: #333; }
+.u-name { font-size: 30pt; font-weight: 700; line-height: 1.15; margin-top: 1mm; }
+.u-verein { font-size: 13pt; margin-top: 2mm; color: #333; }
+.u-platz { display: flex; align-items: center; gap: 5mm; margin: 3mm 0 1mm; }
+.u-medaille { width: 32mm; height: 32mm; border-radius: 50%; display: grid; place-items: center; border: 1.2mm solid var(--farbe); flex: none;
+    background: radial-gradient(circle at 35% 30%, #fff 0, var(--hell) 45%, var(--farbe) 100%); box-shadow: inset 0 0 0 1.5mm rgba(255, 255, 255, .55), 0 0 0 .5mm var(--dunkel); }
+.u-ziffer { position: relative; font-family: Cambria, "Palatino Linotype", "Book Antiqua", "Times New Roman", serif; font-variant-numeric: lining-nums; font-feature-settings: "lnum" 1;
+    font-size: 36pt; font-weight: 700; line-height: 1; color: var(--dunkel); text-shadow: 0 .3mm 0 rgba(255, 255, 255, .7); transform: translateY(.04em); }
+.u-ziffer .u-punkt { position: absolute; left: 100%; bottom: 0; }
+.u-platz-text { font-size: 32pt; font-weight: 700; letter-spacing: .05em; }
+.u-klasse { font-size: 16pt; font-weight: 700; margin-top: 1mm; max-width: 165mm; text-wrap: balance; }
+.u-disziplin { font-size: 11pt; color: #444; margin-top: 1.5mm; }
+.u-fuss { margin-top: auto; width: 100%; }
+.u-ort { font-size: 11pt; margin-bottom: 20mm; }
+.u-unterschriften { display: flex; justify-content: space-between; gap: 20mm; }
+.u-unterschriften div { flex: 1; border-top: .3mm solid #000; padding-top: 1.5mm; font-size: 10pt; position: relative; }
+/* Unterschrift als Bild: sitzt auf der Linie */
+.u-unterschrift { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); max-height: 18mm; max-width: 70mm; margin-bottom: -2mm; visibility: visible; mix-blend-mode: multiply; /* weißer Hintergrund eines Scans wird durchsichtig */ }
+/* Logos: Verband mittig, Verein links, Dojo rechts */
+.u-logos { position: relative; width: 100%; display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; margin: -6mm 0 5mm; height: 26mm; }
+.u-logo { display: flex; align-items: center; height: 26mm; min-width: 0; }
+.u-logo.links { justify-content: flex-start; }
+.u-logo.mitte { justify-content: center; }
+.u-logo.rechts { justify-content: flex-end; }
+.u-logo img { display: block; max-height: 26mm; max-width: 46mm; width: auto; height: auto; object-fit: contain; mix-blend-mode: multiply; }
+.u-logo.mitte img { max-width: 56mm; }
+.blatt.urkunde:has(.u-logos) .u-titel { margin-top: 7mm; margin-bottom: 6mm; }
+/* Eigenes Hintergrundbild: füllt die Urkunde, ersetzt Rahmen und Wasserzeichen; der Inhalt liegt darüber */
+.u-hintergrund { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+.blatt.urkunde.mit-hintergrund .u-rahmen { border-color: transparent; outline-color: transparent; z-index: 1; }
+.blatt.urkunde.mit-hintergrund .u-wasserzeichen { display: none; }
+/* Vordruck: nur der Text an derselben Stelle, ohne Rahmen, Titel und Schmuck */
+.blatt.urkunde.vordruck .u-rahmen { border-color: transparent; outline-color: transparent; }
+.blatt.urkunde.vordruck .u-wasserzeichen, .blatt.urkunde.vordruck .u-kopf, .blatt.urkunde.vordruck .u-logos, .blatt.urkunde.vordruck .u-unterschriften div { visibility: hidden; }
+.blatt.urkunde.vordruck .u-titel { visibility: hidden; }
+.blatt.urkunde.vordruck .u-medaille { border-color: transparent; background: none; box-shadow: none; }
+@media print {
+    .blatt.urkunde { height: 277mm; padding: 0; }
+}
+
+/* Feld „Tatami“ zum Eintragen von Hand (Notfall-Satz, Aushang) */
+.tatami-feld { display: flex; align-items: flex-end; gap: 2mm; flex-wrap: wrap; font-weight: 700; font-size: 12pt; margin-left: auto; margin-right: 6mm; }
+.tatami-feld .feld-linie { display: inline-block; width: 22mm; height: 10mm; border: .5mm solid #000; border-radius: 1.5mm; }
+.tatami-feld .plan { flex-basis: 100%; text-align: right; font-weight: 400; font-size: 7.5pt; color: #555; }
+.tatami-feld.gross { font-size: 20pt; }
+.tatami-feld.gross .feld-linie { width: 34mm; height: 16mm; }
+.handschrift-platz table { width: 60%; }
+.handschrift-platz td { height: 9mm; }
+.handschrift-platz td.platz { width: 12mm; font-weight: 700; }
+/* Aushang: ersetzt die Statusseite (groß, quer) */
+@page aushang-a3 { size: A3 landscape; margin: 10mm; }
+.blatt.aushang-a3 { page: aushang-a3; width: 420mm; min-height: 297mm; }
+.aushang-kopf { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: .8mm solid #000; padding-bottom: 3mm; margin-bottom: 5mm; }
+.aushang-turnier { font-size: 11pt; }
+.aushang-code { font-size: 40pt; font-weight: 800; line-height: 1; }
+.aushang-name { font-size: 16pt; font-weight: 700; margin-top: 1mm; }
+.blatt.aushang h2 { font-size: 15pt; }
+.blatt.aushang .sb-jgj td, .blatt.aushang table td { font-size: 12pt; padding: 2mm; }
+.blatt.aushang-a3 .aushang-code { font-size: 56pt; }
+.blatt.aushang-a3 .sb-jgj td, .blatt.aushang-a3 table td { font-size: 15pt; }
+.blatt.aushang-a3 .tatami-feld.gross { font-size: 26pt; }
+
+.blatt.aushang-a3 .sb-baum { zoom: 1.4; } /* A3 = A4 × 1,41 */
+/* Punktwertung: Platz für die Kata, leere Zeilen zum Ausfüllen */
+.kata-tabelle .kata-spalte { width: 45mm; }
+.kata-tabelle tr.leerzeile td { height: 9mm; }
+/* Einseitige Blätter: feste Seitengröße, Innenabstand = Druckränder (Inhalt wird per Skript eingepasst) */
+.blatt.einseitig { height: 297mm; padding: 12mm 10mm 14mm; overflow: hidden; }
+.blatt.einseitig.quer { height: 210mm; padding: 10mm; }
+.blatt.einseitig.aushang-a3 { height: 297mm; padding: 10mm; }
+.blatt-inhalt { width: 100%; }
+@media print {
+    .blatt.einseitig, .blatt.einseitig.quer, .blatt.einseitig.aushang-a3 { height: 270mm; padding: 0; }
+    .blatt.einseitig.quer { height: 189mm; }
+    .blatt.einseitig.aushang-a3 { height: 276mm; }
+}
+
+/* Notfall-Satz/Kampfliste: offizielle Wertungssymbole (Kreis = Ippon, Dreieck = Wazaari) */
+.symbol { font-size: 11pt; font-weight: 700; }
+.symbol-legende { font-size: 8.5pt; margin: 0 0 2mm; padding: 1mm 2mm; border: 1px solid #000; }
+
+/* Startgeld-Rechnung (DIN-5008-ähnlich: Absender oben rechts, Adressfeld links, Rechnungsdaten rechts) */
+.blatt.rechnung { font-size: 10pt; }
+.r-kopf { display: flex; justify-content: flex-end; min-height: 22mm; }
+.r-absender { text-align: right; font-size: 9pt; line-height: 1.35; }
+.r-adressfeld { float: left; width: 85mm; min-height: 32mm; margin-top: 6mm; line-height: 1.4; }
+.r-ruecksende { font-size: 7pt; border-bottom: .3pt solid #000; margin-bottom: 2mm; padding-bottom: .5mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+table.r-daten { float: right; width: 70mm; margin-top: 10mm; }
+table.r-daten th, table.r-daten td { border: 0; padding: .6mm 0; background: none; font-size: 9pt; }
+table.r-daten td { text-align: right; }
+.r-titel { clear: both; padding-top: 10mm; font-size: 15pt; }
+.blatt.rechnung tfoot th { font-size: 10pt; }
+.r-bank { border-left: 2px solid #000; padding-left: 3mm; }
+table.r-starter { font-size: 8.5pt; }
+table.r-starter td { padding: .6mm 1.5mm; }
+
+/* Bearbeitungsstand und Zahlungsaufforderung auf der Anmeldeübersicht */
+.anmeldestand { list-style: none; margin: 0 0 3mm; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2mm; font-size: 8.5pt; }
+.anmeldestand .schritt { border: 1px solid #000; padding: 1.5mm 2mm; display: flex; flex-direction: column; gap: .5mm; }
+.anmeldestand .zeichen { font-weight: 700; font-size: 11pt; }
+.anmeldestand .titel { font-weight: 700; }
+.anmeldestand .aktiv { border-width: 2px; background: #fff4d6; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.anmeldestand .erledigt .zeichen { color: #1f7a3d; }
+.anmeldestand .offen, .anmeldestand .entfaellt { color: #666; border-style: dashed; }
+.anmeldestand .abgelehnt { border-color: #a00; color: #a00; }
+.zahlung-block { border: 2px solid #000; padding: 2mm 4mm 3mm; margin: 4mm 0; }
+.zahlung-block h2 { margin-top: 1mm; }
+.zahlung-block table.angaben th { width: 32%; }
+.r-bezahlt { border-left: 2px solid #000; padding-left: 3mm; }
+
+/* QR-Codes für die Tische */
+.qr-blatt { text-align: center; }
+.qr-blatt h1 { font-size: 28pt; margin: 0 0 2mm; }
+.qr-blatt .qr-paar { display: flex; justify-content: center; gap: 15mm; margin: 12mm 0; }
+.qr-blatt figure { margin: 0; }
+.qr-blatt svg.qr-code { width: 80mm; height: 80mm; }
+.qr-blatt figcaption { font-size: 14pt; margin-top: 3mm; }
+.qr-schritte { text-align: left; display: inline-block; font-size: 12pt; }
+
+/* Zahlungsaufforderung mit Überweisungs-QR-Code (GiroCode) */
+.zahlung-mit-qr { display: flex; gap: 8mm; align-items: flex-start; }
+.zahlung-mit-qr .angaben { flex: 1; }
+.girocode { margin: 0; width: 40mm; text-align: center; flex: none; }
+.girocode svg { width: 40mm; height: 40mm; display: block; }
+.girocode figcaption { font-size: 8pt; line-height: 1.25; }
+.girocode figcaption span { color: #555; }
+@media (max-width: 600px) { .zahlung-mit-qr { flex-direction: column; } }

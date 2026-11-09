@@ -1,0 +1,33 @@
+/* Wettkampfbaum im SDM-Layout (Aushang und Druck) */
+.sb-teil { margin: .6rem 0 1.4rem; }
+.sb-legende { margin: 0 0 .7rem; font-size: 12px; color: #5b6577; line-height: 1.6; }
+.sb-legende strong { color: #1b2433; }
+.sb-rahmen { overflow-x: auto; padding-bottom: .4rem; }
+.sb-baum { position: relative; }
+.sb-linien { position: absolute; left: 0; top: 0; overflow: visible; }
+.sb-linien path { fill: none; stroke: #9aa5b5; stroke-width: 1.4; }
+.sb-karte {
+    position: absolute; width: 230px; height: 112px; box-sizing: border-box;
+    background: #f4f6f9; border: 1px solid #ccd3de; border-radius: 8px;
+    padding: 7px 10px; font-family: Arial, Helvetica, sans-serif; overflow: hidden;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.sb-karte.ziel { background: #fdf5d8; border-color: #dcbd6a; }
+.sb-karte.freilos { opacity: .75; }
+.sb-karte.laeuft { box-shadow: 0 0 0 2px #e0a100; }
+.sb-kopf { font-size: 10.5px; color: #5b6577; margin-bottom: 3px; white-space: nowrap; }
+.sb-seite { min-height: 40px; }
+.sb-name { font-size: 13px; font-weight: 700; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-dojo { font-size: 10px; color: #5b6577; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-seite.shiro .sb-name { color: #1b2433; }
+.sb-seite.aka .sb-name { color: #b4182d; }
+.sb-jgj { width: 100%; border-collapse: collapse; font-size: 14px; }
+.sb-jgj th { text-align: left; color: #5b6577; font-size: 12px; padding: 6px 8px; border-bottom: 1px solid #dde1e7; }
+.sb-jgj td { padding: 7px 8px; border-bottom: 1px solid #dde1e7; vertical-align: top; }
+.sb-jgj .sb-dojo { margin-top: 2px; }
+
+@media print {
+    .sb-rahmen { overflow: visible; }
+    .sb-neue-seite { break-before: page; }
+    .sb-teil { break-inside: avoid; }
+}

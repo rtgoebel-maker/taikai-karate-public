@@ -1,0 +1,7 @@
+# Für Webspace ohne einstellbares Document-Root: Anfragen intern nach public/
+# umleiten und alle anderen Ordner (src, data, config …) sperren.
+Options -Indexes
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(?!public/)(.*)$ public/$1 [L]
+</IfModule>

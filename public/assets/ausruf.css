@@ -1,0 +1,120 @@
+/* Ansicht „Ausruf“ – fürs Handy, große Tippflächen */
+:root {
+    --aka: #c62828; --aka-hell: #fdecec; --primaer: #1d2b45; --linie: #d5dbe4; --leise: #5b6577;
+    --ok: #1f7a3d; --ok-hell: #e6f4ea; --warn: #b26a00; --warn-hell: #fff4dc;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 16px; color: #111827;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #eef1f5; padding-bottom: env(safe-area-inset-bottom); }
+.klein { font-size: .78rem; opacity: .85; }
+.kopf { display: flex; align-items: center; justify-content: space-between; gap: .5rem; background: var(--primaer); color: #fff; padding: calc(.6rem + env(safe-area-inset-top)) 1rem .6rem; position: sticky; top: 0; z-index: 2; }
+.verbindung { font-size: .75rem; font-weight: 700; padding: .15rem .5rem; border-radius: 999px; }
+.verbindung.ok { background: var(--ok); }
+.verbindung.weg { background: var(--aka); }
+.ansichten { display: flex; gap: .4rem; padding: .5rem 1rem; background: #fff; border-bottom: 1px solid var(--linie); }
+.ansichten a, .ansichten button { padding: .45rem .9rem; border-radius: 999px; text-decoration: none; color: var(--primaer); font-weight: 700; border: 1px solid var(--linie); background: #fff; font-size: .9rem; }
+.ansichten a.aktiv { background: var(--primaer); color: #fff; border-color: var(--primaer); }
+.ansichten form, .ansichten .feedback-platz { margin-left: auto; }
+.ansichten .feedback-platz + form { margin-left: 0; }
+/* Handybreite: alle Knöpfe in einer Zeile, nichts bricht um */
+.ansichten { align-items: center; }
+.ansichten a, .ansichten button, .ansichten .fb-knopf { white-space: nowrap; line-height: 1.2; }
+.ansichten form { margin-top: 0; margin-bottom: 0; display: flex; }
+@media (max-width: 440px) {
+    .ansichten { gap: .3rem; padding: .5rem .6rem; }
+    .ansichten a, .ansichten button, nav.ansichten .fb-knopf.eingebettet { padding: .4rem .6rem; font-size: .82rem; }
+}
+.meldung { position: fixed; top: calc(.4rem + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 50; width: max-content; max-width: calc(100vw - 1.5rem);
+    padding: .6rem 1rem; border-radius: 14px; background: var(--aka-hell); color: var(--aka); font-weight: 700; box-shadow: 0 6px 20px rgba(0, 0, 0, .25); cursor: pointer; }
+.meldung[hidden] { display: none; }
+main { padding: .5rem .75rem 2rem; max-width: 640px; margin: 0 auto; }
+h2 { font-size: .85rem; text-transform: uppercase; letter-spacing: .05em; color: var(--leise); margin: 1.1rem .2rem .5rem; display: flex; gap: .5rem; align-items: center; }
+h2 .zahl { background: var(--primaer); color: #fff; border-radius: 999px; padding: 0 .5rem; font-size: .75rem; }
+.gruppe h3 { font-size: 1rem; margin: .8rem .2rem .4rem; }
+.code { display: inline-block; background: var(--primaer); color: #fff; border-radius: 6px; padding: 0 .4rem; font-weight: 800; margin-right: .3rem; }
+.gruppe-klein { margin: .6rem .2rem .2rem; }
+.leer { text-align: center; color: var(--leise); padding: 2rem 1rem; }
+.kampf { background: #fff; border-radius: 14px; border: 1px solid var(--linie); margin-bottom: .7rem; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+.kampf.fertig { border-color: #b5dcc0; }
+.kampf.laufend { border: 2px solid var(--warn); }
+.kampf-kopf { display: flex; justify-content: space-between; padding: .5rem .8rem; background: #f6f7f9; font-size: .9rem; color: var(--leise); }
+.kampf-kopf strong { color: #111827; }
+.seite { display: flex; align-items: center; gap: .6rem; padding: .6rem .8rem; border-top: 1px solid #eef1f5; }
+.seite.aka { border-left: 6px solid var(--aka); background: #fffafa; }
+.seite.shiro { border-left: 6px solid #9aa3b2; }
+.seite.starter { border-left: 6px solid var(--primaer); }
+.person { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.kennung { font-size: .7rem; font-weight: 800; letter-spacing: .08em; color: var(--leise); }
+.seite.aka .kennung { color: var(--aka); }
+.name { font-size: 1.1rem; font-weight: 800; overflow-wrap: anywhere; }
+.verein { font-size: .8rem; color: var(--leise); }
+.knoepfe { display: flex; gap: .35rem; }
+.knoepfe button { min-width: 4.2rem; min-height: 2.9rem; border-radius: 10px; border: 2px solid var(--linie); background: #fff; font-weight: 800; font-size: .95rem; }
+.knoepfe button.da.aktiv { background: var(--ok); border-color: var(--ok); color: #fff; }
+.knoepfe button.fehlt.aktiv { background: var(--aka); border-color: var(--aka); color: #fff; }
+.stand { font-weight: 800; font-size: .9rem; }
+.stand.da { color: var(--ok); }
+.stand.fehlt { color: var(--aka); }
+.abschliessen { display: block; width: calc(100% - 1.6rem); margin: .3rem .8rem .8rem; min-height: 3.2rem; border: 0; border-radius: 12px; background: var(--ok); color: #fff; font-weight: 800; font-size: 1.05rem; }
+.abschliessen[disabled] { background: #cfd5de; color: #fff; }
+.fuss { display: flex; justify-content: space-between; align-items: center; padding: .5rem .8rem .7rem; }
+.bereit { color: var(--ok); font-weight: 800; }
+button.leise { background: none; border: 0; color: var(--leise); text-decoration: underline; font-size: .85rem; }
+.hinweis.laeuft { padding: .5rem .8rem .7rem; color: var(--warn); font-weight: 700; }
+.mehr { width: 100%; min-height: 2.8rem; border-radius: 12px; border: 1px dashed var(--linie); background: #fff; font-weight: 700; color: var(--primaer); }
+body.offline .kopf { background: #5b1f1f; }
+.gruppen-hinweis { margin: .8rem .2rem 0; padding: .8rem 1rem; border-radius: 12px; background: #eef1f5; border: 2px solid var(--linie); font-size: .95rem; }
+.gruppen-hinweis.neu { background: var(--warn-hell); border-color: #e0a100; color: #7a4d00; font-size: 1.05rem; }
+
+/* Aufstellung ohne Farben: links/rechts */
+.gruppen-aufruf { display: block; width: 100%; min-height: 2.9rem; margin: 0 0 .6rem; border-radius: 12px; border: 2px dashed var(--primaer); background: #fff; color: var(--primaer); font-weight: 800; font-size: 1rem; }
+.gruppen-aufruf.an { display: flex; align-items: center; gap: .5rem; padding: .6rem .8rem; border-style: solid; border-color: #e0a100; background: var(--warn-hell); color: #7a4d00; font-weight: 700; font-size: .9rem; min-height: 0; }
+.gruppen-aufruf.an button { margin-left: auto; }
+.gruppen-aufruf.gesperrt { padding: .6rem .8rem; border-style: solid; border-color: #ecb8b8; background: #fdecec; color: #8e1b1b; font-weight: 700; font-size: .9rem; min-height: 0; }
+.gruppen-aufruf.gesperrt ul { margin: .3rem 0 0; padding-left: 1.1rem; font-weight: 400; }
+
+/* Abhakliste je Gruppe */
+.gruppe { background: #fff; border: 1px solid var(--linie); border-radius: 14px; padding: .6rem .7rem .8rem; margin-bottom: .9rem; }
+.gruppe h3 { margin: .1rem 0 .5rem; }
+.abhakliste { list-style: none; margin: 0 0 .6rem; padding: 0; }
+.starter-zeile { display: flex; align-items: center; gap: .6rem; padding: .5rem .2rem; border-top: 1px solid #eef1f5; }
+.starter-zeile:first-child { border-top: 0; }
+.starter-zeile.da { background: linear-gradient(90deg, var(--ok-hell), transparent 70%); }
+.starter-zeile.fehlt { background: linear-gradient(90deg, var(--aka-hell), transparent 70%); }
+.starter-zeile .wo { display: block; font-weight: 700; font-size: .85rem; color: var(--primaer); white-space: nowrap; }
+.gruppe .abschliessen { width: 100%; margin: 0; }
+.fortschritt { text-align: center; font-size: .85rem; color: var(--leise); margin-top: .35rem; }
+.gruppe-fertig { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; background: #fff; border: 1px solid #b5dcc0; border-radius: 12px; padding: .6rem .8rem; margin-bottom: .5rem; font-weight: 600; color: var(--ok); }
+.gruppe-fertig .fehlt-text { color: var(--aka); }
+.gruppe-fertig button { margin-left: auto; }
+
+/* Nächste Begegnung nach dem laufenden Kampf (nur Anzeige) */
+.kampf.bereit-machen { border: 2px dashed var(--primaer); }
+.hinweis.bereit { padding: .5rem .8rem .7rem; color: var(--primaer); font-weight: 700; }
+
+/* AKA/SHIRO wie auf Tablet und Statusseite, Aufstellung links/rechts als Zusatz */
+.kennung-zeile { display: flex; align-items: center; gap: .45rem; margin-bottom: .1rem; }
+.farbmarke { display: inline-block; font-size: .72rem; font-weight: 800; letter-spacing: .08em; padding: .05rem .45rem; border-radius: 4px; border: 1px solid transparent; line-height: 1.4; }
+.farbmarke.aka { background: var(--aka); color: #fff; border-color: var(--aka); }
+.farbmarke.shiro { background: #fff; color: #111827; border-color: #9aa3b2; }
+.platz-zusatz { font-size: .85rem; font-weight: 700; color: var(--primaer); white-space: nowrap; }
+.starter-zeile .wo .farbmarke { font-size: .65rem; margin: 0 .2rem; vertical-align: 1px; }
+.starter-zeile .wo .platz-zusatz { font-size: inherit; }
+
+/* Nächste Gruppe, deren Ausruf die Tischbesatzung noch nicht gestartet hat (ohne Namen) */
+.gruppe-wartet { background: #fff; border: 1px dashed var(--linie); border-radius: 12px; padding: .7rem .9rem; margin-bottom: .9rem; color: var(--leise); }
+.gruppe-wartet strong { color: var(--primaer); }
+
+/* Nachrichten der Wettkampfleitung: über der Kopfzeile, bis „Gelesen“ getippt wird */
+.nachrichten { position: fixed; top: .35rem; left: 50%; transform: translateX(-50%); z-index: 60; display: grid; gap: .4rem; width: min(680px, calc(100vw - 1rem)); }
+.nachrichten[hidden] { display: none; }
+.nachricht { display: flex; align-items: center; gap: .7rem; background: #fff4dc; color: #3d2a00; border: 2px solid #e0a100; border-radius: 12px; padding: .55rem .7rem; box-shadow: 0 6px 20px rgba(0, 0, 0, .25); animation: nachricht-auf .35s ease-out; }
+.nachricht-symbol { font-size: 1.4rem; }
+.nachricht-text { flex: 1; display: grid; gap: .1rem; }
+.nachricht-text span { font-size: .8rem; color: #6b5310; }
+.nachricht button { background: var(--primaer); color: #fff; border: 0; border-radius: 8px; padding: .55rem .9rem; font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.nachricht-offen { font-size: .8rem; color: #6b5310; }
+@keyframes nachricht-auf { from { transform: translateY(-.6rem); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Hinweis, solange der Ausruf der aktuellen Gruppe läuft (Kampfkarten folgen danach) */
+.karten-folgen { margin: .2rem 0 .8rem; padding: .5rem .8rem; border-radius: 10px; background: #fff; border: 1px dashed var(--linie); color: var(--leise); font-size: .85rem; }
