@@ -13,10 +13,11 @@ $tid = (int) $turnier['id'];
 $wartend = array_values(array_filter($geraete, static fn($g) => $g['status'] === 'wartet'));
 $frei = array_values(array_filter($geraete, static fn($g) => $g['status'] === 'frei'));
 $gesperrt = array_values(array_filter($geraete, static fn($g) => $g['status'] === 'gesperrt'));
-// solange Geräte warten, alle 5 Sekunden neu laden (ohne JavaScript)
-$this->layout('layout', ['titel' => 'Geräte koppeln', 'turnier' => $turnier, 'neuLaden' => $wartend ? 5 : null]);
+$this->layout('layout', ['titel' => 'Geräte koppeln', 'turnier' => $turnier]);
 $adresseQuery = in_array($basis, $adressen, true) && count($adressen) > 1 ? ['adresse' => $basis] : [];
 ?>
+<?php /* neue Kopplungsanfragen ohne Neuladen von Hand: Stand alle 3 Sekunden prüfen, nur bei Änderung neu laden (app.js) */ ?>
+<div hidden data-aktualisieren="<?= e(url("turnier/$tid/geraete/stand")) ?>" data-intervall="3000"></div>
 <p class="obertitel"><a href="<?= e(url("turnier/$tid/einstellungen")) ?>">Einstellungen</a></p>
 <h1>Geräte koppeln</h1>
 <p class="leise">Tablets für die Eingabe und Handys für den Ausruf scannen den QR-Code ihrer Tatami, nennen ein Prüfwort – Sie geben das Gerät hier frei.

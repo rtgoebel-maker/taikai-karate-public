@@ -23,6 +23,7 @@ return static function (Router $r): void {
     $r->get('/tisch/warten', [TischController::class, 'warten'], 'oeffentlich');
     $r->get('/turnier/{id}/geraete', [GeraeteController::class, 'index'], 'turnier');
     $r->get('/turnier/{id}/geraete/druck', [GeraeteController::class, 'druck'], 'turnier');
+    $r->get('/turnier/{id}/geraete/stand', [GeraeteController::class, 'stand'], 'turnier');
     $r->post('/turnier/{id}/geraete/qr-erneuern', [GeraeteController::class, 'qrErneuern'], 'turnier');
     $r->post('/turnier/{id}/geraete/pin', [GeraeteController::class, 'pin'], 'turnier');
     $r->post('/turnier/{id}/geraete/aufraeumen', [GeraeteController::class, 'aufraeumen'], 'turnier');

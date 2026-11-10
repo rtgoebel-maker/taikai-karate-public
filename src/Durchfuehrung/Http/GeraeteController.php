@@ -33,6 +33,13 @@ final class GeraeteController extends Controller
         ]);
     }
 
+    /** Stand der Geräteliste für das automatische Neuladen der Seite (neue Kopplungsanfragen sofort sehen). */
+    public function stand(Request $request, int $id): Response
+    {
+        $this->turnier($id);
+        return Response::json(['revision' => $this->app->geraeteKopplung()->stand($id)]);
+    }
+
     /** Druckblatt: je Tatami die beiden QR-Codes groß zum Aushängen bzw. Auslegen am Tisch. */
     public function druck(Request $request, int $id): Response
     {

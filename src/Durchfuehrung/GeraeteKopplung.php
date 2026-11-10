@@ -160,6 +160,19 @@ final class GeraeteKopplung
         );
     }
 
+    /**
+     * Kurzer Stand der Geräteliste (welche Geräte mit welchem Status): ändert sich bei neuer Anfrage, Freigabe,
+     * Sperre oder Ablauf, nicht aber durch „zuletzt aktiv“ – die Seite der Leitung lädt nur dann neu.
+     */
+    public function stand(int $turnierId): string
+    {
+        $zeilen = $this->db->alle(
+            'SELECT id, status FROM tatami_geraet WHERE turnier_id = ? AND (status <> ? OR erstellt_am >= ?) ORDER BY id',
+            [$turnierId, 'wartet', date('Y-m-d H:i:s', time() - self::WARTEN_SEKUNDEN)],
+        );
+        return md5(implode(',', array_map(static fn(array $z): string => $z['id'] . ':' . $z['status'], $zeilen)));
+    }
+
     public function freigeben(int $turnierId, int $geraetId, string $von): void
     {
         $g = $this->geraet($turnierId, $geraetId);
