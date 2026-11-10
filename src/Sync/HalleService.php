@@ -86,7 +86,13 @@ final class HalleService
         return $this->einspielen($daten, $code, 'online', $url);
     }
 
-    /** Online-Adresse prüfen: nur HTTPS (HTTP nur für einen Server auf diesem Rechner, z. B. zum Testen). */
+    /**
+     * Online-Adresse prüfen: nur HTTPS (HTTP nur für einen Server auf diesem Rechner, z. B. zum Testen).
+     * Die Adresse gibt nur die Administration des Hallen-Laptops ein, und der Laptop soll genau diesen Server
+     * ansprechen – deshalb keine SSRF im eigentlichen Sinn.
+     *
+     * @psalm-taint-escape ssrf
+     */
     public static function onlineUrl(string $eingabe): string
     {
         $url = rtrim(trim($eingabe), '/');

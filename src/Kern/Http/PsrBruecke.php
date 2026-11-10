@@ -48,13 +48,27 @@ final class PsrBruecke
         $post = $request->getParsedBody();
         return new Request(
             strtoupper($request->getMethod()),
-            self::pfad($request),
-            $request->getQueryParams(),
-            is_array($post) ? $post : [],
+            self::eingabe(self::pfad($request)),
+            self::eingabe($request->getQueryParams()),
+            self::eingabe(is_array($post) ? $post : []),
             self::dateien($request->getUploadedFiles()),
-            $headers,
-            (string) $request->getBody(),
+            self::eingabe($headers),
+            self::eingabe((string) $request->getBody()),
         );
+    }
+
+    /**
+     * Markiert Anfragedaten für die Taint-Analyse (Psalm) als Benutzereingabe: Von hier aus verfolgt sie jeden Wert bis
+     * zu SQL, HTML, Dateipfaden, Weiterleitungen usw. Zur Laufzeit ohne Wirkung.
+     *
+     * @template T
+     * @param T $wert
+     * @return T
+     * @psalm-taint-source input
+     */
+    private static function eingabe(mixed $wert): mixed
+    {
+        return $wert;
     }
 
     public static function antwort(Response $antwort, ?ResponseInterface $psr = null): ResponseInterface
@@ -81,6 +95,8 @@ final class PsrBruecke
                 $liste[$name] = self::dateien($datei);
             } elseif ($datei instanceof UploadedFileInterface) {
                 $liste[$name] = [
+                    // Name und Typ kommen vom Browser und werden nur für Endung/Anzeige genutzt (Templates maskieren);
+                    // tmp_name vergibt PHP. Nicht als Taint-Quelle markiert, sonst gilt das ganze Array als verdächtig.
                     'name' => (string) $datei->getClientFilename(),
                     'type' => (string) $datei->getClientMediaType(),
                     'tmp_name' => $datei instanceof UploadedFile ? $datei->getFilePath() : '',

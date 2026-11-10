@@ -39,10 +39,16 @@ final class Url
         return $verzeichnis;
     }
 
-    /** @param array<string, scalar|null> $query */
+    /**
+     * Adresse innerhalb dieser Installation. Führende / und \ werden entfernt: „//evil.example“ oder „/\evil.example“
+     * würden Browser sonst als fremde Seite lesen (offene Weiterleitung).
+     *
+     * @param array<string, scalar|null> $query
+     * @psalm-taint-escape header
+     */
     public static function zu(string $pfad, array $query = []): string
     {
         $query = array_filter($query, static fn($w) => $w !== null && $w !== '');
-        return self::$basis . '/' . ltrim($pfad, '/') . ($query ? '?' . http_build_query($query) : '');
+        return self::$basis . '/' . ltrim($pfad, '/\\') . ($query ? '?' . http_build_query($query) : '');
     }
 }

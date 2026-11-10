@@ -128,6 +128,7 @@ final class Database
      * Tabellen- und Spaltennamen werden ins SQL eingesetzt (Werte laufen über Platzhalter).
      * Nur einfache Bezeichner zulassen – z. B. Spalten aus einer importierten Sicherung (OWASP A03).
      */
+    /** @psalm-taint-escape sql nur [a-z_][a-z0-9_]* – sonst Ausnahme */
     private static function bezeichner(string $name): string
     {
         if (!preg_match('/^[a-z_][a-z0-9_]{0,63}$/', $name)) {

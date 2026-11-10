@@ -13,6 +13,7 @@ final class Response
         public readonly array $headers = [],
     ) {}
 
+    /** @psalm-taint-sink html $html (Taint-Analyse: alles hier landet als HTML im Browser) */
     public static function html(string $html, int $status = 200): self
     {
         return new self($html, $status, ['Content-Type' => 'text/html; charset=utf-8']);
@@ -27,6 +28,7 @@ final class Response
         );
     }
 
+    /** @psalm-taint-sink header $ziel (Location-Header: keine offene Weiterleitung aus Benutzereingaben) */
     public static function weiterleiten(string $ziel): self
     {
         return new self('', 303, ['Location' => $ziel]);
@@ -34,9 +36,11 @@ final class Response
 
     public static function download(string $inhalt, string $dateiname, string $typ): self
     {
+        // Nur Buchstaben, Ziffern, Leerzeichen, Punkt, Binde- und Unterstrich: kein Anführungszeichen, kein Zeilenumbruch
+        $dateiname = (string) preg_replace('/[^\p{L}\p{N} ._-]/u', '_', $dateiname);
         return new self($inhalt, 200, [
             'Content-Type' => $typ,
-            'Content-Disposition' => 'attachment; filename="' . addslashes($dateiname) . '"',
+            'Content-Disposition' => 'attachment; filename="' . $dateiname . '"',
         ]);
     }
 

@@ -54,7 +54,12 @@ final class View
         $this->layoutDaten = $daten;
     }
 
-    /** @param array<string, mixed> $daten */
+    /**
+     * Variablennamen kommen immer aus dem Code (Controller), nie aus der Anfrage; die Werte gibt das Template mit e()
+     * aus. Deshalb in psalm.xml für TaintedExtract freigegeben.
+     *
+     * @param array<string, mixed> $daten
+     */
     private function datei(string $template, array $daten): string
     {
         $pfad = $this->verzeichnis . '/' . $template . '.php';

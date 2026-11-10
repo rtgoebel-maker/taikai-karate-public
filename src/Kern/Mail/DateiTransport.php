@@ -20,8 +20,13 @@ final class DateiTransport implements Transport
         $name = date('Ymd_His') . '_' . bin2hex(random_bytes(3)) . '.txt';
         file_put_contents($this->ordner . '/' . $name, "An: $empfaenger\nBetreff: $betreff\n\n$text");
         foreach ($anhaenge as $i => $a) {
-            $endung = preg_replace('/[^a-z0-9]/', '', strtolower(pathinfo($a['name'], PATHINFO_EXTENSION))) ?: 'bin';
-            file_put_contents($this->ordner . '/' . substr($name, 0, -4) . '_anhang' . ($i + 1) . '.' . $endung, $a['daten']);
+            file_put_contents($this->ordner . '/' . substr($name, 0, -4) . '_anhang' . ($i + 1) . '.' . self::endung($a['name']), $a['daten']);
         }
+    }
+
+    /** @psalm-taint-escape file nur a-z und 0-9 */
+    private static function endung(string $dateiname): string
+    {
+        return preg_replace('/[^a-z0-9]/', '', strtolower(pathinfo($dateiname, PATHINFO_EXTENSION))) ?: 'bin';
     }
 }

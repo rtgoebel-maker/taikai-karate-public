@@ -58,7 +58,7 @@ final class ImportController extends Controller
     {
         $this->turnier($id);
         $token = $request->text('token');
-        $pfad = preg_match('/^[a-f0-9]{24}$/', $token) ? $this->tempPfad($token) : '';
+        $pfad = preg_match('/^[a-f0-9]{24}$/', $token) === 1 ? $this->tempPfad($token) : '';
         if ($pfad === '' || !is_file($pfad)) {
             throw new FachFehler('Die Import-Vorschau ist abgelaufen. Bitte die Datei erneut hochladen.');
         }
@@ -75,8 +75,17 @@ final class ImportController extends Controller
         return $this->weiter("turnier/$id/teilnehmer");
     }
 
+    /**
+     * Token ist nur hexadezimal (sonst Ausnahme) – kein Pfadwechsel, keine fremde Adresse möglich.
+     *
+     * @psalm-taint-escape file
+     * @psalm-taint-escape ssrf
+     */
     private function tempPfad(string $token): string
     {
+        if (preg_match('/^[a-f0-9]{24}$/', $token) !== 1) {
+            throw new FachFehler('Die Import-Vorschau ist abgelaufen. Bitte die Datei erneut hochladen.');
+        }
         $verzeichnis = $this->app->wurzel . '/data/tmp';
         if (!is_dir($verzeichnis)) {
             mkdir($verzeichnis, 0775, true);
