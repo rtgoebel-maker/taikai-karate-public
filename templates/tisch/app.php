@@ -12,8 +12,12 @@ $query = $alsLeitung ? '?tatami=' . (int) $tatami['id'] : '';
 <html lang="de">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Tisch">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="<?= e(url('tisch/manifest.webmanifest') . '?ansicht=app') ?>">
     <title><?= e($tatami['bezeichnung']) ?> · Tisch</title>
     <?= $this->teil('teile/icons') ?>
     <link rel="stylesheet" href="<?= e(asset('tisch.css')) ?>">
@@ -32,6 +36,7 @@ $query = $alsLeitung ? '?tatami=' . (int) $tatami['id'] : '';
     </div>
     <div id="fortschritt" class="klein"></div>
     <div id="verbindung" class="verbindung ok">online</div>
+    <button type="button" class="knopf-leise" data-vollbild hidden title="Vollbild: Adress- und Tableiste ausblenden">⛶ Vollbild</button>
     <span data-feedback-platz="knopf-leise"></span>
     <a class="knopf-leise" href="<?= e(url('tisch/ausruf') . $query) ?>" title="Starter aufrufen und Anwesenheit bestätigen – auch auf dem Handy">📣 Ausruf</a>
     <?php if ($alsLeitung): ?>

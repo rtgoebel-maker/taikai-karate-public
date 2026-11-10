@@ -278,3 +278,14 @@ input.kr.ungueltig { border-color: var(--aka); background: #fdecec; color: var(-
 .haupt > * { min-width: 0; } /* nicht umbrechende Zeilen dürfen die Spalte nicht verbreitern */
 .verwarnung-knoepfe button.gesetzt { border-color: #e0a100; background: #fff4dc; color: #7a4d00; }
 .verwarnung-knoepfe button.gesetzt.eskalation { border-color: var(--aka); background: #fdecec; color: var(--aka-dunkel); }
+
+/* Vollbild-Knopf (nur wo der Browser es kann, siehe app.js) */
+.knopf-leise[data-vollbild][hidden] { display: none; }
+.knopf-leise[data-vollbild].an { background: rgba(255, 255, 255, .15); }
+/* Als App vom Startbildschirm bzw. mit Notch: Inhalt nicht unter Statusleiste oder Kamera */
+.leiste { padding-top: max(.6rem, env(safe-area-inset-top)); padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); }
+.haupt { padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+@media (max-height: 760px) {
+    .leiste { padding-top: max(.35rem, env(safe-area-inset-top)); }
+    .haupt { padding-left: max(.6rem, env(safe-area-inset-left)); padding-right: max(.6rem, env(safe-area-inset-right)); padding-bottom: max(.6rem, env(safe-area-inset-bottom)); }
+}

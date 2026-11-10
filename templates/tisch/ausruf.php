@@ -17,7 +17,8 @@ $query = $alsLeitung ? '?tatami=' . (int) $tatami['id'] : '';
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Ausruf">
-    <link rel="manifest" href="<?= e(url('tisch/manifest.webmanifest')) ?>">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="<?= e(url('tisch/manifest.webmanifest') . '?ansicht=ausruf') ?>">
     <link rel="icon" href="<?= e(asset('ausruf-icon.svg')) ?>" type="image/svg+xml">
     <link rel="apple-touch-icon" href="<?= e(asset('ausruf-icon.svg')) ?>">
     <title>Ausruf · <?= e($tatami['bezeichnung']) ?></title>
@@ -31,6 +32,7 @@ $query = $alsLeitung ? '?tatami=' . (int) $tatami['id'] : '';
         <div class="klein"><?= e($tatami['turnier']) ?></div>
         <strong><?= e($tatami['bezeichnung']) ?> · Ausruf</strong>
     </div>
+    <button type="button" class="vollbild" data-vollbild hidden title="Vollbild: Adress- und Tableiste ausblenden">⛶</button>
     <span id="verbindung" class="verbindung ok">online</span>
 </header>
 <nav class="ansichten">

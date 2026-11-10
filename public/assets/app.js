@@ -194,6 +194,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+/*
+ * Vollbild-Knopf (data-vollbild) für Tisch und Ausruf: blendet Adress- und Tableiste des Handy-/Tablet-Browsers aus.
+ * Nur sichtbar, wo der Browser es kann (nicht im iPhone-Safari) und die Seite nicht schon als App vom Startbildschirm läuft.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    const knoepfe = document.querySelectorAll('[data-vollbild]');
+    const el = document.documentElement;
+    const anfordern = el.requestFullscreen || el.webkitRequestFullscreen;
+    const beenden = document.exitFullscreen || document.webkitExitFullscreen;
+    const aktiv = () => document.fullscreenElement || document.webkitFullscreenElement;
+    const alsApp = window.matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches || navigator.standalone === true;
+    if (!knoepfe.length || !anfordern || alsApp || !(document.fullscreenEnabled || document.webkitFullscreenEnabled)) { return; }
+    const anzeigen = () => knoepfe.forEach((k) => {
+        k.classList.toggle('an', !!aktiv());
+        k.title = aktiv() ? 'Vollbild beenden' : 'Vollbild: Adress- und Tableiste ausblenden';
+    });
+    knoepfe.forEach((k) => {
+        k.hidden = false;
+        k.addEventListener('click', () => {
+            const ergebnis = aktiv() ? beenden.call(document) : anfordern.call(el, { navigationUI: 'hide' });
+            if (ergebnis && ergebnis.catch) { ergebnis.catch(() => {}); }
+        });
+    });
+    document.addEventListener('fullscreenchange', anzeigen);
+    document.addEventListener('webkitfullscreenchange', anzeigen);
+});
+
 /* Links „Mehr in der Hilfe“ innerhalb eines Turniers: Turniermenü auf der Hilfeseite behalten */
 document.addEventListener('DOMContentLoaded', () => {
     const turnier = /\/turnier\/(\d+)/.exec(location.pathname);

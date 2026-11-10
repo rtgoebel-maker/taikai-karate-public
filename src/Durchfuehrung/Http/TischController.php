@@ -133,18 +133,24 @@ final class TischController extends Controller
         return Response::html($this->app->view->render('tisch/ausruf', ['tatami' => $tatami, 'alsLeitung' => $alsLeitung]));
     }
 
-    /** Web-App-Manifest: Ausruf-Ansicht auf den Startbildschirm legen. */
+    /**
+     * Web-App-Manifest je Ansicht (?ansicht=app|ausruf): auf den Startbildschirm gelegt, startet die Ansicht
+     * ohne Adress- und Tableiste des Browsers (Vollbild, sonst eigenständiges Fenster).
+     */
     public function manifest(Request $request): Response
     {
+        $ausruf = $request->text('ansicht') !== 'app';
         return new Response(json_encode([
-            'name' => 'Taikai – Ausruf',
-            'short_name' => 'Ausruf',
-            'start_url' => url('tisch/ausruf'),
+            'id' => $ausruf ? url('tisch/ausruf') : url('tisch/app'),
+            'name' => $ausruf ? 'Taikai – Ausruf' : 'Taikai – Tisch',
+            'short_name' => $ausruf ? 'Ausruf' : 'Tisch',
+            'start_url' => $ausruf ? url('tisch/ausruf') : url('tisch/app'),
             'scope' => url('tisch'),
-            'display' => 'standalone',
+            'display' => 'fullscreen',
+            'display_override' => ['fullscreen', 'standalone'],
             'background_color' => '#1d2b45',
             'theme_color' => '#1d2b45',
-            'icons' => [['src' => asset('ausruf-icon.svg'), 'sizes' => 'any', 'type' => 'image/svg+xml']],
+            'icons' => [['src' => asset($ausruf ? 'ausruf-icon.svg' : 'logo/app-symbol.svg'), 'sizes' => 'any', 'type' => 'image/svg+xml']],
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), 200, ['Content-Type' => 'application/manifest+json']);
     }
 
