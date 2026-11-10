@@ -209,8 +209,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const anzeigen = () => knoepfe.forEach((k) => {
         k.classList.toggle('an', !!aktiv());
         k.title = aktiv() ? 'Vollbild beenden' : 'Vollbild: Adress- und Tableiste ausblenden';
+        // Knopf mit Text (Tablet): auch die Beschriftung umstellen, damit klar ist, wie man zurückkommt
+        if (k.dataset.text) { k.textContent = aktiv() ? '✕ Vollbild beenden' : k.dataset.text; }
     });
     knoepfe.forEach((k) => {
+        if (k.textContent.trim().length > 1) { k.dataset.text = k.textContent; }
         k.hidden = false;
         k.addEventListener('click', () => {
             const ergebnis = aktiv() ? beenden.call(document) : anfordern.call(el, { navigationUI: 'hide' });

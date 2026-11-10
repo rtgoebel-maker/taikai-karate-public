@@ -276,8 +276,17 @@
         const da = starter.filter((x) => x.stand === 'da').length;
         const fehlt = starter.filter((x) => x.stand === 'fehlt').length;
         const alleAbgehakt = starter.every((x) => x.stand);
+        // Ausruf der aktuellen Gruppe nie gestartet (z. B. im Übergang „Weiter“ gewählt): Der Ausrufer sieht die Namen
+        // erst nach dem Start bzw. sobald der erste Kampf/Vortrag läuft – hier nachholen (wie in der Ausruf-Ansicht)
+        const z = T.zustand;
+        const laeuftSchon = !!z.laufend && z.laufend.klasse_id === g.klasse_id && (z.laufend.status === 'laeuft' || !!z.laufend.gruppe_begonnen);
+        const gestartet = laeuftSchon || [z.laufend, ...z.naechste].some((e) => e && e.klasse_id === g.klasse_id && (e.ausruf_freigegeben || e.gruppe_aufgerufen
+            || (e.aufruf && (e.aufruf.fertig || e.aufruf.aka || e.aufruf.shiro || e.aufruf.starter))));
+        const startKnopf = gestartet || T.uebergang ? '' : `<p class="ausruf-nicht-gestartet">Noch nicht gestartet – der Ausrufer sieht die Starter erst danach.</p>
+            <button class="knopf-ausruf" data-aktion="ausruf-freigeben" data-klasse="${g.klasse_id}">📣 Ausruf starten</button>`;
         ziel.innerHTML = `<section class="ausruf-stand">
             <h2>📣 Ausruf ${esc(g.klasse)} <span class="zahl">${da} von ${starter.length} da${fehlt ? ` · <span class="fehlt-text">${fehlt} fehlt</span>` : ''}</span></h2>
+            ${startKnopf}
             <ul>${starter.map((x) => `<li class="${x.stand || 'offen'}">
                 <span class="stand-marke ${x.stand || 'offen'}">${x.stand === 'da' ? '✓ da' : x.stand === 'fehlt' ? '✗ fehlt' : 'offen'}</span>
                 <span class="name">${esc(x.name)}</span> <span class="klein">${esc(x.verein)} · ${esc(x.wo)}${x.seite === 'starter' ? '' : ` · ${x.seite === 'aka' ? 'AKA' : 'SHIRO'}`}</span>

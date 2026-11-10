@@ -289,3 +289,7 @@ input.kr.ungueltig { border-color: var(--aka); background: #fdecec; color: var(-
     .leiste { padding-top: max(.35rem, env(safe-area-inset-top)); }
     .haupt { padding-left: max(.6rem, env(safe-area-inset-left)); padding-right: max(.6rem, env(safe-area-inset-right)); padding-bottom: max(.6rem, env(safe-area-inset-bottom)); }
 }
+
+/* Ausruf der aktuellen Gruppe noch nicht gestartet: Start im Ausruf-Kasten nachholen */
+.ausruf-stand .ausruf-nicht-gestartet { margin: .2rem 0 .5rem; padding: .4rem .6rem; border-radius: 8px; background: #fff4dc; color: #7a4d00; font-weight: 700; font-size: .9rem; }
+.ausruf-stand .ausruf-nicht-gestartet + .knopf-ausruf { display: block; width: 100%; margin-bottom: .4rem; }
