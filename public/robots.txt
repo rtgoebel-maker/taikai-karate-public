@@ -1,0 +1,4 @@
+# Taikai – Karate: nicht in Suchmaschinen aufnehmen. Status- und Ergebnisseiten zeigen Namen von Teilnehmenden,
+# oft Kindern und Jugendlichen (Datensparsamkeit). Zusätzlich sendet die App „X-Robots-Tag: noindex“ auf jeder Seite.
+User-agent: *
+Disallow: /

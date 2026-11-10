@@ -55,6 +55,10 @@ final class Response
         'X-Frame-Options' => 'SAMEORIGIN',
         'Referrer-Policy' => 'same-origin',
         'Permissions-Policy' => 'camera=(), microphone=(), geolocation=(), payment=()',
+        // nur eigene Seiten dürfen Dateien (Bilder, Skripte) dieser Installation einbinden
+        'Cross-Origin-Resource-Policy' => 'same-origin',
+        // nicht in Suchmaschinen: Status- und Ergebnisseiten zeigen Namen, oft von Kindern (Datensparsamkeit; dazu robots.txt)
+        'X-Robots-Tag' => 'noindex, nofollow',
         'Content-Security-Policy' => "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
             . "img-src 'self' data: blob:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; "
             . "form-action 'self'; frame-ancestors 'self'",
