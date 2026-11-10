@@ -5,3 +5,14 @@ Options -Indexes
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [QSA,L]
 </IfModule>
+
+# Statische Dateien liefert Apache ohne die App aus – dieselben Sicherheits-Header wie Response::SICHERHEIT
+# (Seiten der App setzen sie selbst; deshalb nur für diese Endungen, sonst doppelt).
+<IfModule mod_headers.c>
+    <FilesMatch "\.(css|js|map|json|webmanifest|txt|png|jpe?g|gif|webp|svg|ico)$">
+        Header set X-Content-Type-Options "nosniff"
+        Header set Cross-Origin-Resource-Policy "same-origin"
+        Header set Referrer-Policy "same-origin"
+        Header set X-Robots-Tag "noindex, nofollow"
+    </FilesMatch>
+</IfModule>
