@@ -57,6 +57,9 @@ final class Response
         'Permissions-Policy' => 'camera=(), microphone=(), geolocation=(), payment=()',
         // nur eigene Seiten dürfen Dateien (Bilder, Skripte) dieser Installation einbinden
         'Cross-Origin-Resource-Policy' => 'same-origin',
+        // eigenes Fenster ohne Zugriff durch fremde Fenster; nur eigene bzw. freigegebene Ressourcen einbinden
+        'Cross-Origin-Opener-Policy' => 'same-origin',
+        'Cross-Origin-Embedder-Policy' => 'require-corp',
         // nicht in Suchmaschinen: Status- und Ergebnisseiten zeigen Namen, oft von Kindern (Datensparsamkeit; dazu robots.txt)
         'X-Robots-Tag' => 'noindex, nofollow',
         'Content-Security-Policy' => "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "

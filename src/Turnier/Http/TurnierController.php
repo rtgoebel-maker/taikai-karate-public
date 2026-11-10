@@ -146,9 +146,14 @@ final class TurnierController extends Controller
         }
         foreach ((array) $request->post('tatami', []) as $tatamiId => $felder) {
             $tatami = $this->datensatz('tatami', (int) $tatamiId, $id);
+            $stream = mb_substr(trim((string) ($felder['stream_url'] ?? '')), 0, 500);
+            // Link auf der öffentlichen Statusseite: nur http(s), kein javascript:/data: (OWASP A05)
+            if ($stream !== '' && preg_match('#^https?://[^\s"<>]+$#i', $stream) !== 1) {
+                throw new FachFehler('Die Stream-Adresse muss mit https:// beginnen, z. B. https://youtube.com/live/…');
+            }
             $aenderung = [
                 'bezeichnung' => trim((string) ($felder['bezeichnung'] ?? '')) ?: $tatami['bezeichnung'],
-                'stream_url' => trim((string) ($felder['stream_url'] ?? '')) ?: null,
+                'stream_url' => $stream ?: null,
             ];
             $pin = trim((string) ($felder['pin'] ?? ''));
             if ($pin !== '') {

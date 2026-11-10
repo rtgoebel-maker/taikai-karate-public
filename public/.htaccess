@@ -13,6 +13,7 @@ Options -Indexes
         Header set X-Content-Type-Options "nosniff"
         Header set Cross-Origin-Resource-Policy "same-origin"
         Header set Referrer-Policy "same-origin"
+        Header set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
         Header set X-Robots-Tag "noindex, nofollow"
     </FilesMatch>
 </IfModule>
