@@ -427,11 +427,11 @@ final class CoachService
     /** Leitung: Antrag annehmen bzw. ablehnen, mit Antwort an das Dojo. */
     public function antragBearbeiten(int $turnierId, int $antragId, string $status, string $antwort, string $von): void
     {
-        if (!in_array($status, ['angenommen', 'abgelehnt', 'offen'], true)) {
-            throw new FachFehler('Ungültiger Status.');
-        }
         if ($this->db->wert('SELECT id FROM korrekturantrag WHERE id = ? AND turnier_id = ?', [$antragId, $turnierId]) === null) {
             throw new NichtGefunden('Antrag nicht gefunden.');
+        }
+        if (!in_array($status, ['angenommen', 'abgelehnt', 'offen'], true)) {
+            throw new FachFehler('Ungültiger Status.');
         }
         $this->db->update('korrekturantrag', [
             'status' => $status,

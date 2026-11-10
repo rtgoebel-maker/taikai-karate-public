@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Wettkampf\Turnier;
 
 use Wettkampf\Domain\FachFehler;
+use Wettkampf\Kern\Http\NichtGefunden;
 use Wettkampf\Domain\TurnierPhase;
 use Wettkampf\Domain\Graduierung;
 use Wettkampf\Kern\Db\Database;
@@ -292,6 +293,9 @@ final class StammdatenService
     public function teilnehmerLoeschen(int $turnierId, int $teilnahmeId): void
     {
         $this->db->transaktion(function () use ($turnierId, $teilnahmeId) {
+            // zuerst die Zugehörigkeit zum Turnier – sonst verriete die Meldung unten etwas über fremde Turniere (OWASP A01)
+            $teilnahme = $this->db->eine('SELECT * FROM teilnahme WHERE id = ? AND turnier_id = ?', [$teilnahmeId, $turnierId])
+                ?? throw new NichtGefunden('Teilnehmer nicht gefunden.');
             $hatErgebnis = (int) $this->db->wert(
                 "SELECT COUNT(*) FROM start s
                    JOIN begegnung b ON b.aka_start_id = s.id OR b.shiro_start_id = s.id
@@ -300,10 +304,6 @@ final class StammdatenService
             );
             if ($hatErgebnis > 0) {
                 throw new FachFehler('Der Teilnehmer hat bereits Ergebnisse. Bitte stattdessen auf „abgemeldet“ oder „nicht erschienen“ setzen.');
-            }
-            $teilnahme = $this->db->eine('SELECT * FROM teilnahme WHERE id = ? AND turnier_id = ?', [$teilnahmeId, $turnierId]);
-            if ($teilnahme === null) {
-                return;
             }
             $this->db->delete('teilnahme', ['id' => $teilnahmeId]);
             // Athlet nur löschen, wenn er an keinem anderen Turnier teilnimmt
