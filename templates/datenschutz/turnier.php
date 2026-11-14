@@ -62,6 +62,10 @@ $zeit = static fn(?string $z) => $z === null ? '' : date('d.m.Y H:i', (int) strt
                 <input type="number" name="loeschfrist_wochen" min="1" max="52" value="<?= (int) $e['loeschfrist_wochen'] ?>"></label>
         </div>
         <label class="check"><input type="checkbox" name="platzierte_behalten" value="1"<?= chk($e['platzierte_behalten']) ?>> Plätze 1–3 mit Name und Verein behalten (Chronik des Vereins, berechtigtes Interesse – steht dann in den Hinweisen)</label>
+        <h3>Einladungen</h3>
+        <label class="check"><input type="checkbox" name="einladungen" value="1"<?= chk($e['einladungen']) ?>> Im Anmeldeformular freiwillig anbieten: „<?= e(\Wettkampf\Meldung\Einladungen::TEXT) ?>“
+            <span class="hilfe">Einwilligung nach Art. 6 Abs. 1 lit. a DSGVO, nie vorausgewählt, keine Bedingung für die Anmeldung. Die Adressen bleiben auch nach der Pseudonymisierung
+                (bis zum Widerruf, höchstens <?= \Wettkampf\Meldung\Einladungen::GUELTIG_MONATE ?> Monate ohne erneute Einwilligung). Versand unter System → Einladungen.</span></label>
         <p><button class="knopf primaer" type="submit">Speichern</button>
             <a class="knopf" href="<?= e(url("live/$tid/datenschutz")) ?>" target="_blank">Datenschutzhinweise ansehen ↗</a></p>
     </form>

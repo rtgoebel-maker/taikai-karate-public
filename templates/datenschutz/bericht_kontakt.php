@@ -45,6 +45,12 @@ $liste = static fn(array $zeilen, callable $text): string => implode('; ', array
         <p class="klein">Je Anmeldung zusätzlich gespeichert: die gemeldeten Starter (deren Angaben gehören den Startern und stehen hier nicht).</p>
     <?php endif; ?>
 
+    <h2>Einwilligung in Einladungen</h2>
+    <?php if ($bericht['einladung']): $ei = $bericht['einladung']; ?>
+        <p>Eingewilligt am <?= e($ei['eingewilligt_am']) ?> (<?= e($ei['herkunft']) ?>, Textfassung <?= e($ei['fassung']) ?>) als <?= e($ei['name']) ?>, <?= e($ei['dojo']) ?>;
+            zuletzt eingeladen: <?= e((string) ($ei['zuletzt_eingeladen_am'] ?? '–')) ?>. Widerruf jederzeit – die Adresse wird dann gelöscht.</p>
+    <?php else: ?><p>Keine.</p><?php endif; ?>
+
     <h2>Versendete E-Mails (<?= count($bericht['mails']) ?>)</h2>
     <?php if ($bericht['mails']): ?>
         <table>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Wettkampf\Datenschutz;
 
+use Wettkampf\Meldung\Einladungen;
 use Wettkampf\Turnier\SystemEinstellungen;
 use Wettkampf\Kern\Db\Database;
 
@@ -94,13 +95,22 @@ final class Hinweise
             'Sie können sich bei einer Datenschutz-Aufsichtsbehörde beschweren (Art. 77 DSGVO). Zuständig ist: ' . ($e['aufsicht'] !== '' ? $e['aufsicht'] : '(noch nicht eingetragen)'),
         ]);
 
+        $nr = 7;
+        if ($e['einladungen']) {
+            $a[] = self::abschnitt($nr++ . '. Einladungen zu künftigen Turnieren (freiwillig)', [
+                'Wer bei der Anmeldung ausdrücklich einwilligt, wird per E-Mail zu künftigen Turnieren des Veranstalters eingeladen (Art. 6 Abs. 1 lit. a DSGVO). Die Einwilligung ist freiwillig und keine Bedingung für die Teilnahme.',
+                'Gespeichert werden E-Mail-Adresse, Name, Dojo sowie Zeitpunkt und Wortlaut der Einwilligung – getrennt von den Turnierdaten, daher auch nach deren Pseudonymisierung. '
+                    . 'Widerruf jederzeit mit Wirkung für die Zukunft über den Link in jeder Einladung oder formlos an den Kontakt in Abschnitt 1; die Adresse wird dann gelöscht. '
+                    . 'Ohne erneute Einwilligung löschen wir sie spätestens ' . Einladungen::GUELTIG_MONATE . ' Monate nach der letzten Einwilligung.',
+            ]);
+        }
         if ($e['fotos']) {
-            $a[] = self::abschnitt('7. Foto- und Videoaufnahmen', [
+            $a[] = self::abschnitt($nr++ . '. Foto- und Videoaufnahmen', [
                 'Während des Turniers fertigen Beauftragte des Veranstalters Fotos und Videos für die Berichterstattung und Öffentlichkeitsarbeit des Vereins an (Vereinswebseite, Presse, ggf. soziale Medien). Rechtsgrundlage für Übersichtsaufnahmen des Wettkampfgeschehens ist Art. 6 Abs. 1 lit. f DSGVO. Für gezielte Einzelaufnahmen, insbesondere von Minderjährigen außerhalb der Siegerehrung, holen wir vorab eine Einwilligung ein. Wer im Einzelfall nicht abgebildet werden möchte, wendet sich bitte vor Ort an die Wettkampfleitung.',
             ]);
         }
         if ($e['zusatz'] !== '') {
-            $a[] = self::abschnitt(($e['fotos'] ? '8' : '7') . '. Weitere Hinweise', [$e['zusatz']]);
+            $a[] = self::abschnitt($nr . '. Weitere Hinweise', [$e['zusatz']]);
         }
         return $a;
     }

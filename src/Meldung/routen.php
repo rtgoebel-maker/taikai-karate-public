@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Wettkampf\Kern\Http\Router;
 use Wettkampf\Meldung\Http\AnmeldungController;
 use Wettkampf\Meldung\Http\CoachController;
+use Wettkampf\Meldung\Http\EinladungController;
 use Wettkampf\Meldung\Http\ImportController;
 use Wettkampf\Meldung\Http\RechnungController;
 use Wettkampf\Meldung\Http\TeamController;
@@ -35,6 +36,13 @@ return static function (Router $r): void {
     $r->post('/turnier/{id}/coach-einstellungen', [CoachController::class, 'einstellungen'], 'turnier');
     $r->get('/turnier/{id}/korrekturen', [CoachController::class, 'korrekturen'], 'turnier');
     $r->post('/turnier/{id}/korrektur/{antragid}', [CoachController::class, 'korrekturBearbeiten'], 'turnier');
+    // freiwillige Einladungen zu künftigen Turnieren: Abmeldung öffentlich über den Link, Verwaltung nur Administration
+    $r->get('/einladung/abmelden/{einladungid}/{token}', [EinladungController::class, 'abmeldenFrage'], 'oeffentlich');
+    $r->post('/einladung/abmelden/{einladungid}/{token}', [EinladungController::class, 'abmelden'], 'oeffentlich');
+    $r->get('/einladungen', [EinladungController::class, 'index']);
+    $r->get('/einladungen/export', [EinladungController::class, 'export']);
+    $r->post('/einladungen/{einladungid}/loeschen', [EinladungController::class, 'loeschen']);
+    $r->post('/einladungen/turnier/{id}', [EinladungController::class, 'senden']);
     $r->get('/turnier/{id}/anmeldungen', [AnmeldungController::class, 'index'], 'turnier');
     $r->post('/turnier/{id}/anmeldungen/link-erneuern', [AnmeldungController::class, 'linkErneuern'], 'turnier');
     $r->post('/turnier/{id}/anmeldungen/einstellungen', [AnmeldungController::class, 'einstellungen'], 'turnier');

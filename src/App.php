@@ -390,6 +390,12 @@ final class App
         return new Tresor($this->instanz()->schluessel());
     }
 
+    /** Freiwillige Einladungen zu künftigen Turnieren (Abmeldelinks per HMAC mit dem Schlüssel dieser Installation). */
+    public function einladungen(): \Wettkampf\Meldung\Einladungen
+    {
+        return new \Wettkampf\Meldung\Einladungen($this->db, $this->instanz()->schluessel());
+    }
+
     /** QR-Kopplung von Tisch- und Ausruf-Geräten (HMAC mit dem Schlüssel dieser Installation). */
     public function geraeteKopplung(): GeraeteKopplung
     {

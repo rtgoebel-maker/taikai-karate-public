@@ -3,6 +3,7 @@
  * Öffentliche Anmeldung eines Dojos: neu, per Bearbeitungscode ändern oder
  * (nach Freigabe/Meldeschluss) schreibgeschützt ansehen.
  * @var string $datenschutzLink Datenschutzhinweise des Turniers
+ * @var bool $einladungAngebot freiwillige Einwilligung in Einladungen anbieten
  * @var array<string, mixed> $turnier
  * @var array<string, mixed>|null $anmeldung
  * @var string $formularZiel Absenden an (Anmeldelink bzw. Bearbeitungslink)
@@ -225,6 +226,10 @@ $status = [
             <a href="<?= e($datenschutzLink) ?>" target="_blank" rel="noopener">Datenschutzhinweise zum Turnier ↗</a></p>
         <label class="check"><input type="checkbox" name="einwilligung" value="1" required<?= chk(!empty($werte['einwilligung'])) ?>>
             <?= e(\Wettkampf\Meldung\AnmeldungService::DATENSCHUTZ_BESTAETIGUNG) ?></label>
+        <?php if ($einladungAngebot): ?>
+            <label class="check"><input type="checkbox" name="einladungen" value="1"<?= chk(!empty($werte['einladungen'])) ?>>
+                <?= e(\Wettkampf\Meldung\Einladungen::TEXT) ?></label>
+        <?php endif; ?>
         <p><button type="submit" class="knopf primaer gross"><?= $anmeldung ? 'Änderungen speichern' : 'Anmeldung absenden' ?></button></p>
     </section>
 </form>

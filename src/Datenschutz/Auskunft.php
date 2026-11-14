@@ -123,7 +123,8 @@ final class Auskunft
             ];
         }
         $mails = $this->db->alle('SELECT betreff, anlass, erstellt_am, gesendet_am FROM mail_ausgang WHERE LOWER(empfaenger) = ? ORDER BY id', [$email]);
-        return ['erstellt_am' => date('Y-m-d H:i:s'), 'email' => $email, 'konten' => $konten, 'anmeldungen' => $anmeldungen, 'mails' => $mails,
+        $einladung = $this->db->eine('SELECT email, name, dojo, herkunft, eingewilligt_am, fassung, zuletzt_eingeladen_am FROM einladung WHERE email = ?', [$email]);
+        return ['erstellt_am' => date('Y-m-d H:i:s'), 'email' => $email, 'konten' => $konten, 'anmeldungen' => $anmeldungen, 'mails' => $mails, 'einladung' => $einladung,
             'turniere' => $this->turnierHinweise(array_keys($turniere))];
     }
 

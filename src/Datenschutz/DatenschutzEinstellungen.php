@@ -27,7 +27,7 @@ final class DatenschutzEinstellungen
      * @param array<string, mixed> $turnier
      * @return array{verantwortlicher: string, vertreten: string, kontakt: string, dsb: string, hoster: string, aufsicht: string,
      *     veroeffentlichung: string, zusatz: string, cloudflare: bool, fotos: bool, loeschfrist_wochen: int, live_tage: int,
-     *     platzierte_behalten: bool, eingerichtet: bool, exportiert_am: string|null, live_abgeschaltet_am: string|null, pseudonymisiert_am: string|null}
+     *     platzierte_behalten: bool, einladungen: bool, eingerichtet: bool, exportiert_am: string|null, live_abgeschaltet_am: string|null, pseudonymisiert_am: string|null}
      */
     public static function lesen(array $turnier): array
     {
@@ -49,6 +49,7 @@ final class DatenschutzEinstellungen
             'loeschfrist_wochen' => max(1, min(52, (int) ($e['loeschfrist_wochen'] ?? self::LOESCHFRIST_STANDARD))),
             'live_tage' => max(0, min(365, (int) ($e['live_tage'] ?? self::LIVE_TAGE_STANDARD))),
             'platzierte_behalten' => !empty($e['platzierte_behalten']),
+            'einladungen' => !empty($e['einladungen']),
             // Fristen gelten erst, wenn die Leitung die Angaben gespeichert hat (Bestandsturniere bleiben unberührt)
             'eingerichtet' => isset($e['loeschfrist_wochen']),
             'exportiert_am' => $zeit('exportiert_am'),
@@ -108,6 +109,7 @@ final class DatenschutzEinstellungen
         $neu['loeschfrist_wochen'] = max(1, min(52, (int) ($post['loeschfrist_wochen'] ?? self::LOESCHFRIST_STANDARD)));
         $neu['live_tage'] = max(0, min(365, (int) ($post['live_tage'] ?? self::LIVE_TAGE_STANDARD)));
         $neu['platzierte_behalten'] = !empty($post['platzierte_behalten']);
+        $neu['einladungen'] = !empty($post['einladungen']);
         foreach (['exportiert_am', 'live_abgeschaltet_am', 'pseudonymisiert_am'] as $stand) {
             if (isset($alt[$stand])) {
                 $neu[$stand] = $alt[$stand];

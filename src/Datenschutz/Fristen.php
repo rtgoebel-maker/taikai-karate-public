@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Wettkampf\Datenschutz;
 
 use Wettkampf\Kern\Db\Database;
+use Wettkampf\Meldung\Einladungen;
 use Wettkampf\Kern\Protokoll;
 
 /**
@@ -73,6 +74,7 @@ final class Fristen
                 $pseudonymisiert++;
             }
         }
+        (new Einladungen($this->db, ''))->aufraeumen($jetzt); // Einladungen ohne erneute Einwilligung (Speicherbegrenzung)
         if ($pseudonymisiert > 0 && $this->nachPseudonymisierung !== null) {
             ($this->nachPseudonymisierung)();
         }

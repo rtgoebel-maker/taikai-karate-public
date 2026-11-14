@@ -10,6 +10,7 @@ use Wettkampf\Identitaet\DojoKonten;
 use Wettkampf\Identitaet\Konten;
 use Wettkampf\Meldung\AnmeldungMails;
 use Wettkampf\Meldung\AnmeldungService;
+use Wettkampf\Meldung\Einladungen;
 use Wettkampf\Meldung\DojoZugangBindung;
 use Wettkampf\Turnier\SystemEinstellungen;
 use Wettkampf\Meldung\CoachService;
@@ -67,6 +68,7 @@ final class AnmeldungController extends Controller
                 $this->kontoVorpruefen($request);
             }
             $code = $this->service()->einreichen($id, $request->post, null, Session::coachVerein());
+            $this->einladungUebernehmen($turnier, $request);
             $this->drossel()->zaehlen($this->absender($request), 3600);
         } catch (AnmeldungUngueltig $f) {
             return $this->formularSeite($turnier, null, $request->post, $f->fehler);
@@ -95,6 +97,7 @@ final class AnmeldungController extends Controller
             $this->botPruefen($request);
             $this->drossel()->pruefen($this->absender($request), self::MAX_JE_STUNDE, 3600);
             $this->service()->einreichen($id, $request->post, $code);
+            $this->einladungUebernehmen($turnier, $request);
             $this->drossel()->zaehlen($this->absender($request), 3600);
         } catch (AnmeldungUngueltig $f) {
             return $this->formularSeite($turnier, $anmeldung, $request->post, $f->fehler);
@@ -406,6 +409,18 @@ final class AnmeldungController extends Controller
             ?? throw new NichtGefunden('Diesen Anmeldelink gibt es nicht (mehr). Bitte den aktuellen Link beim Ausrichter erfragen.');
     }
 
+    /**
+     * Freiwillige Einwilligung in Einladungen (nur wenn angeboten und angekreuzt; nicht ankreuzen widerruft nichts).
+     *
+     * @param array<string, mixed> $turnier
+     */
+    private function einladungUebernehmen(array $turnier, Request $request): void
+    {
+        if (Einladungen::angeboten($turnier) && $request->post('einladungen') !== null) {
+            $this->app->einladungen()->einwilligen($request->text('email'), $request->text('ansprechpartner'), $request->text('dojo'), $turnier);
+        }
+    }
+
     private function einwilligungPruefen(Request $request): void
     {
         if ($request->text('webseite') !== '') {
@@ -466,6 +481,7 @@ final class AnmeldungController extends Controller
             'formularZiel' => $anmeldung !== null
                 ? url("anmeldung/{$turnier['id']}/{$anmeldung['code']}")
                 : url('melden/' . $service->anmeldeSchluessel((int) $turnier['id'])),
+            'einladungAngebot' => $bearbeitbar && Einladungen::angeboten($turnier),
             'datenschutzLink' => url('melden/' . $service->anmeldeSchluessel((int) $turnier['id']) . '/datenschutz'),
             'botschutz' => $bearbeitbar ? $this->app->botSchutz()->felder('anmeldung') : '',
             'bindungHinweis' => $anmeldung === null ? $this->bindungHinweis((int) $turnier['id']) : null,
