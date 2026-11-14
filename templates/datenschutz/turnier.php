@@ -10,6 +10,7 @@
  * @var string|null $liveAusAb
  * @var bool $exportErledigt
  * @var bool $pdf
+ * @var list<array{id: int, name: string, datum: string}> $vorlagen Turniere mit gespeicherten Angaben zum Übernehmen
  */
 $this->layout('layout', ['titel' => 'Datenschutz', 'turnier' => $turnier]);
 $tid = (int) $turnier['id'];
@@ -29,6 +30,18 @@ $zeit = static fn(?string $z) => $z === null ? '' : date('d.m.Y H:i', (int) strt
     <div class="meldung meldung-hinweis">Noch nicht eingerichtet: Erst nach dem Speichern der Angaben gelten Löschfrist und Abschaltung der Statusseite automatisch.</div>
 <?php elseif ($vorbei && date('Y-m-d') >= $loeschenAb && !$exportErledigt): ?>
     <div class="meldung meldung-fehler">Die Löschfrist ist abgelaufen. Bitte jetzt den Buchhaltungsexport erstellen und archivieren – danach wird automatisch pseudonymisiert.</div>
+<?php endif; ?>
+
+<?php if ($vorlagen): ?>
+    <form method="post" action="<?= e(url("turnier/$tid/datenschutz/uebernehmen")) ?>" class="karte formular knopfleiste"<?= $e['eingerichtet'] ? ' data-bestaetigen="Die Angaben dieses Turniers werden überschrieben. Übernehmen?" data-bestaetigen-ja="Übernehmen"' : '' ?>>
+        <?= csrf_feld() ?>
+        <label>Angaben übernehmen aus
+            <select name="quelle">
+                <?php foreach ($vorlagen as $v): ?><option value="<?= (int) $v['id'] ?>"><?= e($v['name']) ?> (<?= e(datum_de($v['datum'])) ?>)</option><?php endforeach; ?>
+            </select></label>
+        <button class="knopf" type="submit">Übernehmen</button>
+        <span class="hilfe">Verantwortlicher, Kontakt, Hoster, Aufsicht, Hinweise und Fristen – nicht der Stand von Export oder Pseudonymisierung.</span>
+    </form>
 <?php endif; ?>
 
 <div class="zwei-spalten">

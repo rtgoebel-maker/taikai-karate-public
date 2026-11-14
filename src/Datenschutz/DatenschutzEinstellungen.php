@@ -122,6 +122,24 @@ final class DatenschutzEinstellungen
         ]);
     }
 
+    /**
+     * Angaben und Fristen eines anderen Turniers übernehmen (z. B. für das nächste Turnier des Vereins). Der Stand des
+     * Zielturniers (Export, Abschaltung, Pseudonymisierung) bleibt, der des Quellturniers wird nicht mitgenommen.
+     *
+     * @return bool false = das Quellturnier hat keine gespeicherten Angaben
+     */
+    public function uebernehmen(int $zielId, int $quelleId): bool
+    {
+        $quelle = $this->alle($quelleId)['datenschutz'] ?? null;
+        if (!is_array($quelle) || !isset($quelle['loeschfrist_wochen'])) {
+            return false;
+        }
+        $post = array_intersect_key($quelle, self::TEXTE + array_flip(['cloudflare', 'fotos', 'loeschfrist_wochen', 'live_tage', 'platzierte_behalten', 'einladungen']));
+        $this->speichern($zielId, $post);
+        (new Protokoll($this->db))->eintragen($zielId, 'turnier', $zielId, 'datenschutz_uebernommen', ['aus_turnier' => $quelleId]);
+        return true;
+    }
+
     /** Stand vermerken (exportiert_am, live_abgeschaltet_am, pseudonymisiert_am). */
     public function vermerken(int $turnierId, string $stand, string $zeit): void
     {

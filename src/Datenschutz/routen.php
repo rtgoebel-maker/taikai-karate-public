@@ -16,6 +16,7 @@ return static function (Router $r): void {
     // je Turnier: Angaben, Buchhaltungsexport, Pseudonymisierung (Turnierleitung)
     $r->get('/turnier/{id}/datenschutz', [DatenschutzController::class, 'index'], 'turnier');
     $r->post('/turnier/{id}/datenschutz', [DatenschutzController::class, 'speichern'], 'turnier');
+    $r->post('/turnier/{id}/datenschutz/uebernehmen', [DatenschutzController::class, 'uebernehmen'], 'turnier');
     $r->post('/turnier/{id}/datenschutz/buchhaltung', [DatenschutzController::class, 'buchhaltung'], 'turnier');
     $r->post('/turnier/{id}/datenschutz/pseudonymisieren', [DatenschutzController::class, 'pseudonymisieren'], 'turnier');
     // Auskunft und Löschung über alle Turniere (nur Administration)

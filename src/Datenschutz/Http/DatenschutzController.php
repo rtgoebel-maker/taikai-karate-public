@@ -41,6 +41,7 @@ final class DatenschutzController extends Controller
             'liveAusAb' => DatenschutzEinstellungen::liveAusAb($turnier),
             'exportErledigt' => $this->fristen()->exportErledigt($turnier),
             'pdf' => PdfBeleg::verfuegbar(),
+            'vorlagen' => $this->vorlagen($id),
             'aktiv' => 'einstellungen',
         ]);
     }
@@ -50,6 +51,21 @@ final class DatenschutzController extends Controller
         $this->turnier($id);
         (new DatenschutzEinstellungen($this->db))->speichern($id, $request->post);
         $this->erfolg('Datenschutz-Angaben gespeichert.');
+        return $this->weiter("turnier/$id/datenschutz");
+    }
+
+    /** Angaben aus einem anderen Turnier übernehmen – nur aus Turnieren, die man selbst leitet (OWASP A01). */
+    public function uebernehmen(Request $request, int $id): Response
+    {
+        $this->turnier($id);
+        $quelle = (int) $request->zahl('quelle', 0);
+        if ($quelle === $id || !Session::leitet($quelle) || $this->db->wert('SELECT 1 FROM turnier WHERE id = ?', [$quelle]) === null) {
+            throw new NichtGefunden('Turnier nicht gefunden.');
+        }
+        if (!(new DatenschutzEinstellungen($this->db))->uebernehmen($id, $quelle)) {
+            throw new FachFehler('In diesem Turnier sind noch keine Datenschutz-Angaben gespeichert.');
+        }
+        $this->erfolg('Datenschutz-Angaben übernommen – bitte kurz prüfen, ob alles auch für dieses Turnier passt.');
         return $this->weiter("turnier/$id/datenschutz");
     }
 
@@ -108,6 +124,22 @@ final class DatenschutzController extends Controller
             'vollstaendig' => DatenschutzEinstellungen::vollstaendig(DatenschutzEinstellungen::lesen($turnier)),
             'zurueck' => $zurueck,
         ]));
+    }
+
+    /**
+     * Turniere mit gespeicherten Datenschutz-Angaben, die die angemeldete Person leitet (neueste zuerst).
+     *
+     * @return list<array{id: int, name: string, datum: string}>
+     */
+    private function vorlagen(int $ohne): array
+    {
+        $liste = [];
+        foreach ($this->db->alle('SELECT id, name, datum, einstellungen FROM turnier WHERE id <> ? ORDER BY datum DESC, id DESC', [$ohne]) as $t) {
+            if (Session::leitet((int) $t['id']) && DatenschutzEinstellungen::lesen($t)['eingerichtet']) {
+                $liste[] = ['id' => (int) $t['id'], 'name' => (string) $t['name'], 'datum' => (string) $t['datum']];
+            }
+        }
+        return $liste;
     }
 
     private function fristen(): Fristen
