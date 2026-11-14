@@ -104,7 +104,7 @@ fi
 aufrufen (oder sudo BENUTZER=name ./dienste-einrichten.sh)."
 id "$BENUTZER" >/dev/null 2>&1 || fehler "Benutzer „$BENUTZER“ gibt es nicht."
 PHP="${PHP:-$(command -v php || true)}"
-[ -n "$PHP" ] || fehler "PHP nicht gefunden – siehe docs/HALLE-LINUX.md Kap. 2 (sudo apt install php-cli php-sqlite3 php-mbstring php-zip)."
+[ -n "$PHP" ] || fehler "PHP nicht gefunden – siehe docs/HALLE-LINUX.md Kap. 2 (sudo apt install php-cli php-sqlite3 php-mbstring php-zip php-xml)."
 "$PHP" -r 'exit(PHP_VERSION_ID >= 80300 ? 0 : 1);' || fehler "PHP $("$PHP" -r 'echo PHP_VERSION;') ist zu alt, benötigt wird 8.3 oder neuer."
 fehlt=$("$PHP" -r 'foreach (["pdo_sqlite", "mbstring", "openssl", "zlib"] as $e) { if (!extension_loaded($e)) { echo "$e "; } }')
 [ -z "$fehlt" ] || fehler "fehlende PHP-Erweiterungen: $fehlt(sudo apt install php-sqlite3 php-mbstring)"

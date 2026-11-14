@@ -2,6 +2,7 @@
 /**
  * Öffentliche Anmeldung eines Dojos: neu, per Bearbeitungscode ändern oder
  * (nach Freigabe/Meldeschluss) schreibgeschützt ansehen.
+ * @var string $datenschutzLink Datenschutzhinweise des Turniers
  * @var array<string, mixed> $turnier
  * @var array<string, mixed>|null $anmeldung
  * @var string $formularZiel Absenden an (Anmeldelink bzw. Bearbeitungslink)
@@ -219,8 +220,11 @@ $status = [
         <?php endif; ?>
         <label class="feld">Bemerkung an die Wettkampfleitung <span class="hilfe">optional</span>
             <textarea name="bemerkung" rows="3" maxlength="2000"><?= e($w($werte, 'bemerkung')) ?></textarea></label>
+        <p class="hilfe">Die Angaben werden zur Durchführung des Turniers verarbeitet (Art. 6 Abs. 1 lit. b DSGVO); Name, Verein, Klasse und Ergebnisse
+            erscheinen in Start- und Ergebnislisten und auf der Statusseite, Geburtsdaten nicht. Einzelheiten, Speicherdauer und Rechte:
+            <a href="<?= e($datenschutzLink) ?>" target="_blank" rel="noopener">Datenschutzhinweise zum Turnier ↗</a></p>
         <label class="check"><input type="checkbox" name="einwilligung" value="1" required<?= chk(!empty($werte['einwilligung'])) ?>>
-            Die Erziehungsberechtigten bzw. Teilnehmer sind einverstanden, dass die Daten zur Turnierorganisation verarbeitet und Name und Verein in Start- und Ergebnislisten veröffentlicht werden.</label>
+            <?= e(\Wettkampf\Meldung\AnmeldungService::DATENSCHUTZ_BESTAETIGUNG) ?></label>
         <p><button type="submit" class="knopf primaer gross"><?= $anmeldung ? 'Änderungen speichern' : 'Anmeldung absenden' ?></button></p>
     </section>
 </form>

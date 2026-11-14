@@ -59,6 +59,7 @@ $absenderZeile = implode(' · ', array_filter(array_map('trim', explode("\n", $e
     <?php endif; ?>
     <?php if ($e['text'] !== ''): ?><p><?= nl2br(e($e['text'])) ?></p><?php endif; ?>
 
+    <?php if ($teilnehmer || $teams): /* im Buchhaltungsarchiv ohne Starterliste (Datensparsamkeit) */ ?>
     <h2>Gemeldete Starter</h2>
     <table class="r-starter">
         <thead><tr><th>Name</th><th>Kata</th><th>Kumite</th></tr></thead>
@@ -71,4 +72,5 @@ $absenderZeile = implode(' · ', array_filter(array_map('trim', explode("\n", $e
         <?php endforeach; ?>
         </tbody>
     </table>
+    <?php endif; ?>
 </div>

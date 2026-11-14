@@ -66,6 +66,7 @@ $menue = array_filter(
         <div class="meldung meldung-erfolg">Das Turnier ist beendet – vielen Dank an alle Starter, Kampfrichter und Helfer. Die Ergebnisse stehen unter „Ergebnisse“.</div>
     <?php endif; ?>
     <?= $inhalt ?>
+    <?php if (!$offline): ?><p class="klein leise datenschutz-link"><a href="<?= e(url("live/$tid/datenschutz")) ?>">Datenschutzhinweise zum Turnier</a></p><?php endif; ?>
 </main>
 <?= $offline ? '' : $this->teil('teile/fuss') ?>
 </body>

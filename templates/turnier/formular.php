@@ -131,6 +131,13 @@ $this->layout('layout', ['titel' => $neu ? 'Neues Turnier' : 'Einstellungen', 't
             <?php endif; ?>
         </div>
         <div class="karte">
+            <h2>Datenschutz</h2>
+            <?php $ds = \Wettkampf\Datenschutz\DatenschutzEinstellungen::lesen($turnier); ?>
+            <p>Datenschutzhinweise und Baustein für die Ausschreibung, Buchhaltungsexport zum Archivieren, Löschfrist mit Pseudonymisierung.
+                <?= $ds['pseudonymisiert_am'] !== null ? '<strong>Pseudonymisiert.</strong>' : ($ds['eingerichtet'] ? '' : '<strong>Noch nicht eingerichtet.</strong>') ?></p>
+            <a class="knopf" href="<?= e(url("turnier/{$turnier['id']}/datenschutz")) ?>">Datenschutz …</a>
+        </div>
+        <div class="karte">
             <h2>Geräte koppeln</h2>
             <p>Tablets (Eingabe) und Handys (Ausruf) per QR-Code anmelden – Sie geben jedes Gerät frei und können es jederzeit sperren.</p>
             <a class="knopf" href="<?= e(url("turnier/{$turnier['id']}/geraete")) ?>">Geräte koppeln …</a>

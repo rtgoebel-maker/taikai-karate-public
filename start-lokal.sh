@@ -17,7 +17,7 @@ export PHP_CLI_SERVER_WORKERS="${PHP_CLI_SERVER_WORKERS:-4}"
 
 if ! command -v "$PHP" >/dev/null 2>&1; then
     echo "PHP wurde nicht gefunden. Bitte PHP 8.3 oder neuer installieren (siehe docs/HALLE-LINUX.md), z. B.:"
-    echo "    sudo apt install php-cli php-sqlite3 php-mbstring php-zip"
+    echo "    sudo apt install php-cli php-sqlite3 php-mbstring php-zip php-xml"
     exit 1
 fi
 if ! "$PHP" -r 'exit(PHP_VERSION_ID >= 80300 ? 0 : 1);'; then

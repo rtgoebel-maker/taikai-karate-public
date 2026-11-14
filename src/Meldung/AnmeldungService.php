@@ -38,6 +38,20 @@ final class AnmeldungService
 
     private Protokoll $protokoll;
 
+    /**
+     * Bestätigung im Anmeldeformular (Pflicht). Keine Einwilligung: Rechtsgrundlage ist die Durchführung des Turniers
+     * (Art. 6 Abs. 1 lit. b bzw. f DSGVO) – das Dojo bestätigt, dass es die Starter informiert hat (Art. 14).
+     */
+    public const DATENSCHUTZ_BESTAETIGUNG = 'Ich bestätige für das meldende Dojo, dass alle gemeldeten Starter – bei Minderjährigen deren Erziehungsberechtigte – '
+        . 'über die Datenschutzhinweise zu diesem Turnier informiert wurden, insbesondere darüber, dass Name, Verein, Klasse und Ergebnisse '
+        . 'in Start- und Ergebnislisten, Aushängen und auf der Live-Statusseite erscheinen.';
+
+    /** Kennung der Textfassung (ändert sich mit dem Text), gespeichert je Anmeldung. */
+    public static function datenschutzFassung(): string
+    {
+        return substr(hash('sha256', self::DATENSCHUTZ_BESTAETIGUNG), 0, 12);
+    }
+
     public function __construct(private readonly Database $db)
     {
         $this->protokoll = new Protokoll($db);
@@ -361,6 +375,8 @@ final class AnmeldungService
         }
         $preis = $this->preis($this->einstellungen($turnier), $daten)['summe'];
         $jetzt = date('Y-m-d H:i:s');
+        // Nachweis der Datenschutz-Bestätigung (Art. 5 Abs. 2 DSGVO): Zeitpunkt und Textfassung
+        $daten['datenschutz'] = ['am' => $jetzt, 'fassung' => self::datenschutzFassung()];
         $felder = [
             'telefon' => $kopf['telefon'] ?: null,
             'bemerkung' => $kopf['bemerkung'] ?: null,

@@ -22,7 +22,8 @@ auf der Seite „Über diese Software“ der Benutzeroberfläche (Adresse /ueber
 die von jeder Seite der Software aus erreichbar bleiben muss.
 
 Verwendete Bibliotheken stehen unter ihren eigenen Lizenzen (siehe
-vendor/ bzw. die Seite „Über diese Software“).
+vendor/ bzw. die Seite „Über diese Software“), u. a. PHPMailer und dompdf
+(LGPL-2.1), php-svg-lib (LGPL-3.0) und die Schrift DejaVu Sans (freie Lizenz).
 
 Die Wertungsregeln folgen der Wettkampfordnung des Deutschen JKA-Karate
 Bund e.V. (DJKB). Die Software ist kein offizielles Produkt des DJKB.

@@ -145,6 +145,24 @@ final class AutoSicherung
         return $liste;
     }
 
+    /**
+     * Ältere Stände löschen und sofort neu sichern – nach einer Pseudonymisierung (Datenschutz), damit die Personenangaben
+     * nicht in alten Kopien weiterleben. @return int gelöschte Stände
+     */
+    public function alteErsetzen(): int
+    {
+        $geloescht = 0;
+        foreach ($this->liste() as $alt) {
+            if (@unlink($this->ordner . '/' . $alt['name'])) {
+                $geloescht++;
+            }
+        }
+        if ($this->ordnerBereit()) {
+            $this->sichern();
+        }
+        return $geloescht;
+    }
+
     /** Pfad eines Stands; nur gültige Namen aus diesem Ordner (kein Pfad-Trick, OWASP A01). */
     public function pfad(string $name): string
     {

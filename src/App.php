@@ -11,6 +11,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Slim\App as SlimApp;
 use Slim\Factory\AppFactory;
 use Wettkampf\Betrieb\AutoSicherung;
+use Wettkampf\Datenschutz\Fristen;
 use Wettkampf\Durchfuehrung\AusrufService;
 use Wettkampf\Durchfuehrung\GeraeteKopplung;
 use Wettkampf\Identitaet\AuthenticatorApp;
@@ -56,7 +57,7 @@ final class App
      * Fachliche Module (src/<Modul>/, je mit routen.php). Die Reihenfolge der Routen ist für
      * Slim unerheblich, solange sich Muster nicht überdecken – geprüft in AppTest.
      */
-    public const MODULE = ['Identitaet', 'Oeffentlich', 'Meldung', 'Durchfuehrung', 'Kommunikation', 'Turnier', 'Ausgaben', 'Betrieb', 'Sync'];
+    public const MODULE = ['Identitaet', 'Oeffentlich', 'Meldung', 'Durchfuehrung', 'Kommunikation', 'Turnier', 'Ausgaben', 'Betrieb', 'Sync', 'Datenschutz'];
 
     public readonly Router $router;
     public readonly View $view;
@@ -156,6 +157,14 @@ final class App
         $slim->add(function (ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface {
             $antwort = $handler->handle($request);
             AutoSicherung::ausKonfiguration($this->db, $this->config, $this->wurzel)?->beiBedarf();
+            try {
+                // Datenschutz-Fristen (Statusseite abschalten, pseudonymisieren), höchstens stündlich
+                (new Fristen($this->db, $this->instanz()->id(), function (): void {
+                    AutoSicherung::ausKonfiguration($this->db, $this->config, $this->wurzel)?->alteErsetzen();
+                }))->beiBedarf();
+            } catch (\Throwable $f) {
+                error_log('Datenschutz-Fristen: ' . $f->getMessage());
+            }
             try {
                 $this->postausgang()?->versenden();
             } catch (\Throwable $f) {

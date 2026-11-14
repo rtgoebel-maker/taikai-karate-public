@@ -412,7 +412,7 @@ final class AnmeldungController extends Controller
             throw new FachFehler('Anmeldung konnte nicht gespeichert werden.'); // Spam-Falle
         }
         if ($request->post('einwilligung') === null) {
-            throw new AnmeldungUngueltig(['Bitte der Verarbeitung der Daten für die Turnierorganisation zustimmen.']);
+            throw new AnmeldungUngueltig(['Bitte bestätigen, dass die Starter bzw. Erziehungsberechtigten über die Datenschutzhinweise informiert wurden.']);
         }
     }
 
@@ -466,6 +466,7 @@ final class AnmeldungController extends Controller
             'formularZiel' => $anmeldung !== null
                 ? url("anmeldung/{$turnier['id']}/{$anmeldung['code']}")
                 : url('melden/' . $service->anmeldeSchluessel((int) $turnier['id'])),
+            'datenschutzLink' => url('melden/' . $service->anmeldeSchluessel((int) $turnier['id']) . '/datenschutz'),
             'botschutz' => $bearbeitbar ? $this->app->botSchutz()->felder('anmeldung') : '',
             'bindungHinweis' => $anmeldung === null ? $this->bindungHinweis((int) $turnier['id']) : null,
             'kontoBis' => $bearbeitbar ? $this->kontoMoeglich($turnier, $anmeldung) : null,
