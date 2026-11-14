@@ -88,11 +88,17 @@ $this->layout('layout', ['titel' => 'Systemeinstellungen', 'aktiv' => 'system'])
         <p class="hilfe">Dojos können bei der Online-Anmeldung einen Zugang anlegen (nur mit E-Mail-Versand). Er gilt bis so viele Monate nach dem Turnier
             und wird danach automatisch gelöscht (Datensparsamkeit); je Turnier ist eine neue Anmeldung nötig, angemeldet verlängert sie den Zugang.
             Von der Administration angelegte Konten laufen nicht ab.</p>
-        <p class="klein"><a href="<?= e(url('einladungen')) ?>">Einladungen zu künftigen Turnieren</a> – freiwillig eingewilligte Adressen aus der Online-Anmeldung, Versand und Export</p>
-        <p class="klein"><a href="<?= e(url('datenschutz/auskunft')) ?>">Auskunft und Löschung (DSGVO)</a> – Anfragen von Startern oder meldenden Personen: alle gespeicherten Angaben zur Person, Löschung auf Antrag</p>
         <label class="check"><input type="checkbox" name="dojo_mehrere_turniere" value="1"<?= $dojoMehrereTurniere ? ' checked' : '' ?>> Ein Zugang für mehrere Turniere
             <span class="hilfe">Aus (Standard): Ein Zugang gilt nur für das Turnier, für das er angelegt wurde – „Meine Meldungen“ und Coaching-Portal zeigen nur dieses Turnier.
                 Ein: Mit demselben Zugang lassen sich auch weitere Turniere melden. Von der Administration angelegte Coach-Konten gelten immer für alle Turniere ihres Dojos.</span></label>
+    </div>
+    <div class="karte">
+        <h2>Datenschutz</h2>
+        <p class="hilfe">Gilt für alle Turniere. Datenschutzhinweise, Löschfristen und Buchhaltungsexport stehen je Turnier unter „Einstellungen → Datenschutz“.</p>
+        <p><a class="knopf" href="<?= e(url('datenschutz/auskunft')) ?>">Auskunft und Löschung</a></p>
+        <p class="klein">Anfragen von Startern, Erziehungsberechtigten oder meldenden Personen (Art. 15/17 DSGVO): alle gespeicherten Angaben zur Person über alle Turniere, Löschung auf Antrag.</p>
+        <p><a class="knopf" href="<?= e(url('einladungen')) ?>">Einladungen zu künftigen Turnieren</a></p>
+        <p class="klein">Freiwillig eingewilligte Adressen aus der Online-Anmeldung: ansehen, löschen, exportieren, Einladung versenden.</p>
     </div>
     <div class="system-speichern"><button class="knopf primaer" type="submit">Einstellungen speichern</button></div>
 </form>
