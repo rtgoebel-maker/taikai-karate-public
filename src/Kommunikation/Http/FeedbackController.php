@@ -10,6 +10,7 @@ use Wettkampf\Kommunikation\MailEinstellungen;
 use Wettkampf\Betrieb\DemoTurnier;
 use Wettkampf\Betrieb\DemoZuruecksetzen;
 use Wettkampf\Kommunikation\FeedbackService;
+use Wettkampf\Turnier\DemoBesitz;
 use Wettkampf\Turnier\SystemEinstellungen;
 use Wettkampf\Domain\FachFehler;
 use Wettkampf\Kern\Drossel;
@@ -41,6 +42,8 @@ final class FeedbackController extends Controller
             'statusBereiche' => $system->statusBereiche(),
             'demoModus' => $system->demoModus(),
             'nurDemo' => Session::istDemo(),
+            // Freigabe beim Anlegen (nur Administration): aktive Demo-Zugänge
+            'demoKonten' => Session::istAdmin() ? $this->db->alle("SELECT id, name, email FROM benutzer WHERE rolle = 'demo' AND ist_admin = 0 AND aktiv = 1 ORDER BY name") : [],
             'demoReset' => (new DemoZuruecksetzen($this->db))->einstellungen() + [
                 'naechster' => (new DemoZuruecksetzen($this->db))->naechster(),
                 'turniere' => count((new DemoZuruecksetzen($this->db))->demoTurniere()),
@@ -88,10 +91,38 @@ final class FeedbackController extends Controller
             $logosVon > 0 ? $logosVon : null,
             $request->text('phase', 'vorbereitung'),
         );
+        $this->demoFreigabe($demo['turnier'], $request);
         $this->erfolg(t('Demo-Turnier „{name}“ angelegt: {n} Teilnehmer', ['name' => $demo['name'], 'n' => $demo['teilnehmer']])
             . ($demo['teams'] ? ', ' . t('{n} Teams', ['n' => $demo['teams']]) : '') . ', ' . t('{n} Klassen ausgelost', ['n' => $demo['ausgelost']])
             . ($demo['ergebnisse'] ? ', ' . t('{n} Ergebnisse eingetragen', ['n' => $demo['ergebnisse']]) : ' – ' . t('noch nicht gestartet')) . '. ' . t('PINs: {pins}.', ['pins' => t(DemoTurnier::PINS)]));
         return $this->weiter("turnier/{$demo['turnier']}");
+    }
+
+    /**
+     * Wer sieht das neue Demo-Turnier? Demo-Nutzer: nur er selbst (Besitzer). Administration: alle Demo-Zugänge (gemeinsam,
+     * ohne Besitzer), nur sie selbst oder ausgewählte Demo-Zugänge (Besitzer Administration, Freigabe per Turnierleitung).
+     */
+    private function demoFreigabe(int $turnierId, Request $request): void
+    {
+        $ich = (int) (Session::benutzer()['id'] ?? 0);
+        $demo = new DemoTurnier($this->db);
+        if (Session::istDemo()) {
+            $demo->besitzerEintragen($turnierId, $ich);
+            return;
+        }
+        $freigabe = $request->text('freigabe', 'alle');
+        if ($freigabe === 'alle' || $ich === 0) {
+            return;
+        }
+        (new DemoBesitz($this->db))->besitzerSetzen($turnierId, $ich);
+        if ($freigabe === 'auswahl') {
+            $erlaubt = array_map('intval', $this->db->spalte("SELECT id FROM benutzer WHERE rolle = 'demo' AND ist_admin = 0 AND aktiv = 1"));
+            foreach ((array) $request->post('freigabe_fuer', []) as $id) {
+                if (is_scalar($id) && in_array((int) $id, $erlaubt, true)) {
+                    $demo->freigeben($turnierId, (int) $id);
+                }
+            }
+        }
     }
 
     /** Tägliches Zurücksetzen der Demo-Turniere einstellen (Uhrzeit, Pause). */
@@ -105,7 +136,8 @@ final class FeedbackController extends Controller
     /** Alle Demo-Turniere sofort zurücksetzen. */
     public function demoZuruecksetzenJetzt(Request $request): Response
     {
-        $anzahl = (new DemoZuruecksetzen($this->db))->jetzt();
+        // Demo-Nutzer: nur die eigenen Demo-Turniere; Administration: alle
+        $anzahl = (new DemoZuruecksetzen($this->db))->jetzt(null, Session::istDemo() ? (int) (Session::benutzer()['id'] ?? 0) : null);
         $this->erfolg($anzahl === 1 ? t('1 Demo-Turnier zurückgesetzt.') : t('{n} Demo-Turniere zurückgesetzt.', ['n' => $anzahl]));
         return $this->weiter('system');
     }

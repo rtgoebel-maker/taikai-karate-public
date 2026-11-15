@@ -89,14 +89,14 @@ $tid = $turnier['id'];
             <?= csrf_feld() ?>
             <div class="urkunden-spalten">
             <div class="formular">
-            <label><?= te('Untertitel') ?> <span class="hilfe"><?= te('z. B. Veranstalter oder Verband') ?></span><input name="untertitel" value="<?= e($urkunde['untertitel']) ?>" maxlength="200" placeholder="<?= te('z. B. Karateverband Musterland e. V.') ?>"></label>
+            <label><?= te('Untertitel') ?> <span class="hilfe"><?= te('z. B. Veranstalter oder Verband') ?></span><input name="untertitel" value="<?= e($urkunde['untertitel']) ?>" maxlength="200" placeholder="<?= te('z. B. Karateverband Musterland e. V.') ?>" data-urkunde-feld></label>
             <fieldset class="logos">
                 <legend><?= te('Unterschriften') ?> <span class="hilfe"><?= te('Beschriftung unter der Linie; optional die Unterschrift als Bild (z. B. Scan, PNG mit transparentem Hintergrund)') ?></span></legend>
                 <?php foreach (LogoService::UNTERSCHRIFTEN as $art => $text): $l = $logos[$art] ?? null; $text = Sprache::t($text); ?>
                     <div class="logo-zeile">
                         <div class="logo-vorschau"><?php if ($l): ?><img src="<?= e(url("turnier/$tid/logo/$art", ['v' => $l['version']])) ?>" alt="<?= e($text) ?>"><?php else: ?><span class="klein leise"><?= te('keine') ?></span><?php endif; ?></div>
                         <div class="formular" style="gap:.4rem">
-                            <label><?= te('{text} – Beschriftung', ['text' => $text]) ?> <input name="<?= $art ?>" value="<?= e($urkunde[$art]) ?>" maxlength="100"></label>
+                            <label><?= te('{text} – Beschriftung', ['text' => $text]) ?> <input name="<?= $art ?>" value="<?= e($urkunde[$art]) ?>" maxlength="100" data-urkunde-feld></label>
                             <label><?= te('Unterschrift als Bild') ?> <input type="file" name="logo_<?= $art ?>" accept="image/png,image/jpeg,image/webp,image/gif"></label>
                         </div>
                         <?php if ($l): ?><label class="check klein"><input type="checkbox" name="logo_entfernen[]" value="<?= $art ?>"> <?= te('entfernen') ?></label><?php endif; ?>
@@ -110,8 +110,20 @@ $tid = $turnier['id'];
                 <?php foreach (LogoService::ARTEN as $art => $text): $l = $logos[$art] ?? null; $text = Sprache::t($text); ?>
                     <div class="logo-zeile">
                         <div class="logo-vorschau"><?php if ($l): ?><img src="<?= e(url("turnier/$tid/logo/$art", ['v' => $l['version']])) ?>" alt="<?= e($text) ?>"><?php else: ?><span class="klein leise"><?= te('kein Logo') ?></span><?php endif; ?></div>
-                        <label><?= e($text) ?> <span class="hilfe"><?= e(['verband' => t('oben mittig'), 'verein' => t('oben links'), 'dojo' => t('oben rechts')][$art]) ?></span>
-                            <input type="file" name="logo_<?= $art ?>" accept="image/png,image/jpeg,image/webp,image/gif"></label>
+                        <div class="logo-felder">
+                            <label><?= e($text) ?>
+                                <input type="file" name="logo_<?= $art ?>" accept="image/png,image/jpeg,image/webp,image/gif"></label>
+                            <div class="zeile logo-lage">
+                                <label><?= te('Position') ?>
+                                    <select name="logo_pos[<?= $art ?>]" data-urkunde-feld>
+                                        <?php foreach (\Wettkampf\Ausgaben\UrkundenLayout::POSITIONEN as $pos => $posText): ?>
+                                            <option value="<?= e($pos) ?>"<?= sel($urkunde['logos'][$art]['pos'], $pos) ?>><?= e(t($posText)) ?></option>
+                                        <?php endforeach; ?>
+                                    </select></label>
+                                <label><?= te('Höhe (mm)') ?>
+                                    <input type="number" name="logo_groesse[<?= $art ?>]" value="<?= (int) $urkunde['logos'][$art]['groesse'] ?>" min="<?= \Wettkampf\Ausgaben\UrkundenLayout::GROESSE_MIN ?>" max="<?= \Wettkampf\Ausgaben\UrkundenLayout::GROESSE_MAX ?>" step="1" data-urkunde-feld></label>
+                            </div>
+                        </div>
                         <?php if ($l): ?><label class="check klein"><input type="checkbox" name="logo_entfernen[]" value="<?= $art ?>"> <?= te('entfernen') ?></label><?php endif; ?>
                     </div>
                 <?php endforeach; ?>
@@ -130,7 +142,13 @@ $tid = $turnier['id'];
             </fieldset>
             </div>
             </div>
+            <section class="urkunde-vorschau-bereich">
+                <h3><?= te('Vorschau') ?> <span class="hilfe"><?= te('Musterurkunde – Position, Größe und Texte erscheinen sofort, neue Bilder nach dem Speichern') ?></span></h3>
+                <div class="urkunde-vorschau-rahmen"><iframe title="<?= te('Vorschau der Urkunde') ?>" data-urkunde-vorschau="<?= e(url("turnier/$tid/druck/urkunden/vorschau")) ?>" src="<?= e(url("turnier/$tid/druck/urkunden/vorschau")) ?>"></iframe></div>
+                <p class="klein"><a href="<?= e(url("turnier/$tid/druck/urkunden/vorschau")) ?>" target="_blank"><?= te('Vorschau in voller Größe ↗') ?></a></p>
+            </section>
             <div><button class="knopf" type="submit"><?= te('Urkunden-Einstellungen speichern') ?></button></div>
         </form>
+        <script src="<?= e(asset('urkunde-vorschau.js')) ?>" defer></script>
     </details>
 </div>

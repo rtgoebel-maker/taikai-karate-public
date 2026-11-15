@@ -139,6 +139,25 @@ $this->layout('layout', ['titel' => t('Systemeinstellungen'), 'aktiv' => 'system
             <?php endforeach; ?>
         </fieldset>
         <label class="check"><input type="checkbox" name="teams" value="1" checked> <?= te('mit Kata- und Kumite-Teams (ohne Pools)') ?></label>
+        <?php if (empty($nurDemo)): ?>
+            <fieldset class="optionen">
+                <legend><?= te('Freigabe||Demo') ?></legend>
+                <label class="check"><input type="radio" name="freigabe" value="alle" checked> <?= te('für alle Demo-Zugänge') ?></label>
+                <label class="check"><input type="radio" name="freigabe" value="ich"> <?= te('nur für mich') ?></label>
+                <label class="check"><input type="radio" name="freigabe" value="auswahl"<?= $demoKonten ? '' : ' disabled' ?>> <?= te('für ausgewählte Demo-Zugänge:') ?></label>
+                <?php if ($demoKonten): ?>
+                    <div class="demo-auswahl">
+                        <?php foreach ($demoKonten as $k): ?>
+                            <label class="check"><input type="checkbox" name="freigabe_fuer[]" value="<?= (int) $k['id'] ?>"> <?= e($k['name']) ?> <span class="leise klein"><?= e((string) $k['email']) ?></span></label>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <p class="hilfe"><?= te('Noch keine Demo-Zugänge – anlegen unter Benutzer.') ?></p>
+                <?php endif; ?>
+            </fieldset>
+        <?php else: ?>
+            <p class="hilfe"><?= te('Das Turnier gehört deinem Demo-Zugang; andere Demo-Zugänge sehen es nicht.') ?></p>
+        <?php endif; ?>
         <div><button class="knopf primaer" type="submit"><?= te('Demo-Turnier anlegen') ?></button></div>
 </form>
     <?php if (empty($nurDemo)): ?>
@@ -160,8 +179,8 @@ $this->layout('layout', ['titel' => t('Systemeinstellungen'), 'aktiv' => 'system
         <div class="knopfleiste"><button class="knopf" type="submit"><?= te('Speichern') ?></button></div>
     </form>
     <?php endif; ?>
-    <form method="post" action="<?= e(url('system/demo-zuruecksetzen/jetzt')) ?>" class="knopfleiste" data-bestaetigen="<?= te('Alle Demo-Turniere jetzt löschen und neu anlegen? Eingaben aus der Schulung gehen verloren.') ?>" data-bestaetigen-ja="<?= te('Jetzt zurücksetzen') ?>">
-        <?= csrf_feld() ?><button class="knopf gefahr" type="submit"><?= te('Jetzt zurücksetzen') ?></button>
+    <form method="post" action="<?= e(url('system/demo-zuruecksetzen/jetzt')) ?>" class="knopfleiste" data-bestaetigen="<?= empty($nurDemo) ? te('Alle Demo-Turniere jetzt löschen und neu anlegen? Eingaben aus der Schulung gehen verloren.') : te('Deine Demo-Turniere jetzt löschen und neu anlegen? Deine Eingaben gehen verloren.') ?>" data-bestaetigen-ja="<?= te('Jetzt zurücksetzen') ?>">
+        <?= csrf_feld() ?><button class="knopf gefahr" type="submit"><?= empty($nurDemo) ? te('Alle jetzt zurücksetzen') : te('Meine Demo-Turniere zurücksetzen') ?></button>
         <span class="hilfe"><?= te('Zurückgesetzt werden Demo-Turniere, die ab dieser Version angelegt wurden; ältere bitte einmal neu anlegen.') ?></span>
     </form>
     <?php endif; ?>

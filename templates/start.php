@@ -66,6 +66,7 @@ $mitDemo = $istAdmin && array_filter($turniere, static fn(array $t) => $t['demo'
                     <td class="klein">
                         <?php if ($t['demo'] !== null): ?>
                             <?= $t['demo']['besitzer'] !== null ? te('für {name}', ['name' => $t['demo']['besitzer']]) : te('gemeinsam') ?>
+                            <?php if ($t['demo']['freigegeben']): ?><br><?= te('freigegeben für {namen}', ['namen' => implode(', ', $t['demo']['freigegeben'])]) ?><?php endif; ?>
                             <?php if ($t['demo']['loeschen_ab'] !== null): ?>
                                 <br><span class="tag fehler" title="<?= te('Der Demo-Zugang wurde entzogen, deaktiviert oder gelöscht.') ?>"><?= te('Löschung am {datum} um {uhrzeit}', ['datum' => datum_de(substr($t['demo']['loeschen_ab'], 0, 10)), 'uhrzeit' => substr($t['demo']['loeschen_ab'], 11, 5)]) ?></span>
                             <?php endif; ?>

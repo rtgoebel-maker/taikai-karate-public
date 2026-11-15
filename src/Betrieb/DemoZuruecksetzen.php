@@ -99,21 +99,24 @@ final class DemoZuruecksetzen
     }
 
     /**
-     * Alle Demo-Turniere sofort zurücksetzen.
+     * Demo-Turniere sofort zurücksetzen – alle (Administration, täglicher Lauf) bzw. nur die eines Demo-Zugangs.
      *
+     * @param int|null $nurBesitzer nur Turniere dieses Kontos (Demo-Nutzer setzt seine eigenen zurück)
      * @return int Anzahl neu angelegter Demo-Turniere
      */
-    public function jetzt(?int $jetzt = null): int
+    public function jetzt(?int $jetzt = null, ?int $nurBesitzer = null): int
     {
         $jetzt ??= time();
-        // zuerst vermerken: Schlägt das Anlegen fehl, wird es nicht bei jeder Anfrage erneut versucht
-        (new SystemEinstellungen($this->db))->setzen(self::LETZTER, date('Y-m-d H:i:s', $jetzt));
+        if ($nurBesitzer === null) {
+            // zuerst vermerken: Schlägt das Anlegen fehl, wird es nicht bei jeder Anfrage erneut versucht
+            (new SystemEinstellungen($this->db))->setzen(self::LETZTER, date('Y-m-d H:i:s', $jetzt));
+        }
         $demo = new DemoTurnier($this->db);
         $stamm = new StammdatenService($this->db);
         $anzahl = 0;
         foreach ($this->demoTurniere() as $t) {
             $k = DemoTurnier::kennung($t);
-            if ($k === null) {
+            if ($k === null || ($nurBesitzer !== null && DemoBesitz::besitzer($t) !== $nurBesitzer)) {
                 continue;
             }
             if (DemoBesitz::loeschenAb($t) !== null) {
@@ -132,7 +135,7 @@ final class DemoZuruecksetzen
             }
             $anzahl++;
         }
-        (new Protokoll($this->db))->eintragen(null, 'system', null, 'demo_zurueckgesetzt', ['turniere' => $anzahl]);
+        (new Protokoll($this->db))->eintragen(null, 'system', null, 'demo_zurueckgesetzt', ['turniere' => $anzahl, 'besitzer' => $nurBesitzer]);
         return $anzahl;
     }
 

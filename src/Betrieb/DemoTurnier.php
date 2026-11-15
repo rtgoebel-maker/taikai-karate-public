@@ -126,8 +126,14 @@ final class DemoTurnier
     public function besitzerEintragen(int $turnierId, int $besitzer): void
     {
         (new DemoBesitz($this->db))->besitzerSetzen($turnierId, $besitzer);
-        if ($this->db->wert('SELECT 1 FROM turnier_rolle WHERE turnier_id = ? AND benutzer_id = ?', [$turnierId, $besitzer]) === null) {
-            $this->db->insert('turnier_rolle', ['turnier_id' => $turnierId, 'benutzer_id' => $besitzer, 'rolle' => 'leitung', 'erstellt_am' => date('Y-m-d H:i:s'), 'erstellt_von' => 'Demo']);
+        $this->freigeben($turnierId, $besitzer);
+    }
+
+    /** Ein Konto leitet das Demo-Turnier (Freigabe für bestimmte Demo-Zugänge; bleibt beim Zurücksetzen erhalten). */
+    public function freigeben(int $turnierId, int $benutzerId): void
+    {
+        if ($this->db->wert('SELECT 1 FROM turnier_rolle WHERE turnier_id = ? AND benutzer_id = ?', [$turnierId, $benutzerId]) === null) {
+            $this->db->insert('turnier_rolle', ['turnier_id' => $turnierId, 'benutzer_id' => $benutzerId, 'rolle' => 'leitung', 'erstellt_am' => date('Y-m-d H:i:s'), 'erstellt_von' => 'Demo']);
         }
     }
 

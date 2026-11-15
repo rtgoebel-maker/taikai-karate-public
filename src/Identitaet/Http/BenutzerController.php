@@ -148,7 +148,7 @@ final class BenutzerController extends Controller
             return '';
         }
         $vorgemerkt = $this->db->eine('SELECT aktiv, rolle FROM benutzer WHERE id = ?', [$id]);
-        $aktiverDemo = $vorgemerkt !== null && (int) $vorgemerkt['aktiv'] === 1 && $vorgemerkt['rolle'] === Konten::ROLLE_DEMO;
+        $aktiverDemo = $vorgemerkt !== null && (int) $vorgemerkt['aktiv'] === 1 && in_array($vorgemerkt['rolle'], [Konten::ROLLE_DEMO, 'admin'], true);
         return ' ' . ($aktiverDemo
             ? t('Löschvormerkung für {n} Demo-Turniere aufgehoben.', ['n' => $anzahl])
             : t('{n} Demo-Turniere dieses Kontos sind zum Löschen vorgemerkt und werden in {stunden} Stunden gelöscht.', ['n' => $anzahl, 'stunden' => 72]));

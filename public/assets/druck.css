@@ -224,3 +224,17 @@ table.r-starter td { padding: .6mm 1.5mm; }
 .sprache-umschalter a { opacity: .75; }
 .sprache-umschalter a:hover, .sprache-umschalter a:focus-visible { opacity: 1; background: color-mix(in srgb, currentColor 14%, transparent); }
 .sprache-umschalter .aktiv { background: color-mix(in srgb, currentColor 24%, transparent); }
+
+/* Logos frei auf dem Raster (Ausgaben\UrkundenLayout): Höhe je Logo als Stil am Bild, Breite proportional, nie verzerrt */
+.u-logos { height: auto; min-height: 0; }
+.u-logo { height: auto; gap: 3mm; }
+.u-logo img, .u-logo-seite img { max-height: none; width: auto; object-fit: contain; mix-blend-mode: multiply; }
+.u-logos.unten { margin: 0 0 4mm; }
+.u-logo-seite { position: absolute; top: 50%; transform: translateY(-50%); z-index: 1; }
+.u-logo-seite.links { left: 6mm; }
+.u-logo-seite.rechts { right: 6mm; }
+.u-logo-seite img { display: block; }
+.blatt.urkunde.vordruck .u-logo-seite { visibility: hidden; }
+/* Vorschau im Druckcenter: Blatt ohne Abstand und Schatten */
+body.urkunde-vorschau { background: #fff; }
+body.urkunde-vorschau .blatt { margin: 0; box-shadow: none; }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Wettkampf\Ausgaben\Http;
 
+use Wettkampf\Ausgaben\UrkundenLayout;
 use Wettkampf\Durchfuehrung\KlassenAnsicht;
 use Wettkampf\Turnier\LogoService;
 use Wettkampf\Kern\Http\NichtGefunden;
@@ -220,6 +221,7 @@ final class DruckController extends Controller
         }
         $inhalt = $this->app->view->render('druck/urkunden', [
             'logos' => $logos,
+            'layout' => $einstellungen['logos'],
             'turnier' => $turnier,
             'urkunden' => $urkunden,
             'vordruck' => $request->get('vordruck') === '1',
@@ -255,6 +257,7 @@ final class DruckController extends Controller
             'untertitel' => mb_substr($request->text('untertitel'), 0, 200),
             'unterschrift_links' => mb_substr($request->text('unterschrift_links'), 0, 100),
             'unterschrift_rechts' => mb_substr($request->text('unterschrift_rechts'), 0, 100),
+            'logos' => self::layoutAusEingabe($request->post),
         ];
         $this->db->update('turnier', ['einstellungen' => json_encode($alle, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR)], ['id' => $id]);
         // Logos: hochladen (ersetzt) bzw. entfernen
@@ -279,8 +282,58 @@ final class DruckController extends Controller
     }
 
     /**
+     * Vorschau einer Urkunde mit Musterdaten (Druckcenter): gespeicherte Bilder, Texte und Logo-Lage – oder die gerade im
+     * Formular gewählten Werte aus der Adresse (noch nicht gespeichert).
+     */
+    public function urkundenVorschau(Request $request, int $id): Response
+    {
+        $turnier = $this->turnier($id);
+        $e = $this->urkundenEinstellungen($turnier);
+        $layout = $e['logos'];
+        if ($request->get('live') === '1') {
+            foreach (['untertitel' => 200, 'unterschrift_links' => 100, 'unterschrift_rechts' => 100] as $feld => $max) {
+                $wert = mb_substr(trim((string) (is_string($request->get($feld)) ? $request->get($feld) : '')), 0, $max);
+                $e[$feld] = $wert !== '' || $feld === 'untertitel' ? $wert : $e[$feld];
+            }
+            $layout = self::layoutAusEingabe($request->query);
+        }
+        $logos = [];
+        foreach ((new LogoService($this->db))->vorhandene($id) as $art => $l) {
+            $logos[$art] = url("turnier/$id/logo/$art", ['v' => $l['version']]);
+        }
+        $klasse = $this->db->eine("SELECT code, bezeichnung, disziplin FROM klasse WHERE turnier_id = ? AND status <> 'zusammengelegt' ORDER BY sortierung, code LIMIT 1", [$id])
+            ?? ['code' => 'K1', 'bezeichnung' => t('Kata Jugend 12–14 Jahre'), 'disziplin' => 'kata'];
+        $inhalt = $this->app->view->render('druck/urkunden', [
+            'logos' => $logos,
+            'layout' => $layout,
+            'turnier' => $turnier,
+            'urkunden' => [['klasse' => $klasse, 'platz' => 1, 'name' => t('Erika Mustermann'), 'verein' => t('Karateverein Musterstadt'), 'team' => null]],
+            'vordruck' => false,
+            'e' => $e,
+        ]);
+        return Response::html($this->app->view->render('druck/urkunde_vorschau', ['inhalt' => $inhalt]));
+    }
+
+    /**
+     * Logo-Lage aus Formular bzw. Adresse: logo_pos[art], logo_groesse[art].
+     *
+     * @param array<string, mixed> $eingabe
+     * @return array<string, array{pos: string, groesse: int}>
+     */
+    private static function layoutAusEingabe(array $eingabe): array
+    {
+        $pos = is_array($eingabe['logo_pos'] ?? null) ? $eingabe['logo_pos'] : [];
+        $groesse = is_array($eingabe['logo_groesse'] ?? null) ? $eingabe['logo_groesse'] : [];
+        $werte = [];
+        foreach (array_keys(UrkundenLayout::STANDARD) as $art) {
+            $werte[$art] = ['pos' => $pos[$art] ?? null, 'groesse' => $groesse[$art] ?? null];
+        }
+        return UrkundenLayout::lesen($werte);
+    }
+
+    /**
      * @param array<string, mixed> $turnier
-     * @return array{untertitel: string, unterschrift_links: string, unterschrift_rechts: string}
+     * @return array{untertitel: string, unterschrift_links: string, unterschrift_rechts: string, logos: array<string, array{pos: string, groesse: int}>}
      */
     private function urkundenEinstellungen(array $turnier): array
     {
@@ -289,6 +342,7 @@ final class DruckController extends Controller
             'untertitel' => (string) ($u['untertitel'] ?? ''),
             'unterschrift_links' => (string) (($u['unterschrift_links'] ?? '') ?: t('Wettkampfleitung')),
             'unterschrift_rechts' => (string) (($u['unterschrift_rechts'] ?? '') ?: t('Veranstalter')),
+            'logos' => UrkundenLayout::lesen($u['logos'] ?? null),
         ];
     }
 

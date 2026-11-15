@@ -421,8 +421,9 @@ final class App
     public function demoBesitzAbgleichen(int $benutzerId): int
     {
         $konto = $this->db->eine('SELECT aktiv, rolle, ist_admin FROM benutzer WHERE id = ?', [$benutzerId]);
-        $aktiverDemo = $konto !== null && (int) $konto['aktiv'] === 1 && !(int) $konto['ist_admin'] && $konto['rolle'] === Konten::ROLLE_DEMO;
-        return (new \Wettkampf\Turnier\DemoBesitz($this->db))->vormerken($benutzerId, !$aktiverDemo);
+        // behalten: aktiver Demo-Zugang oder aktive Administration (deren Demo-Turniere werden nie automatisch gelöscht)
+        $behalten = $konto !== null && (int) $konto['aktiv'] === 1 && ((int) $konto['ist_admin'] === 1 || $konto['rolle'] === Konten::ROLLE_DEMO);
+        return (new \Wettkampf\Turnier\DemoBesitz($this->db))->vormerken($benutzerId, !$behalten);
     }
 
     /** Freiwillige Einladungen zu künftigen Turnieren (Abmeldelinks per HMAC mit dem Schlüssel dieser Installation). */

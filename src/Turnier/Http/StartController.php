@@ -24,12 +24,18 @@ final class StartController extends Controller
             static fn(array $t) => Session::leitet((int) $t['id']),
         ));
         $besitzer = array_column($this->db->alle('SELECT id, name FROM benutzer'), 'name', 'id');
+        // Freigaben an Demo-Zugänge (Turnierleitung eines Demo-Kontos)
+        $freigaben = [];
+        foreach ($this->db->alle("SELECT r.turnier_id, r.benutzer_id, b.name FROM turnier_rolle r JOIN benutzer b ON b.id = r.benutzer_id WHERE b.rolle = 'demo' ORDER BY b.name") as $r) {
+            $freigaben[(int) $r['turnier_id']][(int) $r['benutzer_id']] = (string) $r['name'];
+        }
         foreach ($turniere as &$t) {
             $e = json_decode((string) ($t['einstellungen'] ?? ''), true);
             $id = DemoBesitz::besitzer($t);
             $t['demo'] = is_array($e) && (is_array($e['demo'] ?? null) || $id !== null) ? [
                 'besitzer' => $id === null ? null : (string) ($besitzer[$id] ?? t('gelöschtes Konto')),
                 'loeschen_ab' => DemoBesitz::loeschenAb($t),
+                'freigegeben' => array_values(array_diff_key($freigaben[(int) $t['id']] ?? [], $id === null ? [] : [$id => true])),
             ] : null;
         }
         unset($t);

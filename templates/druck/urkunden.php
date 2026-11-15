@@ -7,7 +7,25 @@
  * @var bool $vordruck
  * @var array{untertitel: string, unterschrift_links: string, unterschrift_rechts: string} $e
  * @var array<string, string> $logos Art (verband, verein, dojo, unterschrift_*, hintergrund) → Bild-URL
+ * @var array<string, array{pos: string, groesse: int}>|null $layout Lage und Größe der Logos (Ausgaben\UrkundenLayout)
  */
+use Wettkampf\Ausgaben\UrkundenLayout;
+
+$layout ??= UrkundenLayout::lesen(null);
+$logoBilder = array_intersect_key($logos, UrkundenLayout::STANDARD);
+$logoAlt = ['verband' => t('Verbandslogo'), 'verein' => t('Vereinslogo'), 'dojo' => t('Dojo-Logo')];
+$logoBild = static fn(string $art): string => '<img src="' . e($logos[$art]) . '" alt="' . e($logoAlt[$art]) . '" style="' . e(UrkundenLayout::stil($layout[$art])) . '">';
+$logoZeile = static function (string $zeile) use ($layout, $logoBilder, $logoBild): string {
+    $spalten = UrkundenLayout::zeile($layout, $logoBilder, $zeile);
+    if ($spalten === []) {
+        return '';
+    }
+    $html = '<div class="u-logos' . ($zeile === 'unten' ? ' unten' : '') . '">';
+    foreach ($spalten as $spalte => $arten) {
+        $html .= '<div class="u-logo ' . $spalte . '">' . implode('', array_map($logoBild, $arten)) . '</div>';
+    }
+    return $html . '</div>';
+};
 $ortDatum = trim($turnier['ort'] ? t('{ort}, den {datum}', ['ort' => $turnier['ort'], 'datum' => datum_de($turnier['datum'])]) : t('den {datum}', ['datum' => datum_de($turnier['datum'])]));
 ?>
 <?php if (!$urkunden): ?>
@@ -18,13 +36,10 @@ $ortDatum = trim($turnier['ort'] ? t('{ort}, den {datum}', ['ort' => $turnier['o
         <?php if (isset($logos['hintergrund']) && !$vordruck): ?><img class="u-hintergrund" src="<?= e($logos['hintergrund']) ?>" alt=""><?php endif; ?>
         <div class="u-rahmen">
             <div class="u-wasserzeichen" aria-hidden="true">空手</div>
-            <?php if (array_intersect_key($logos, ['verband' => 1, 'verein' => 1, 'dojo' => 1]) !== []): ?>
-                <div class="u-logos">
-                    <div class="u-logo links"><?php if (isset($logos['verein'])): ?><img src="<?= e($logos['verein']) ?>" alt="<?= te('Vereinslogo') ?>"><?php endif; ?></div>
-                    <div class="u-logo mitte"><?php if (isset($logos['verband'])): ?><img src="<?= e($logos['verband']) ?>" alt="<?= te('Verbandslogo') ?>"><?php endif; ?></div>
-                    <div class="u-logo rechts"><?php if (isset($logos['dojo'])): ?><img src="<?= e($logos['dojo']) ?>" alt="<?= te('Dojo-Logo') ?>"><?php endif; ?></div>
-                </div>
-            <?php endif; ?>
+            <?= $logoZeile('oben') ?>
+            <?php foreach ($logoBilder as $art => $_): if (str_starts_with($layout[$art]['pos'], 'mitte-')): ?>
+                <div class="u-logo-seite <?= e(substr($layout[$art]['pos'], 6)) ?>"><?= $logoBild($art) ?></div>
+            <?php endif; endforeach; ?>
             <header class="u-kopf">
                 <?php if ($e['untertitel'] !== ''): ?><div class="u-untertitel"><?= e($e['untertitel']) ?></div><?php endif; ?>
                 <div class="u-turnier"><?= e($turnier['name']) ?></div>
@@ -47,6 +62,7 @@ $ortDatum = trim($turnier['ort'] ? t('{ort}, den {datum}', ['ort' => $turnier['o
             <div class="u-disziplin"><?= e(disziplin_text($u['klasse']['disziplin'])) ?> · <?= te('Gruppe {code}', ['code' => $u['klasse']['code']]) ?></div>
 
             <footer class="u-fuss">
+                <?= $logoZeile('unten') ?>
                 <div class="u-ort"><?= e($ortDatum) ?></div>
                 <div class="u-unterschriften">
                     <?php foreach (['unterschrift_links', 'unterschrift_rechts'] as $seite): ?>
