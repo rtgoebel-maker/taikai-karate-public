@@ -37,6 +37,7 @@
     },
     "scripts": {
         "test": "phpunit",
+        "test-simulation": "phpunit --group simulation",
         "serve": "php -S localhost:8080 -t public public/router.php"
     },
     "config": {
