@@ -55,7 +55,8 @@ final class Konten
                 $e = json_decode((string) ($r['einstellungen'] ?? ''), true);
                 $e = is_array($e) ? $e : [];
                 $besitzer = isset($e['demo_besitzer']) ? (int) $e['demo_besitzer'] : null;
-                if ($besitzer === $id || (str_starts_with((string) $r['erstellt_von'], 'Demo') && ($besitzer !== null || is_array($e['demo'] ?? null)))) {
+                // nur eigene Demo-Turniere und Freigaben an einen Demo-Zugang („Demo“) – von Hand ernannte Turnierleitungen bleiben
+                if ($besitzer === $id || ($r['erstellt_von'] === 'Demo' && ($besitzer !== null || is_array($e['demo'] ?? null)))) {
                     $ausDemo[] = (int) $r['turnier_id'];
                 }
             }

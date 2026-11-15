@@ -124,7 +124,7 @@ final class DemoZuruecksetzen
                 continue; // zum Löschen vorgemerkt (Demo-Zugang entzogen) – nicht neu anlegen
             }
             $besitzer = DemoBesitz::besitzer($t);
-            $rollen = $this->db->alle('SELECT benutzer_id, rolle FROM turnier_rolle WHERE turnier_id = ?', [$t['id']]);
+            $rollen = $this->db->alle('SELECT benutzer_id, rolle, erstellt_von FROM turnier_rolle WHERE turnier_id = ?', [$t['id']]);
             // selbst hochgeladene Logos (Urkunden zeigen) bleiben erhalten
             $eigeneLogos = $this->db->alle('SELECT art, mime, daten, breite, hoehe FROM turnier_logo WHERE turnier_id = ?', [$t['id']]);
             $stamm->turnierLoeschen((int) $t['id']);
@@ -140,7 +140,7 @@ final class DemoZuruecksetzen
                 (new DemoBesitz($this->db))->besitzerSetzen((int) $neu['turnier'], $besitzer);
             }
             foreach ($rollen as $r) {
-                $this->db->insert('turnier_rolle', ['turnier_id' => $neu['turnier'], 'benutzer_id' => $r['benutzer_id'], 'rolle' => $r['rolle'], 'erstellt_am' => date('Y-m-d H:i:s', $jetzt), 'erstellt_von' => 'Demo-Zurücksetzen']);
+                $this->db->insert('turnier_rolle', ['turnier_id' => $neu['turnier'], 'benutzer_id' => $r['benutzer_id'], 'rolle' => $r['rolle'], 'erstellt_am' => date('Y-m-d H:i:s', $jetzt), 'erstellt_von' => $r['erstellt_von'] ?? 'Demo-Zurücksetzen']); // Herkunft bleibt (Freigabe „Demo“ bzw. Turnierleitung von Hand)
             }
             $neueIds[(int) $t['id']] = (int) $neu['turnier'];
             $anzahl++;
