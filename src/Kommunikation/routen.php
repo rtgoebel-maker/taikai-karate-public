@@ -11,15 +11,17 @@ use Wettkampf\Kommunikation\Http\MailController;
  */
 return static function (Router $r): void {
     $r->post('/api/v1/feedback', [FeedbackController::class, 'einreichen'], 'tisch');
-    $r->get('/system', [FeedbackController::class, 'system']);
-    $r->post('/system', [FeedbackController::class, 'systemSpeichern']);
+    $r->get('/system', [FeedbackController::class, 'system'], 'demo');
+    $r->post('/system', [FeedbackController::class, 'systemSpeichern'], 'demo');
     // E-Mail-Versand (Postfach in der Oberfläche; Änderungen mit Passwortbestätigung)
     $r->post('/system/mail', [MailController::class, 'speichern']);
     $r->post('/system/mail/test', [MailController::class, 'test']);
     $r->post('/system/mail/diagnose', [MailController::class, 'diagnose']);
     $r->post('/system/mail/warteschlange', [MailController::class, 'warteschlange']);
     $r->post('/system/demo-modus', [FeedbackController::class, 'demoModus']);
-    $r->post('/system/demo-turnier', [FeedbackController::class, 'demoTurnier']);
+    $r->post('/system/demo-turnier', [FeedbackController::class, 'demoTurnier'], 'demo');
+    $r->post('/system/demo-zuruecksetzen', [FeedbackController::class, 'demoZuruecksetzen']);
+    $r->post('/system/demo-zuruecksetzen/jetzt', [FeedbackController::class, 'demoZuruecksetzenJetzt'], 'demo');
     $r->get('/feedback', [FeedbackController::class, 'index']);
     $r->get('/feedback/export', [FeedbackController::class, 'export']);
     $r->get('/feedback/{id}/screenshot', [FeedbackController::class, 'screenshot']);

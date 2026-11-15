@@ -19,6 +19,7 @@ final class TurnierleitungController extends Controller
 {
     public function index(Request $request, int $id): Response
     {
+        $this->keinDemo();
         return $this->seite('turnier/leitung', [
             'turnier' => $this->turnier($id),
             'leitung' => (new Konten($this->db))->turnierleitung($id),
@@ -30,6 +31,7 @@ final class TurnierleitungController extends Controller
 
     public function hinzufuegen(Request $request, int $id): Response
     {
+        $this->keinDemo();
         $this->turnier($id);
         $konten = new Konten($this->db);
         if ($request->post('neu') !== null) {
@@ -47,9 +49,18 @@ final class TurnierleitungController extends Controller
 
     public function entfernen(Request $request, int $id, int $benutzerid): Response
     {
+        $this->keinDemo();
         $this->turnier($id);
         (new Konten($this->db))->turnierleitungEntfernen($id, $benutzerid, (int) (Session::benutzer()['id'] ?? 0), Session::istAdmin());
         $this->erfolg(t('Turnierleitung entzogen.'));
         return $this->weiter("turnier/$id/leitung");
+    }
+
+    /** Demo-Nutzer verwalten keine Turnierleitungen: Das würde Konten anlegen bzw. verraten, welche Adressen ein Konto haben. */
+    private function keinDemo(): void
+    {
+        if (Session::istDemo()) {
+            throw new FachFehler(t('Mit einem Demo-Zugang lassen sich keine Turnierleitungen verwalten.'));
+        }
     }
 }

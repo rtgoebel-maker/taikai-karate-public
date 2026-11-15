@@ -34,6 +34,7 @@ final class Zugang implements MiddlewareInterface
             'konto' => Session::benutzer() !== null,
             'leitung' => Session::istLeitung(),
             'turnier' => Session::leitet(self::turnierId($request)),
+            'demo' => Session::istAdmin() || Session::istDemo(),
             default => Session::istAdmin(),
         };
         if (!$erlaubt) {

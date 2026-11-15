@@ -57,6 +57,7 @@ final class SicherheitController extends Controller
 
     public function appEinrichten(Request $request): Response
     {
+        $this->keinDemo();
         $id = $this->ich();
         $geheimnis = $_SESSION[self::GEHEIMNIS] ?? throw new FachFehler(t('Bitte die Seite neu laden und den QR-Code erneut scannen.'));
         $drossel = new Drossel($this->db);
@@ -69,6 +70,7 @@ final class SicherheitController extends Controller
 
     public function appEntfernen(Request $request): Response
     {
+        $this->keinDemo();
         $id = $this->passwortBestaetigt($request);
         $this->app->authenticatorApp()->entfernen($id, 'selbst');
         $this->erfolg(t('Authenticator-App entfernt.') . ($this->app->zweiterFaktorPflicht() && $this->app->postausgang() === null
@@ -78,6 +80,7 @@ final class SicherheitController extends Controller
 
     public function codesNeu(Request $request): Response
     {
+        $this->keinDemo();
         $id = $this->passwortBestaetigt($request);
         if (!$this->app->authenticatorApp()->aktiv($id)) {
             throw new FachFehler(t('Bitte zuerst die Authenticator-App einrichten.'));
@@ -88,6 +91,7 @@ final class SicherheitController extends Controller
     /** Eigene Angaben ändern; eine neue E-Mail-Adresse (= Anmeldename) nur mit Passwort, die alte Adresse wird informiert. */
     public function angaben(Request $request): Response
     {
+        $this->keinDemo();
         $id = $this->ich();
         $neueEmail = Konten::email($request->text('email'));
         $bisher = (string) ($this->db->wert('SELECT email FROM benutzer WHERE id = ?', [$id]) ?? '');
@@ -98,7 +102,7 @@ final class SicherheitController extends Controller
         $alt = $konten->eigeneAngabenAendern($id, $request->post);
         $rechte = $konten->rechte($id);
         if ($rechte !== null) {
-            Session::rechteAktualisieren($rechte['name'], $rechte['admin'], $rechte['turniere'], $rechte['verein']);
+            Session::rechteAktualisieren($rechte['name'], $rechte['admin'], $rechte['turniere'], $rechte['verein'], $rechte['demo']);
         }
         if ($alt !== null) {
             $this->app->postausgang()?->einreihen($alt, t('E-Mail-Adresse geändert – Taikai – Karate'), self::hinweisText(
@@ -112,6 +116,7 @@ final class SicherheitController extends Controller
     /** Eigenes Passwort ändern (bisheriges nötig); vertraute Geräte fragen danach wieder nach dem Code. */
     public function passwort(Request $request): Response
     {
+        $this->keinDemo();
         $neu = (string) $request->post('neu', '');
         if ($neu !== (string) $request->post('neu2', '')) {
             throw new FachFehler(t('Die beiden Eingaben des neuen Passworts stimmen nicht überein.'));
@@ -163,5 +168,13 @@ final class SicherheitController extends Controller
         }
         $schutz->erfolg($ziel, $ip);
         return $id;
+    }
+
+    /** Demo-Zugänge werden oft von einer ganzen Schulungsgruppe geteilt: keine Änderungen am Konto. */
+    private function keinDemo(): void
+    {
+        if (Session::istDemo()) {
+            throw new FachFehler(t('Bei einem Demo-Zugang lassen sich Angaben, Passwort und zweiter Faktor nicht ändern.'));
+        }
     }
 }

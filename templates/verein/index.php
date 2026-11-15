@@ -3,12 +3,14 @@
  * @var list<array<string, mixed>> $vereine
  * @var list<array{a: array<string, mixed>, b: array<string, mixed>}> $doppelt vermutlich doppelte Vereine
  * @var int $leer Vereine ohne Athleten, Teams und Anmeldungen
+ * @var bool|null $nurLesen Demo-Nutzer: nur ansehen
  */
+$nurLesen ??= false;
 $this->layout('layout', ['titel' => t('Vereine')]);
 ?>
 <div class="seitenkopf">
     <h1><?= te('Vereine / Dojos') ?> <span class="leise klein">(<?= count($vereine) ?>)</span> <?= info('vereine') ?></h1>
-    <a class="knopf" href="#neuer-verein" data-aufklappen="neuer-verein">+ <?= te('Neuer Verein') ?></a>
+    <?php if (!$nurLesen): ?><a class="knopf" href="#neuer-verein" data-aufklappen="neuer-verein">+ <?= te('Neuer Verein') ?></a><?php endif; ?>
 </div>
 <p class="leise"><?= th('Eine gemeinsame Liste für alle Turniere. Vereine entstehen <strong>automatisch</strong> – bei der Freigabe einer Online-Anmeldung, beim Import oder beim Erfassen eines Teilnehmers. Hier korrigieren Sie Schreibweisen, hinterlegen einen <strong>Kurznamen</strong> (Turnierbaum, Tablet, Statusseite) und führen <strong>doppelte Vereine</strong> zusammen. Ein Klick auf den Namen zeigt Teilnehmer, ihre Turniere und die Coach-Konten.') ?></p>
 
@@ -33,6 +35,7 @@ $this->layout('layout', ['titel' => t('Vereine')]);
     </form>
 <?php endif; ?>
 
+<?php if (!$nurLesen): ?>
 <details class="karte neues-konto" id="neuer-verein">
     <summary><h2><?= te('Neuer Verein') ?></h2></summary>
     <form method="post" action="<?= e(url('vereine')) ?>" class="formular" style="max-width:640px">
@@ -45,6 +48,7 @@ $this->layout('layout', ['titel' => t('Vereine')]);
         <div><button class="knopf primaer" type="submit"><?= te('Anlegen') ?></button></div>
     </form>
 </details>
+<?php endif; ?>
 
 <?php if (count($vereine) > 8): ?>
     <label class="suche-konten"><?= te('Suchen') ?> <input type="search" data-tabellenfilter="vereine-liste" placeholder="<?= te('Name oder Kurzname') ?>" autocomplete="off"></label>
@@ -62,6 +66,7 @@ $this->layout('layout', ['titel' => t('Vereine')]);
             <td class="rechts"><?= (int) $v['turniere'] ?></td>
             <td class="rechts"><?= (int) $v['konten'] ?: '–' ?></td>
             <td class="nowrap">
+                <?php if (!$nurLesen): ?>
                 <form method="post" action="<?= e(url('vereine')) ?>" id="v<?= $vid ?>" class="inline">
                     <?= csrf_feld() ?>
                     <input type="hidden" name="id" value="<?= $vid ?>">
@@ -73,6 +78,7 @@ $this->layout('layout', ['titel' => t('Vereine')]);
                         <button class="knopf klein gefahr" type="submit"><?= te('Löschen') ?></button>
                     </form>
                 <?php endif; ?>
+                <?php endif; ?>
             </td>
         </tr>
     <?php endforeach; ?>
@@ -82,7 +88,7 @@ $this->layout('layout', ['titel' => t('Vereine')]);
     </tbody>
 </table>
 
-<?php if (count($vereine) > 1): ?>
+<?php if (count($vereine) > 1 && !$nurLesen): ?>
     <form method="get" action="<?= e(url('vereine/zusammenfuehren')) ?>" class="karte formular" style="max-width:640px">
         <h2><?= te('Zwei Vereine zusammenführen') ?></h2>
         <p class="hilfe"><?= te('Alles vom ersten Verein (Athleten, Teams, Anmeldungen, Coach-Konten) wandert zum zweiten; der erste wird gelöscht. Vorher kommt eine Übersicht.') ?></p>

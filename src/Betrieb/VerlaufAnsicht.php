@@ -21,11 +21,16 @@ final class VerlaufAnsicht
      * @param array{objekt?: string, aktion?: string, wer?: string} $filter
      * @return array{eintraege: list<array<string, mixed>>, gesamt: int, seite: int, seiten: int,
      *               objekte: list<string>, aktionen: list<string>}
+     * @param list<int>|null $nurTurniere nur Einträge dieser Turniere statt der globalen (Demo-Nutzer)
      */
-    public function laden(?int $turnierId, array $filter = [], int $seite = 1): array
+    public function laden(?int $turnierId, array $filter = [], int $seite = 1, ?array $nurTurniere = null): array
     {
         $bereich = $turnierId === null ? 'turnier_id IS NULL' : 'turnier_id = ?';
         $basis = $turnierId === null ? [] : [$turnierId];
+        if ($turnierId === null && $nurTurniere !== null) {
+            // Demo-Nutzer: statt der globalen Einträge (Konten, System) die Einträge ihrer Turniere
+            $bereich = $nurTurniere === [] ? '1 = 0' : 'turnier_id IN (' . implode(',', array_map('intval', $nurTurniere)) . ')';
+        }
 
         $wo = [$bereich];
         $werte = $basis;

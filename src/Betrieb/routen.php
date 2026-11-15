@@ -26,8 +26,8 @@ return static function (Router $r): void {
     $r->get('/turnier/{id}/assistent', [AssistentController::class, 'index'], 'turnier');
     $r->get('/turnier/{id}/assistent/{schritt}', [AssistentController::class, 'schritt'], 'turnier');
     $r->get('/turnier/{id}/export', [SicherungController::class, 'export'], 'turnier');
-    $r->get('/import-turnier', [SicherungController::class, 'importFormular']);
-    $r->post('/import-turnier', [SicherungController::class, 'import']);
+    $r->get('/import-turnier', [SicherungController::class, 'importFormular'], 'demo');
+    $r->post('/import-turnier', [SicherungController::class, 'import'], 'demo');
     $r->get('/sicherung/datenbank', [SicherungController::class, 'datenbank']);
     // automatische Sicherungen (Hallen-Laptop): Liste auf /import-turnier, Download, einzelnes Turnier wiederherstellen
     $r->post('/sicherung/auto', [SicherungController::class, 'autoJetzt']);
@@ -35,5 +35,5 @@ return static function (Router $r): void {
     $r->get('/sicherung/auto/{name}/download', [SicherungController::class, 'autoDownload']);
     $r->post('/sicherung/auto/{name}/turnier/{turnierid}', [SicherungController::class, 'autoWiederherstellen']);
     $r->get('/turnier/{id}/verlauf', [VerlaufController::class, 'turnierVerlauf'], 'turnier');
-    $r->get('/verlauf', [VerlaufController::class, 'globalerVerlauf']);
+    $r->get('/verlauf', [VerlaufController::class, 'globalerVerlauf'], 'demo');
 };

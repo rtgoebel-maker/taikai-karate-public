@@ -66,7 +66,7 @@ final class Session
         return $abgelaufen;
     }
 
-    /** @return array{id: int, name: string, admin: bool, turniere: list<int>, verein?: int|null}|null */
+    /** @return array{id: int, name: string, admin: bool, turniere: list<int>, verein?: int|null, demo?: bool}|null */
     public static function benutzer(): ?array
     {
         $b = $_SESSION['benutzer'] ?? null;
@@ -83,7 +83,7 @@ final class Session
     public static function istLeitung(): bool
     {
         $b = self::benutzer();
-        return $b !== null && ($b['admin'] || $b['turniere'] !== []);
+        return $b !== null && ($b['admin'] || $b['turniere'] !== [] || ($b['demo'] ?? false) === true);
     }
 
     /** Darf dieses Turnier leiten: Administration oder Turnierleitung genau dieses Turniers. */
@@ -104,12 +104,12 @@ final class Session
      * @param list<int> $turniere geleitete Turniere
      * @param int|null $verein Dojo (Coach-Konto)
      */
-    public static function anmelden(int $id, string $name, bool $admin, array $turniere, ?int $verein = null): void
+    public static function anmelden(int $id, string $name, bool $admin, array $turniere, ?int $verein = null, bool $demo = false): void
     {
         if (session_status() === PHP_SESSION_ACTIVE) {
             session_regenerate_id(true);
         }
-        $_SESSION['benutzer'] = ['id' => $id, 'name' => $name, 'admin' => $admin, 'turniere' => $turniere, 'verein' => $verein];
+        $_SESSION['benutzer'] = ['id' => $id, 'name' => $name, 'admin' => $admin, 'turniere' => $turniere, 'verein' => $verein, 'demo' => $demo && !$admin];
     }
 
     /**
@@ -118,11 +118,17 @@ final class Session
      *
      * @param list<int> $turniere
      */
-    public static function rechteAktualisieren(string $name, bool $admin, array $turniere, ?int $verein = null): void
+    public static function rechteAktualisieren(string $name, bool $admin, array $turniere, ?int $verein = null, bool $demo = false): void
     {
         if (isset($_SESSION['benutzer']['id'])) {
-            $_SESSION['benutzer'] = ['id' => (int) $_SESSION['benutzer']['id'], 'name' => $name, 'admin' => $admin, 'turniere' => $turniere, 'verein' => $verein];
+            $_SESSION['benutzer'] = ['id' => (int) $_SESSION['benutzer']['id'], 'name' => $name, 'admin' => $admin, 'turniere' => $turniere, 'verein' => $verein, 'demo' => $demo && !$admin];
         }
+    }
+
+    /** Demo-Nutzer: Turnierleitung der Demo- und eigenen Turniere, ausgewählte Admin-Bereiche (Zugangsstufe 'demo'). */
+    public static function istDemo(): bool
+    {
+        return (self::benutzer()['demo'] ?? false) === true;
     }
 
     /**

@@ -17,6 +17,7 @@ $this->layout('layout', ['titel' => t('Sicherung')]);
         <p class="klein"><?= th('Dieser Server nimmt Dateien bis <strong>{grenze}</strong> an. Größere Sicherungen (viele Teilnehmer, große Logos): in der PHP-Konfiguration <code>upload_max_filesize</code> und <code>post_max_size</code> erhöhen.', ['grenze' => $grenze]) ?></p>
         <div><button class="knopf primaer" type="submit"><?= te('Importieren') ?></button></div>
     </form>
+<?php if (empty($demo)): ?>
     <div class="karte">
         <h2><?= te('Vollsicherung') ?></h2>
         <?php if ($sqlite): ?>
@@ -27,8 +28,10 @@ $this->layout('layout', ['titel' => t('Sicherung')]);
         <?php endif; ?>
         <p class="klein"><?= te('Einzelne Turniere exportierst du unter Turnier → Einstellungen.') ?></p>
     </div>
+<?php endif; ?>
 </div>
 
+<?php if (empty($demo)): ?>
 <section class="karte">
     <h2><?= te('Automatische Sicherung') ?></h2>
     <?php if ($auto === null): ?>
@@ -62,3 +65,4 @@ $this->layout('layout', ['titel' => t('Sicherung')]);
         <p class="klein"><?= th('Ganze Datenbank zurückspielen: Server beenden, die heruntergeladene Datei als <code>data/wettkampf.sqlite</code> ablegen, <code>wettkampf.sqlite-wal</code> und <code>-shm</code> löschen, Server neu starten. Einstellbar in <code>config/config.php</code> unter <code>auto_sicherung</code>.') ?></p>
     <?php endif; ?>
 </section>
+<?php endif; ?>

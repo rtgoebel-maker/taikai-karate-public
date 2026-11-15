@@ -17,6 +17,11 @@ $fortschritt = $zahlen['begegnungen'] > 0 ? round(100 * $zahlen['beendet'] / $za
 ?>
 <p class="obertitel"><?= e(datum_de($turnier['datum'])) ?><?= $turnier['ort'] ? ' · ' . e($turnier['ort']) : '' ?></p>
 <h1><?= e($turnier['name']) ?></h1>
+<?php if (\Wettkampf\Betrieb\DemoTurnier::kennung($turnier) !== null): $demoNaechster = $demoNaechster ?? null; ?>
+    <div class="meldung meldung-hinweis"><?= $demoNaechster !== null
+        ? te('Demo-Turnier zum Ausprobieren – wird am {datum} um {uhrzeit} automatisch zurückgesetzt.', ['datum' => datum_de(substr($demoNaechster, 0, 10)), 'uhrzeit' => substr($demoNaechster, 11, 5)])
+        : te('Demo-Turnier zum Ausprobieren.') ?></div>
+<?php endif; ?>
 <?php if (!$gestartet): ?>
     <p class="knopfleiste"><a class="knopf" href="<?= e(url("turnier/{$turnier['id']}/assistent")) ?>">🧭 <?= te('Einrichtungs-Assistent') ?></a>
         <span class="klein leise"><?= te('führt durch Klassen, Tatamis und PINs, Online-Anmeldung, Zahlungsangaben und Coaching-Portal') ?></span></p>

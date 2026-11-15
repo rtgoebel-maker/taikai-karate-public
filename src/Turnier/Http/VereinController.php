@@ -8,6 +8,7 @@ use Wettkampf\Turnier\StammdatenService;
 use Wettkampf\Turnier\VereinService;
 use Wettkampf\Kern\Uuid;
 use Wettkampf\Domain\FachFehler;
+use Wettkampf\Kern\Http\Session;
 use Wettkampf\Kern\Http\Request;
 use Wettkampf\Kern\Http\Response;
 use Wettkampf\Kern\Http\Controller;
@@ -18,18 +19,26 @@ final class VereinController extends Controller
     public function index(Request $request): Response
     {
         $service = new VereinService($this->db);
-        $vereine = $service->uebersicht();
+        $demo = Session::istDemo();
+        $vereine = $service->uebersicht($demo ? self::erlaubteTurniere() : null);
         return $this->seite('verein/index', [
             'vereine' => $vereine,
-            'doppelt' => $service->vermutlichDoppelt($vereine),
-            'leer' => count((new StammdatenService($this->db))->leereVereine()),
+            'doppelt' => $demo ? [] : $service->vermutlichDoppelt($vereine),
+            'leer' => $demo ? 0 : count((new StammdatenService($this->db))->leereVereine()),
+            'nurLesen' => $demo,
         ]);
     }
 
     /** Vereinsseite: Teilnehmer und ihre Turniere, Coach-Konten, Online-Anmeldungen. */
     public function zeigen(Request $request, int $id): Response
     {
-        return $this->seite('verein/zeigen', (new VereinService($this->db))->seite($id));
+        return $this->seite('verein/zeigen', (new VereinService($this->db))->seite($id, Session::istDemo() ? self::erlaubteTurniere() : null));
+    }
+
+    /** @return list<int> Turniere, die der Demo-Nutzer leitet (Demo- und eigene Turniere) */
+    private static function erlaubteTurniere(): array
+    {
+        return array_map('intval', (array) (Session::benutzer()['turniere'] ?? []));
     }
 
     /** Vereine ohne Athleten, Teams und Anmeldungen auf einmal entfernen. */

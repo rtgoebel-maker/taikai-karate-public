@@ -32,7 +32,7 @@ final class BenutzerController extends Controller
 
     public function anlegen(Request $request): Response
     {
-        $this->konten()->anlegen($request->post, (string) $request->post('passwort', ''), $request->post('admin') !== null);
+        $this->konten()->anlegen($request->post, (string) $request->post('passwort', ''), $request->post('admin') !== null, $request->post('admin') === null && $request->post('demo') !== null);
         $this->erfolg('Konto für ' . Konten::email($request->text('email')) . ' angelegt.');
         return $this->weiter('benutzer');
     }
@@ -102,6 +102,13 @@ final class BenutzerController extends Controller
     {
         $this->konten()->loeschen($id, $this->ich(), $request->text('bestaetigung'));
         $this->erfolg(t('Konto endgültig gelöscht – die E-Mail-Adresse ist wieder frei.'));
+        return $this->weiter('benutzer');
+    }
+
+    public function demoUmschalten(Request $request, int $id): Response
+    {
+        $this->konten()->demoSetzen($id, $request->post('demo') === '1');
+        $this->erfolg($request->post('demo') === '1' ? t('Demo-Zugang eingerichtet.') : t('Demo-Zugang entzogen.'));
         return $this->weiter('benutzer');
     }
 

@@ -12,8 +12,8 @@ use Wettkampf\Turnier\Http\VereinController;
  */
 return static function (Router $r): void {
     $r->get('/', [StartController::class, 'index'], 'leitung');
-    $r->get('/turnier/neu', [TurnierController::class, 'neu']);
-    $r->post('/turnier/neu', [TurnierController::class, 'anlegen']);
+    $r->get('/turnier/neu', [TurnierController::class, 'neu'], 'demo');
+    $r->post('/turnier/neu', [TurnierController::class, 'anlegen'], 'demo');
     $r->get('/turnier/{id}', [TurnierController::class, 'uebersicht'], 'turnier');
     $r->post('/turnier/{id}/phase', [TurnierController::class, 'phase'], 'turnier');
     $r->post('/turnier/{id}/nicht-erschienen', [TurnierController::class, 'nichtErschienen'], 'turnier');
@@ -21,12 +21,12 @@ return static function (Router $r): void {
     $r->get('/turnier/{id}/einstellungen', [TurnierController::class, 'einstellungen'], 'turnier');
     $r->post('/turnier/{id}/einstellungen', [TurnierController::class, 'speichern'], 'turnier');
     $r->post('/turnier/{id}/zugaenge', [TurnierController::class, 'zugaengeSpeichern'], 'turnier');
-    $r->post('/turnier/{id}/loeschen', [TurnierController::class, 'loeschen']);
-    $r->get('/vereine', [VereinController::class, 'index']);
+    $r->post('/turnier/{id}/loeschen', [TurnierController::class, 'loeschen'], 'demo');
+    $r->get('/vereine', [VereinController::class, 'index'], 'demo');
     $r->post('/vereine', [VereinController::class, 'speichern']);
     $r->get('/vereine/zusammenfuehren', [VereinController::class, 'zusammenfuehrenVorschau']);
     $r->post('/vereine/zusammenfuehren', [VereinController::class, 'zusammenfuehren']);
     $r->post('/vereine/leere-loeschen', [VereinController::class, 'leereLoeschen']);
     $r->post('/verein/{id}/loeschen', [VereinController::class, 'loeschen']);
-    $r->get('/verein/{id}', [VereinController::class, 'zeigen']);
+    $r->get('/verein/{id}', [VereinController::class, 'zeigen'], 'demo');
 };

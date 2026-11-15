@@ -57,6 +57,13 @@ $menue = $turnier ? [
         <?php endif; ?>
     <?php endif; ?>
     <nav class="kopf-rechts">
+        <?php if (Session::istDemo()): ?>
+            <a href="<?= e(url('vereine')) ?>"><?= te('Vereine') ?></a>
+            <a href="<?= e(url('import-turnier')) ?>"><?= te('Sicherung') ?></a>
+            <a href="<?= e(url('system')) ?>"<?= $aktiv === 'system' ? ' class="aktiv"' : '' ?>><?= te('System') ?></a>
+            <a href="<?= e(url('verlauf')) ?>"<?= $aktiv === 'verlauf' && !$turnier ? ' class="aktiv"' : '' ?>><?= te('Verlauf') ?></a>
+            <span class="tag" title="<?= te('Demo-Zugang: alle Demo-Turniere und eigene Turniere, keine Konten und keine Zugangsdaten') ?>"><?= te('Demo') ?></span>
+        <?php endif; ?>
         <?php if (Session::istAdmin()): ?>
             <a href="<?= e(url('vereine')) ?>"><?= te('Vereine') ?></a>
             <a href="<?= e(url('benutzer')) ?>"><?= te('Benutzer') ?></a>

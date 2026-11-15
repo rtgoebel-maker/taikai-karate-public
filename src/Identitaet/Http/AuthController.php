@@ -98,7 +98,7 @@ final class AuthController extends Controller
             throw new FachFehler(t('Bitte zuerst die E-Mail-Adresse bestätigen – den Link haben Sie per E-Mail erhalten. Einen neuen Link gibt es unter „Passwort vergessen“.'));
         }
         $rechte = $konten->rechte((int) $benutzer['id']) ?? throw new FachFehler(t('E-Mail oder Passwort ist falsch.'));
-        $istLeitung = $rechte['admin'] || $rechte['turniere'] !== [];
+        $istLeitung = $rechte['admin'] || $rechte['turniere'] !== [] || $rechte['demo'];
         // selbst angelegtes Dojo-Konto (Online-Anmeldung) sieht vor der Zuordnung zum Dojo seine eigenen Meldungen
         $selbstAngelegt = $benutzer['ablauf_am'] !== null;
         if (!$istLeitung && $rechte['verein'] === null && !$selbstAngelegt) {
@@ -112,7 +112,7 @@ final class AuthController extends Controller
                 ZweiterFaktor::warten($id, $zurueck, 'app');
                 return $this->weiter('login/code');
             }
-            if ($this->app->zweiterFaktorPflicht()) {
+            if ($this->app->zweiterFaktorPflicht() && !$rechte['demo']) {
                 $email = (string) ($benutzer['email'] ?? '');
                 if ($this->app->postausgang() !== null && filter_var($email, FILTER_VALIDATE_EMAIL) !== false) {
                     $this->codeSenden($id, $email, $rechte['name'], $zurueck);
@@ -240,8 +240,8 @@ final class AuthController extends Controller
     {
         $konten = new Konten($this->db);
         $rechte = $konten->rechte($benutzerId) ?? throw new FachFehler(t('Das Konto ist nicht mehr aktiv.'));
-        $istLeitung = $rechte['admin'] || $rechte['turniere'] !== [];
-        Session::anmelden($benutzerId, $rechte['name'], $rechte['admin'], $rechte['turniere'], $rechte['verein']);
+        $istLeitung = $rechte['admin'] || $rechte['turniere'] !== [] || $rechte['demo'];
+        Session::anmelden($benutzerId, $rechte['name'], $rechte['admin'], $rechte['turniere'], $rechte['verein'], $rechte['demo']);
         (new Protokoll($this->db))->aufraeumen(); // Aufbewahrungsfrist globaler Einträge (ohne Cronjob)
         (new DojoKonten($this->db))->aufraeumen(); // abgelaufene Dojo-Konten (ohne Cronjob)
         // reines Coach-Konto: Startseite der Leitung ist gesperrt, also zu „Meine Meldungen“

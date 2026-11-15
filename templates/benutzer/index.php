@@ -35,6 +35,7 @@ $dojoAuswahl = static function (?int $gewaehlt) use ($vereine): string {
     <label><?= te('Dojo') ?> <span class="hilfe"><?= te('für Coach-Konten') ?></span> <?= $dojoAuswahl(null) ?></label>
     <label><?= te('Passwort (mind. {min} Zeichen)', ['min' => $min]) ?> <input type="password" name="passwort" minlength="<?= $min ?>" required autocomplete="new-password"></label>
     <label class="check"><input type="checkbox" name="admin" value="1"> <?= te('Administration (alle Turniere, Konten, Vereine, System)') ?></label>
+    <label class="check"><input type="checkbox" name="demo" value="1"> <?= te('Demo-Zugang (für Schulungen: alle Demo-Turniere und eigene Turniere mit fast allen Funktionen, keine Konten, keine E-Mail-Zugangsdaten, keine Datenbank-Sicherung; ohne zweiten Faktor, Konto nicht änderbar)') ?></label>
     <p class="hilfe"><?= te('Das Passwort bitte persönlich bzw. auf sicherem Weg weitergeben. Bei der ersten Anmeldung richtet das Konto den zweiten Faktor ein (Authenticator-App bzw. Code per E-Mail); Passwort und Angaben lassen sich danach unter „Konto & Sicherheit“ selbst ändern.') ?></p>
     <div><button class="knopf primaer" type="submit"><?= te('Anlegen') ?></button></div>
 </form>
@@ -55,6 +56,7 @@ $dojoAuswahl = static function (?int $gewaehlt) use ($vereine): string {
             <td><?= e($k['verein'] ?? '') ?></td>
             <td>
                 <?= $k['ist_admin'] ? '<span class="tag ok">' . te('Administration') . '</span>' : '' ?>
+                <?= !$k['ist_admin'] && ($k['rolle'] ?? '') === 'demo' ? '<span class="tag">' . te('Demo') . '</span>' : '' ?>
                 <?php foreach ($k['turniere'] as $t): ?><span class="tag" title="<?= te('Turnierleitung') ?>"><?= te('Leitung: {turnier}', ['turnier' => $t]) ?></span> <?php endforeach; ?>
             </td>
             <td><?= $k['aktiv'] ? '<span class="tag ok">' . te('aktiv') . '</span>' : '<span class="tag">' . te('deaktiviert') . '</span>' ?></td>
@@ -105,6 +107,13 @@ $dojoAuswahl = static function (?int $gewaehlt) use ($vereine): string {
                                 <input type="hidden" name="admin" value="<?= $k['ist_admin'] ? '0' : '1' ?>">
                                 <button class="knopf klein" type="submit"><?= $k['ist_admin'] ? te('Administration entziehen') : te('Zur Administration machen') ?></button>
                             </form>
+                            <?php if (!$k['ist_admin']): $istDemo = ($k['rolle'] ?? '') === 'demo'; ?>
+                                <form method="post" action="<?= e(url("benutzer/$id/demo")) ?>">
+                                    <?= csrf_feld() ?>
+                                    <input type="hidden" name="demo" value="<?= $istDemo ? '0' : '1' ?>">
+                                    <button class="knopf klein" type="submit"><?= $istDemo ? te('Demo-Zugang entziehen') : te('Zum Demo-Zugang machen') ?></button>
+                                </form>
+                            <?php endif; ?>
                             <form method="post" action="<?= e(url("benutzer/$id/aktiv")) ?>">
                                 <?= csrf_feld() ?>
                                 <button class="knopf klein" type="submit"><?= $k['aktiv'] ? te('Deaktivieren') : te('Aktivieren') ?></button>

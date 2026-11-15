@@ -7,7 +7,7 @@ $this->layout('layout', ['titel' => t('Turniere')]);
 ?>
 <div class="titelzeile">
     <h1><?= $istAdmin ? te('Turniere') : te('Meine Turniere') ?></h1>
-    <?php if ($istAdmin): ?><a class="knopf primaer" href="<?= e(url('turnier/neu')) ?>"><?= te('Neues Turnier') ?></a><?php endif; ?>
+    <?php if ($istAdmin || \Wettkampf\Kern\Http\Session::istDemo()): ?><a class="knopf primaer" href="<?= e(url('turnier/neu')) ?>"><?= te('Neues Turnier') ?></a><?php endif; ?>
 </div>
 <?php if (!$turniere): ?>
     <div class="karte leer">
@@ -33,5 +33,5 @@ $this->layout('layout', ['titel' => t('Turniere')]);
         <?php endforeach; ?>
         </tbody>
     </table>
-    <?php if ($istAdmin): ?><p class="klein"><a href="<?= e(url('import-turnier')) ?>"><?= te('Turnier aus Sicherung importieren') ?></a></p><?php endif; ?>
+    <?php if ($istAdmin || \Wettkampf\Kern\Http\Session::istDemo()): ?><p class="klein"><a href="<?= e(url('import-turnier')) ?>"><?= te('Turnier aus Sicherung importieren') ?></a></p><?php endif; ?>
 <?php endif; ?>

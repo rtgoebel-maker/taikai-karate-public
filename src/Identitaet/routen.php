@@ -47,6 +47,7 @@ return static function (Router $r): void {
     $r->post('/benutzer/{id}/aktiv', [BenutzerController::class, 'aktivUmschalten']);
     $r->post('/benutzer/{id}/loeschen', [BenutzerController::class, 'loeschen']);
     $r->post('/benutzer/{id}/admin', [BenutzerController::class, 'adminUmschalten']);
+    $r->post('/benutzer/{id}/demo', [BenutzerController::class, 'demoUmschalten']);
     $r->post('/benutzer/{id}', [BenutzerController::class, 'bearbeiten']);
     // System → Gesperrte Anmeldungen (AnmeldeSchutz)
     $r->get('/system/sperren', [SperrenController::class, 'index']);

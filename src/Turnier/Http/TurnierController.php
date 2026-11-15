@@ -10,6 +10,8 @@ use Wettkampf\Turnier\StammdatenService;
 use Wettkampf\Turnier\TurnierPhaseService;
 use Wettkampf\Domain\FachFehler;
 use Wettkampf\Domain\TurnierPhase;
+use Wettkampf\Kern\Http\Session;
+use Wettkampf\Kern\Http\NichtGefunden;
 use Wettkampf\Kern\Http\Request;
 use Wettkampf\Kern\Http\Response;
 use Wettkampf\Kern\Http\Controller;
@@ -28,6 +30,7 @@ final class TurnierController extends Controller
     public function anlegen(Request $request): Response
     {
         $id = (new StammdatenService($this->db))->turnierAnlegen($request->post);
+        $this->demoLeitetSelbst($id);
         if ($request->post('assistent_starten') !== null) {
             $this->erfolg(t('Turnier angelegt. Der Assistent führt jetzt durch die wichtigsten Einstellungen – jeder Schritt lässt sich überspringen und später ändern.'));
             return $this->weiter("turnier/$id/assistent/klassen");
@@ -181,6 +184,9 @@ final class TurnierController extends Controller
     public function loeschen(Request $request, int $id): Response
     {
         $turnier = $this->turnier($id);
+        if (!Session::leitet($id)) {
+            throw new NichtGefunden(t('Turnier nicht gefunden.')); // Demo-Nutzer: nur Demo- und eigene Turniere
+        }
         if ($request->text('bestaetigung') !== $turnier['name']) {
             throw new FachFehler(t('Zum Löschen bitte den Turniernamen exakt eingeben.'));
         }
@@ -190,6 +196,15 @@ final class TurnierController extends Controller
             ? t('Turnier „{name}“ gelöscht – mit {athleten} Athleten und {vereine} Vereinen, die zu keinem anderen Turnier gehören.', ['name' => $turnier['name'], 'athleten' => $geloescht['athleten'], 'vereine' => $geloescht['vereine']])
             : t('Turnier „{name}“ gelöscht.', ['name' => $turnier['name']]));
         return $this->weiter('/');
+    }
+
+    /** Ein Demo-Nutzer wird Turnierleitung des Turniers, das er anlegt (sonst sähe er es nicht). */
+    private function demoLeitetSelbst(int $turnierId): void
+    {
+        $ich = (int) (Session::benutzer()['id'] ?? 0);
+        if (Session::istDemo() && $ich > 0) {
+            $this->db->insert('turnier_rolle', ['turnier_id' => $turnierId, 'benutzer_id' => $ich, 'rolle' => 'leitung', 'erstellt_am' => date('Y-m-d H:i:s'), 'erstellt_von' => Session::akteur()]);
+        }
     }
 
     private function pinPruefen(string $pin): void

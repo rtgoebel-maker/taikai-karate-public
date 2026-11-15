@@ -68,6 +68,7 @@ $this->layout('layout', ['titel' => t('Systemeinstellungen'), 'aktiv' => 'system
             <?= te('Screenshots können personenbezogene Daten zeigen (z. B. Teilnehmerlisten); der Dialog weist darauf hin. Ausschalten blendet nur den Knopf aus; vorhandene Meldungen bleiben erhalten.') ?></p>
     </div>
 
+    <?php if (empty($nurDemo)): ?>
     <div class="karte formular">
         <h2><?= te('Anmeldung||Login') ?></h2>
         <label class="check"><input type="checkbox" name="zweiter_faktor_pflicht" value="1"<?= $zweiterFaktorPflicht ? ' checked' : '' ?>> <?= te('Zweiter Faktor für alle Konten Pflicht (empfohlen)') ?>
@@ -97,19 +98,22 @@ $this->layout('layout', ['titel' => t('Systemeinstellungen'), 'aktiv' => 'system
         <p><a class="knopf" href="<?= e(url('einladungen')) ?>"><?= te('Einladungen zu künftigen Turnieren') ?></a></p>
         <p class="klein"><?= te('Freiwillig eingewilligte Adressen aus der Online-Anmeldung: ansehen, löschen, exportieren, Einladung versenden.') ?></p>
     </div>
+    <?php endif; ?>
     <div class="system-speichern"><button class="knopf primaer" type="submit"><?= te('Einstellungen speichern') ?></button></div>
 </form>
 
 <div class="system-raster">
-<?= $this->teil('system/mail', compact('mail', 'mailFestgelegt', 'adresseFestgelegt', 'mailWirksam', 'warteschlange', 'mailListe')) ?>
+<?php if (empty($nurDemo)): ?><?= $this->teil('system/mail', compact('mail', 'mailFestgelegt', 'adresseFestgelegt', 'mailWirksam', 'warteschlange', 'mailListe')) ?><?php endif; ?>
 
 <section class="karte formular demo-bereich" id="demo">
     <h2><?= te('Demo-Turniere') ?> <?= info('demo') ?></h2>
+    <?php if (empty($nurDemo)): ?>
     <form method="post" action="<?= e(url('system/demo-modus')) ?>" class="knopfleiste demo-schalter">
         <?= csrf_feld() ?>
         <label class="check"><input type="checkbox" name="demo_modus" value="1"<?= $demoModus ? ' checked' : '' ?>> <?= te('Demo-Modus – hier Demo-Turniere zum Ausprobieren und Schulen anlegen') ?></label>
         <button class="knopf klein" type="submit"><?= te('Übernehmen') ?></button>
     </form>
+    <?php endif; ?>
     <p class="hilfe"><?= te('Für Schulungs- und Testinstallationen. Ausschalten blendet nur das Anlegen aus; vorhandene Demo-Turniere bleiben erhalten (löschen wie jedes Turnier).') ?></p>
     <?php if ($demoModus): ?>
     <form method="post" action="<?= e(url('system/demo-turnier')) ?>" class="formular demo-anlegen" data-bestaetigen="<?= te('Demo-Turnier mit erfundenen Teilnehmern anlegen? (laufend/abgeschlossen dauert einige Sekunden)') ?>">
@@ -137,6 +141,29 @@ $this->layout('layout', ['titel' => t('Systemeinstellungen'), 'aktiv' => 'system
         <label class="check"><input type="checkbox" name="teams" value="1" checked> <?= te('mit Kata- und Kumite-Teams (ohne Pools)') ?></label>
         <div><button class="knopf primaer" type="submit"><?= te('Demo-Turnier anlegen') ?></button></div>
 </form>
+    <?php if (empty($nurDemo)): ?>
+    <form method="post" action="<?= e(url('system/demo-zuruecksetzen')) ?>" class="formular demo-zuruecksetzen">
+        <?= csrf_feld() ?>
+        <h3><?= te('Täglich zurücksetzen') ?></h3>
+        <p class="hilfe"><?= te('Für Schulungen: Jedes Demo-Turnier wird einmal am Tag gelöscht und mit denselben Einstellungen neu angelegt – das Datum rückt mit, Turnierleitungen bleiben. Echte Turniere werden nie angefasst. Wird gerade in einem Demo-Turnier gearbeitet (Änderungen in der letzten Stunde), wartet das Zurücksetzen.') ?></p>
+        <label class="check"><input type="checkbox" name="aktiv" value="1"<?= $demoReset['aktiv'] ? ' checked' : '' ?>> <?= te('Demo-Turniere täglich zurücksetzen') ?></label>
+        <div class="zeile">
+            <label><?= te('Uhrzeit') ?> <input type="time" name="uhrzeit" value="<?= e($demoReset['uhrzeit']) ?>" required></label>
+            <label><?= te('Pausieren bis einschließlich') ?> <span class="hilfe"><?= te('leer = keine Pause, z. B. während einer mehrtägigen Schulung') ?></span>
+                <input type="date" name="pause_bis" value="<?= e($demoReset['pause_bis']) ?>"></label>
+        </div>
+        <p class="klein">
+            <?= te('Demo-Turniere: {n}', ['n' => $demoReset['turniere']]) ?>
+            · <?= $demoReset['naechster'] !== null ? te('nächstes Zurücksetzen: {zeit}', ['zeit' => datum_de(substr($demoReset['naechster'], 0, 10)) . ' ' . substr($demoReset['naechster'], 11, 5)]) : te('automatisch: aus') ?>
+            <?= $demoReset['letzter'] !== '' ? ' · ' . te('zuletzt: {zeit}', ['zeit' => datum_de(substr($demoReset['letzter'], 0, 10)) . ' ' . substr($demoReset['letzter'], 11, 5)]) : '' ?>
+        </p>
+        <div class="knopfleiste"><button class="knopf" type="submit"><?= te('Speichern') ?></button></div>
+    </form>
+    <?php endif; ?>
+    <form method="post" action="<?= e(url('system/demo-zuruecksetzen/jetzt')) ?>" class="knopfleiste" data-bestaetigen="<?= te('Alle Demo-Turniere jetzt löschen und neu anlegen? Eingaben aus der Schulung gehen verloren.') ?>" data-bestaetigen-ja="<?= te('Jetzt zurücksetzen') ?>">
+        <?= csrf_feld() ?><button class="knopf gefahr" type="submit"><?= te('Jetzt zurücksetzen') ?></button>
+        <span class="hilfe"><?= te('Zurückgesetzt werden Demo-Turniere, die ab dieser Version angelegt wurden; ältere bitte einmal neu anlegen.') ?></span>
+    </form>
     <?php endif; ?>
 </section>
 </div>

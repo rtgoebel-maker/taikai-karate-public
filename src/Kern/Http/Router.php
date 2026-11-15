@@ -17,11 +17,12 @@ final class Router
      * 'leitung' (Administration oder Turnierleitung irgendeines Turniers), 'turnier' (Administration
      * oder Turnierleitung des Turniers aus dem Routenparameter {id}), 'coach' (Konto mit Dojo), 'konto' (jedes angemeldete Konto,
      * z. B. ein selbst angelegtes Dojo-Konto vor der Zuordnung zum Dojo: nur die eigenen Meldungen), 'admin' (globale Administration),
+     * 'demo' (globale Administration oder Demo-Nutzer: ausgewählte Admin-Bereiche, die Daten auf erlaubte Turniere beschränken),
      * 'maschine' (Aufruf von Server zu Server ohne Sitzung und ohne CSRF-Token: die Route prüft selbst, z. B. Login + Code
      * oder HMAC-Signatur; nur unter /api/v1/sync/, siehe RouterTest).
      * Standard ist 'admin': eine vergessene Einstufung sperrt die Route, statt sie zu öffnen.
      */
-    public const ZUGANG = ['oeffentlich', 'tisch', 'coach', 'konto', 'leitung', 'turnier', 'admin', 'maschine'];
+    public const ZUGANG = ['oeffentlich', 'tisch', 'coach', 'konto', 'leitung', 'turnier', 'demo', 'admin', 'maschine'];
 
     /** @var list<array{methode: string, muster: string, ziel: array{0: class-string, 1: string}, zugang: string}> */
     private array $routen = [];

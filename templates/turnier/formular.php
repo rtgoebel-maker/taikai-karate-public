@@ -141,12 +141,14 @@ $this->layout('layout', ['titel' => $neu ? t('Neues Turnier') : t('Einstellungen
             <p><?= te('Tablets (Eingabe) und Handys (Ausruf) per QR-Code anmelden – Sie geben jedes Gerät frei und können es jederzeit sperren.') ?></p>
             <a class="knopf" href="<?= e(url("turnier/{$turnier['id']}/geraete")) ?>"><?= te('Geräte koppeln …') ?></a>
         </div>
+        <?php if (!\Wettkampf\Kern\Http\Session::istDemo()): ?>
         <div class="karte">
             <h2><?= te('Turnierleitung') ?></h2>
             <p><?= te('Wer dieses Turnier bearbeiten darf. Jede Turnierleitung kann weitere ernennen.') ?></p>
             <a class="knopf" href="<?= e(url("turnier/{$turnier['id']}/leitung")) ?>"><?= te('Turnierleitung verwalten') ?></a>
         </div>
-        <?php if (\Wettkampf\Kern\Http\Session::istAdmin()): ?>
+        <?php endif; ?>
+        <?php if (\Wettkampf\Kern\Http\Session::istAdmin() || \Wettkampf\Kern\Http\Session::istDemo()): ?>
             <form method="post" action="<?= e(url("turnier/{$turnier['id']}/loeschen")) ?>" class="karte formular" data-bestaetigen="<?= te('Turnier endgültig löschen?') ?>">
                 <?= csrf_feld() ?>
                 <h2><?= te('Turnier löschen') ?></h2>

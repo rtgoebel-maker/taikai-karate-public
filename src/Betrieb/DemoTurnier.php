@@ -80,8 +80,41 @@ final class DemoTurnier
             $demo = $this->erzeugen($tag, $name !== '' ? $name : null, $mitTeams, $logosVon);
             $demo['ergebnisse'] = $phase === TurnierPhase::VORBEREITUNG ? 0 : $this->spielen($demo['turnier'], $phase);
             $demo['klassen'] = $this->uebersicht($demo['turnier']);
+            $this->kennzeichnen($demo['turnier'], [
+                'name' => $name, 'teams' => $mitTeams, 'logos_von' => $logosVon, 'phase' => $phase,
+                // Abstand zum heutigen Tag: beim Zurücksetzen rückt das Datum mit (z. B. „läuft“ = heute)
+                'tage' => (int) (new DateTimeImmutable('today'))->diff($tag)->format('%r%a'),
+            ]);
             return $demo;
         });
+    }
+
+    /**
+     * Einstellungen eines Demo-Turniers (zum Wiederanlegen beim täglichen Zurücksetzen, DemoZuruecksetzen); null = kein Demo-Turnier.
+     *
+     * @param array<string, mixed> $turnier
+     * @return array{name: string, teams: bool, logos_von: int|null, phase: string, tage: int}|null
+     */
+    public static function kennung(array $turnier): ?array
+    {
+        $d = (json_decode((string) ($turnier['einstellungen'] ?? ''), true) ?: [])['demo'] ?? null;
+        if (!is_array($d) || !isset(self::PHASEN[(string) ($d['phase'] ?? '')])) {
+            return null;
+        }
+        return [
+            'name' => (string) ($d['name'] ?? ''), 'teams' => !empty($d['teams']),
+            'logos_von' => isset($d['logos_von']) && (int) $d['logos_von'] > 0 ? (int) $d['logos_von'] : null,
+            'phase' => (string) $d['phase'], 'tage' => (int) ($d['tage'] ?? 28),
+        ];
+    }
+
+    /** @param array<string, mixed> $kennung */
+    private function kennzeichnen(int $turnierId, array $kennung): void
+    {
+        $e = json_decode((string) $this->db->wert('SELECT einstellungen FROM turnier WHERE id = ?', [$turnierId]), true);
+        $e = is_array($e) ? $e : [];
+        $e['demo'] = $kennung;
+        $this->db->update('turnier', ['einstellungen' => json_encode($e, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR)], ['id' => $turnierId]);
     }
 
     /**

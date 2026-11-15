@@ -8,6 +8,7 @@ use Wettkampf\Betrieb\AutoSicherung;
 use Wettkampf\Betrieb\SicherungService;
 use Wettkampf\Betrieb\Turnierpaket;
 use Wettkampf\Domain\FachFehler;
+use Wettkampf\Kern\Http\Session;
 use Wettkampf\Kern\Http\Request;
 use Wettkampf\Kern\Http\Response;
 use Wettkampf\Kern\Http\Controller;
@@ -29,6 +30,7 @@ final class SicherungController extends Controller
             'sqlite' => $this->db->driver() === 'sqlite',
             'grenze' => self::uploadGrenze(),
             'auto' => $auto?->liste(),
+            'demo' => Session::istDemo(),
             'autoAbstand' => max(30, (int) ($this->app->config['auto_sicherung']['abstand_sekunden'] ?? 120)),
         ]);
     }
@@ -48,6 +50,11 @@ final class SicherungController extends Controller
             throw new FachFehler(t('Die Datei enthält kein gültiges JSON.'));
         }
         $ergebnis = $this->service()->importieren($daten);
+        $ich = (int) (Session::benutzer()['id'] ?? 0);
+        if (Session::istDemo() && $ich > 0) {
+            // Demo-Nutzer leitet das importierte Turnier (sonst sähe er es nicht)
+            $this->db->insert('turnier_rolle', ['turnier_id' => (int) $ergebnis['turnier'], 'benutzer_id' => $ich, 'rolle' => 'leitung', 'erstellt_am' => date('Y-m-d H:i:s'), 'erstellt_von' => Session::akteur()]);
+        }
         $this->erfolg(match ($ergebnis['herkunft']) {
             Turnierpaket::EIGENE => t('Turnier importiert (Prüfsumme dieser Installation gültig).'),
             Turnierpaket::OHNE => t('Turnier importiert. Die Sicherung stammt nicht von dieser Installation bzw. hat keine Prüfsumme – Tatami-PINs und Leitungs-PIN wurden deshalb nicht übernommen. Bitte unter Einstellungen neu vergeben.'),

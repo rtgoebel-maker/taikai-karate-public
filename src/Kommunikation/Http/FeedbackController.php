@@ -8,6 +8,7 @@ use Wettkampf\Kommunikation\FeedbackMail;
 use Wettkampf\Kern\Mail\Postausgang;
 use Wettkampf\Kommunikation\MailEinstellungen;
 use Wettkampf\Betrieb\DemoTurnier;
+use Wettkampf\Betrieb\DemoZuruecksetzen;
 use Wettkampf\Kommunikation\FeedbackService;
 use Wettkampf\Turnier\SystemEinstellungen;
 use Wettkampf\Domain\FachFehler;
@@ -39,6 +40,11 @@ final class FeedbackController extends Controller
             'statusLogos' => $system->statusLogos(),
             'statusBereiche' => $system->statusBereiche(),
             'demoModus' => $system->demoModus(),
+            'nurDemo' => Session::istDemo(),
+            'demoReset' => (new DemoZuruecksetzen($this->db))->einstellungen() + [
+                'naechster' => (new DemoZuruecksetzen($this->db))->naechster(),
+                'turniere' => count((new DemoZuruecksetzen($this->db))->demoTurniere()),
+            ],
             'kontoMonate' => $system->kontoMonate(),
             'dojoMehrereTurniere' => $system->dojoZugangMehrereTurniere(),
             'zweiterFaktorPflicht' => $system->zweiterFaktorPflicht(),
@@ -88,6 +94,22 @@ final class FeedbackController extends Controller
         return $this->weiter("turnier/{$demo['turnier']}");
     }
 
+    /** Tägliches Zurücksetzen der Demo-Turniere einstellen (Uhrzeit, Pause). */
+    public function demoZuruecksetzen(Request $request): Response
+    {
+        (new DemoZuruecksetzen($this->db))->speichern($request->post('aktiv') !== null, $request->text('uhrzeit'), $request->text('pause_bis'));
+        $this->erfolg(t('Zurücksetzen der Demo-Turniere gespeichert.'));
+        return $this->weiter('system');
+    }
+
+    /** Alle Demo-Turniere sofort zurücksetzen. */
+    public function demoZuruecksetzenJetzt(Request $request): Response
+    {
+        $anzahl = (new DemoZuruecksetzen($this->db))->jetzt();
+        $this->erfolg($anzahl === 1 ? t('1 Demo-Turnier zurückgesetzt.') : t('{n} Demo-Turniere zurückgesetzt.', ['n' => $anzahl]));
+        return $this->weiter('system');
+    }
+
     /** Demo-Modus ein-/ausschalten (eigener Abschnitt „Demo-Turniere“ auf der Systemseite). */
     public function demoModus(Request $request): Response
     {
@@ -102,6 +124,17 @@ final class FeedbackController extends Controller
         $system->farbenSetzen($request->text('farbschema', 'marine'), $request->text('farbe_eigene', '#1d2b45'));
         $feedbackGewuenscht = $request->post('feedback_aktiv') !== null;
         $system->setzen(SystemEinstellungen::FEEDBACK, $feedbackGewuenscht && $this->app->postausgang() !== null ? '1' : '0');
+        if (Session::istDemo()) {
+            // Demo-Nutzer: nur Oberfläche, Feedback-Knopf und Statusseite (nicht Anmeldung, Dojo-Zugänge, Fristen)
+            foreach (SystemEinstellungen::STATUS_LOGOS as $art => $schluessel) {
+                $system->setzen($schluessel, in_array($art, (array) $request->post('status_logos', []), true) ? '1' : '0');
+            }
+            foreach (SystemEinstellungen::STATUS_BEREICHE as $bereich => $schluessel) {
+                $system->setzen($schluessel, in_array($bereich, (array) $request->post('status_bereiche', []), true) ? '1' : '0');
+            }
+            $this->erfolg(t('Systemeinstellungen gespeichert.'));
+            return $this->weiter('system');
+        }
         $pflicht = $request->post('zweiter_faktor_pflicht') !== null;
         if ($pflicht !== $system->zweiterFaktorPflicht()) {
             $system->setzen(SystemEinstellungen::ZWEITER_FAKTOR_PFLICHT, $pflicht ? '1' : '0');

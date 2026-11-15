@@ -19,6 +19,8 @@ final class Konten
     /** Mindestlänge neuer Passwörter (OWASP A07; bestehende kürzere Passwörter gelten weiter). */
     public const MIN_PASSWORT = 12;
     public const ROLLE_LEITUNG = 'leitung';
+    /** Demo-Nutzer (benutzer.rolle): wie Turnierleitung für alle Demo-Turniere und eigene Turniere, keine Konten, keine sensiblen Bereiche. */
+    public const ROLLE_DEMO = 'demo';
 
     /** Vergleichs-Hash, wenn es kein Konto gibt: gleiche Antwortzeit, E-Mail nicht per Zeitmessung erkennbar. */
     public const KEIN_KONTO_HASH = '$2y$12$Di1AeObWAuWN2Y0x.aF4y.Ebrutvqb0LuMaP7rEdvP4j/f8MbMrIu';
@@ -28,12 +30,12 @@ final class Konten
     /**
      * Rechte eines aktiven Kontos.
      *
-     * @return array{name: string, admin: bool, turniere: list<int>, verein: int|null}|null null = Konto fehlt, ist deaktiviert
+     * @return array{name: string, admin: bool, demo: bool, turniere: list<int>, verein: int|null}|null null = Konto fehlt, ist deaktiviert
      *         oder die E-Mail-Adresse ist noch nicht bestätigt; verein = Dojo (Coach)
      */
     public function rechte(int $id): ?array
     {
-        $konto = $this->db->eine('SELECT name, ist_admin, aktiv, verein_id, bestaetigung_offen FROM benutzer WHERE id = ?', [$id]);
+        $konto = $this->db->eine('SELECT name, ist_admin, rolle, aktiv, verein_id, bestaetigung_offen FROM benutzer WHERE id = ?', [$id]);
         if ($konto === null || !(int) $konto['aktiv'] || (int) $konto['bestaetigung_offen']) {
             return null;
         }
@@ -41,9 +43,17 @@ final class Konten
             'SELECT turnier_id FROM turnier_rolle WHERE benutzer_id = ? AND rolle = ? ORDER BY turnier_id',
             [$id, self::ROLLE_LEITUNG],
         ));
+        $demo = !(int) $konto['ist_admin'] && $konto['rolle'] === self::ROLLE_DEMO;
+        if ($demo) {
+            // alle Demo-Turniere (Kennung in den Einstellungen, siehe Betrieb\DemoTurnier) – echte Turniere nur, wenn ernannt
+            $demoTurniere = array_map('intval', $this->db->spalte("SELECT id FROM turnier WHERE einstellungen LIKE '%\"demo\":{%'"));
+            $turniere = array_values(array_unique([...$turniere, ...$demoTurniere]));
+            sort($turniere);
+        }
         return [
             'name' => (string) $konto['name'],
             'admin' => (bool) (int) $konto['ist_admin'],
+            'demo' => $demo,
             'turniere' => $turniere,
             'verein' => $konto['verein_id'] === null ? null : (int) $konto['verein_id'],
         ];
@@ -60,15 +70,15 @@ final class Konten
      *
      * @param array<string, mixed> $daten email, vorname, nachname, telefon, verein_id
      */
-    public function anlegen(array $daten, string $passwort, bool $admin): int
+    public function anlegen(array $daten, string $passwort, bool $admin, bool $demo = false): int
     {
         $felder = $this->felder($daten, null);
         self::passwortPruefen($passwort);
-        return $this->db->transaktion(function () use ($felder, $passwort, $admin) {
+        return $this->db->transaktion(function () use ($felder, $passwort, $admin, $demo) {
             $id = $this->db->insert('benutzer', $felder + [
                 'login' => 'k' . bin2hex(random_bytes(12)), // interner Schlüssel, angemeldet wird mit der E-Mail
                 'passwort_hash' => password_hash($passwort, PASSWORD_DEFAULT),
-                'rolle' => $admin ? 'admin' : 'konto',
+                'rolle' => $admin ? 'admin' : ($demo ? self::ROLLE_DEMO : 'konto'),
                 'ist_admin' => $admin ? 1 : 0,
                 'aktiv' => 1,
                 'erstellt_am' => date('Y-m-d H:i:s'),
@@ -132,6 +142,17 @@ final class Konten
             $this->mindestensEinAdmin();
             $this->protokoll($id, 'admin', ['admin' => $admin]);
         });
+    }
+
+    /** Demo-Zugang setzen bzw. entziehen (nicht für Konten der Administration). */
+    public function demoSetzen(int $id, bool $demo): void
+    {
+        $this->konto($id);
+        if ((int) $this->db->wert('SELECT ist_admin FROM benutzer WHERE id = ?', [$id])) {
+            throw new FachFehler(t('Ein Konto der Administration kann kein Demo-Zugang sein.'));
+        }
+        $this->db->update('benutzer', ['rolle' => $demo ? self::ROLLE_DEMO : 'konto'], ['id' => $id]);
+        $this->protokoll($id, 'demo', ['demo' => $demo]);
     }
 
     public function aktivUmschalten(int $id, int $ich): void
@@ -227,7 +248,7 @@ final class Konten
     {
         $konten = $this->db->alle(
             'SELECT b.id, b.email, b.vorname, b.nachname, b.name, b.telefon, b.verein_id, v.name AS verein,
-                    b.ist_admin, b.aktiv, b.erstellt_am,
+                    b.ist_admin, b.rolle, b.aktiv, b.erstellt_am,
                     (SELECT COUNT(*) FROM konto_vertrauen kv WHERE kv.benutzer_id = b.id AND kv.ablauf >= ?) AS vertraut,
                     CASE WHEN b.totp_geheimnis IS NULL THEN 0 ELSE 1 END AS app
                FROM benutzer b LEFT JOIN verein v ON v.id = b.verein_id

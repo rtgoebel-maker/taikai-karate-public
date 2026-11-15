@@ -11,6 +11,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Slim\App as SlimApp;
 use Slim\Factory\AppFactory;
 use Wettkampf\Betrieb\AutoSicherung;
+use Wettkampf\Betrieb\DemoZuruecksetzen;
 use Wettkampf\Datenschutz\Fristen;
 use Wettkampf\Durchfuehrung\AusrufService;
 use Wettkampf\Durchfuehrung\GeraeteKopplung;
@@ -158,6 +159,12 @@ final class App
             $antwort = $handler->handle($request);
             AutoSicherung::ausKonfiguration($this->db, $this->config, $this->wurzel)?->beiBedarf();
             try {
+                // Demo-Turniere täglich zurücksetzen (Schulungsinstallationen), falls eingeschaltet
+                (new DemoZuruecksetzen($this->db))->beiBedarf();
+            } catch (\Throwable $f) {
+                error_log('Demo zurücksetzen: ' . $f->getMessage());
+            }
+            try {
                 // Datenschutz-Fristen (Statusseite abschalten, pseudonymisieren), höchstens stündlich
                 (new Fristen($this->db, $this->instanz()->id(), function (): void {
                     AutoSicherung::ausKonfiguration($this->db, $this->config, $this->wurzel)?->alteErsetzen();
@@ -208,7 +215,7 @@ final class App
                 unset($_SESSION['benutzer']);
                 Session::flash('hinweis', 'Das Konto wurde deaktiviert oder gelöscht – bitte neu anmelden.');
             } else {
-                Session::rechteAktualisieren($rechte['name'], $rechte['admin'], $rechte['turniere'], $rechte['verein']);
+                Session::rechteAktualisieren($rechte['name'], $rechte['admin'], $rechte['turniere'], $rechte['verein'], $rechte['demo']);
             }
         }
         $tisch = Session::tisch();
@@ -261,7 +268,9 @@ final class App
         $this->view->teilen('farbenCss', $system->farbenCss());
         $this->view->teilen('statusBereiche', $system->statusBereiche());
         $this->view->teilen('feedbackNeu', Session::istAdmin() ? (new FeedbackService($this->db))->anzahlNeu() : 0);
-        $this->view->teilen('instanzId', $this->instanz()->id()); // Hinweisband „nur lesend“ (Schritt 9c)
+        $this->view->teilen('instanzId', $this->instanz()->id());
+        // nächstes automatisches Zurücksetzen der Demo-Turniere (Hinweis im Demo-Turnier)
+        $this->view->teilen('demoNaechster', (new DemoZuruecksetzen($this->db))->naechster()); // Hinweisband „nur lesend“ (Schritt 9c)
     }
 
     /**

@@ -19,9 +19,30 @@ final class VereinService
 {
     public function __construct(private readonly Database $db) {}
 
-    /** @return list<array<string, mixed>> Vereine mit Zahlen (Athleten, Turniere, Coach-Konten) */
-    public function uebersicht(): array
+    /**
+     * Vereine mit Zahlen (Athleten, Turniere, Coach-Konten).
+     *
+     * @param list<int>|null $nurTurniere nur Vereine und Zahlen dieser Turniere (Demo-Nutzer), Coach-Konten dann nicht
+     * @return list<array<string, mixed>>
+     */
+    public function uebersicht(?array $nurTurniere = null): array
     {
+        if ($nurTurniere !== null) {
+            if ($nurTurniere === []) {
+                return [];
+            }
+            $in = implode(',', array_map('intval', $nurTurniere));
+            return $this->db->alle(
+                "SELECT v.id, v.name, v.kurzname,
+                        (SELECT COUNT(DISTINCT a.id) FROM athlet a JOIN teilnahme t ON t.athlet_id = a.id WHERE a.verein_id = v.id AND t.turnier_id IN ($in)) AS athleten,
+                        (SELECT COUNT(DISTINCT t.turnier_id) FROM teilnahme t JOIN athlet a ON a.id = t.athlet_id WHERE a.verein_id = v.id AND t.turnier_id IN ($in)) AS turniere,
+                        0 AS konten
+                   FROM verein v
+                  WHERE v.id IN (SELECT a.verein_id FROM athlet a JOIN teilnahme t ON t.athlet_id = a.id WHERE t.turnier_id IN ($in))
+                     OR v.id IN (SELECT verein_id FROM team WHERE turnier_id IN ($in))
+                  ORDER BY v.name",
+            );
+        }
         return $this->db->alle(
             "SELECT v.id, v.name, v.kurzname,
                     (SELECT COUNT(*) FROM athlet a WHERE a.verein_id = v.id) AS athleten,
@@ -122,11 +143,15 @@ final class VereinService
     /**
      * Vereinsseite: Teilnehmer mit ihren Turnieren, Coach-Konten, Online-Anmeldungen.
      *
+     * @param list<int>|null $nurTurniere nur diese Turniere (Demo-Nutzer): Teilnahmen und Anmeldungen gefiltert, keine Coach-Konten
      * @return array{verein: array<string, mixed>, personen: list<array<string, mixed>>, konten: list<array<string, mixed>>, anmeldungen: list<array<string, mixed>>, turniere: list<array<string, mixed>>}
      */
-    public function seite(int $id): array
+    public function seite(int $id, ?array $nurTurniere = null): array
     {
         $verein = $this->db->eine('SELECT id, name, kurzname FROM verein WHERE id = ?', [$id]) ?? throw new FachFehler(t('Verein nicht gefunden.'));
+        if ($nurTurniere !== null && !in_array($id, array_map(static fn(array $v): int => (int) $v['id'], $this->uebersicht($nurTurniere)), true)) {
+            throw new FachFehler(t('Verein nicht gefunden.'));
+        }
         $zeilen = $this->db->alle(
             "SELECT a.id AS athlet_id, a.vorname, a.nachname, SUBSTR(a.geburtsdatum, 1, 4) AS jahrgang, a.graduierung,
                     t.id AS teilnahme_id, t.status, tu.id AS turnier_id, tu.name AS turnier, tu.datum
@@ -135,6 +160,10 @@ final class VereinService
               ORDER BY a.nachname, a.vorname, a.id, tu.datum DESC",
             [$id],
         );
+        if ($nurTurniere !== null) {
+            // nur Teilnahmen der erlaubten Turniere – Personen ohne solche erscheinen nicht
+            $zeilen = array_values(array_filter($zeilen, static fn(array $z): bool => $z['turnier_id'] !== null && in_array((int) $z['turnier_id'], $nurTurniere, true)));
+        }
         $personen = [];
         foreach ($zeilen as $z) {
             $aid = (int) $z['athlet_id'];
@@ -154,8 +183,12 @@ final class VereinService
         return [
             'verein' => $verein,
             'personen' => array_values($personen),
-            'konten' => $this->db->alle('SELECT id, name, email, aktiv FROM benutzer WHERE verein_id = ? ORDER BY name', [$id]),
-            'anmeldungen' => $this->db->alle(
+            'konten' => $nurTurniere !== null ? [] : $this->db->alle('SELECT id, name, email, aktiv FROM benutzer WHERE verein_id = ? ORDER BY name', [$id]),
+            'anmeldungen' => $nurTurniere !== null ? array_values(array_filter($this->db->alle(
+                'SELECT an.id, an.turnier_id, an.status, an.eingereicht_am, an.ansprechpartner, tu.name AS turnier, tu.datum
+                   FROM anmeldung an JOIN turnier tu ON tu.id = an.turnier_id WHERE an.verein_id = ? ORDER BY tu.datum DESC, an.id DESC',
+                [$id],
+            ), static fn(array $a): bool => in_array((int) $a['turnier_id'], $nurTurniere, true))) : $this->db->alle(
                 'SELECT an.id, an.turnier_id, an.status, an.eingereicht_am, an.ansprechpartner, tu.name AS turnier, tu.datum
                    FROM anmeldung an JOIN turnier tu ON tu.id = an.turnier_id WHERE an.verein_id = ? ORDER BY tu.datum DESC, an.id DESC',
                 [$id],
