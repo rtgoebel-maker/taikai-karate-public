@@ -12,6 +12,7 @@ use Wettkampf\Domain\Alter;
 use Wettkampf\Kern\Http\Request;
 use Wettkampf\Kern\Http\Session;
 use Wettkampf\Turnier\VereinService;
+use Wettkampf\Turnier\DemoBesitz;
 use Wettkampf\Kern\Http\Response;
 use Wettkampf\Kern\Http\Controller;
 
@@ -145,7 +146,7 @@ final class TeilnehmerController extends Controller
             }
             unset($s);
         }
-        $vereine = (new VereinService($this->db))->auswahl(self::nurDemoTurniere());
+        $vereine = (new VereinService($this->db))->auswahl(self::nurDemoTurniere(), DemoBesitz::istDemo($turnier));
         return $this->seite('teilnehmer/formular', [
             'turnier' => $turnier,
             'teilnahmeId' => $teilnahmeId,

@@ -4,8 +4,12 @@
  * @var list<array{a: array<string, mixed>, b: array<string, mixed>}> $doppelt vermutlich doppelte Vereine
  * @var int $leer Vereine ohne Athleten, Teams und Anmeldungen
  * @var bool|null $nurLesen Demo-Nutzer: nur ansehen
+ * @var bool|null $mitDemo Demo-Vereine eingeblendet (Administration)
+ * @var int|null $demoVereine Anzahl der Vereine, die es nur in Demo-Turnieren gibt
  */
 $nurLesen ??= false;
+$mitDemo ??= false;
+$demoVereine ??= 0;
 $this->layout('layout', ['titel' => t('Vereine')]);
 ?>
 <div class="seitenkopf">
@@ -13,6 +17,16 @@ $this->layout('layout', ['titel' => t('Vereine')]);
     <?php if (!$nurLesen): ?><a class="knopf" href="#neuer-verein" data-aufklappen="neuer-verein">+ <?= te('Neuer Verein') ?></a><?php endif; ?>
 </div>
 <p class="leise"><?= th('Eine gemeinsame Liste für alle Turniere. Vereine entstehen <strong>automatisch</strong> – bei der Freigabe einer Online-Anmeldung, beim Import oder beim Erfassen eines Teilnehmers. Hier korrigieren Sie Schreibweisen, hinterlegen einen <strong>Kurznamen</strong> (Turnierbaum, Tablet, Statusseite) und führen <strong>doppelte Vereine</strong> zusammen. Ein Klick auf den Namen zeigt Teilnehmer, ihre Turniere und die Coach-Konten.') ?></p>
+
+<?php if ($demoVereine > 0): ?>
+    <p class="klein">
+        <?php if ($mitDemo): ?>
+            <?= te('{n} Demo-Vereine eingeblendet (nur in Demo-Turnieren).', ['n' => $demoVereine]) ?> <a href="<?= e(url('vereine')) ?>"><?= te('Ausblenden') ?></a>
+        <?php else: ?>
+            <?= te('{n} Vereine aus Demo-Turnieren sind ausgeblendet.', ['n' => $demoVereine]) ?> <a href="<?= e(url('vereine', ['demo' => 1])) ?>"><?= te('Demo-Vereine anzeigen') ?></a>
+        <?php endif; ?>
+    </p>
+<?php endif; ?>
 
 <?php if ($doppelt): ?>
     <section class="karte karte-hinweis">
@@ -58,7 +72,7 @@ $this->layout('layout', ['titel' => t('Vereine')]);
     <tbody>
     <?php foreach ($vereine as $v): $vid = (int) $v['id']; ?>
         <tr data-suche="<?= e(mb_strtolower($v['name'] . ' ' . $v['kurzname'])) ?>">
-            <td><a href="<?= e(url("verein/$vid")) ?>"><strong><?= e($v['name']) ?></strong></a>
+            <td><a href="<?= e(url("verein/$vid")) ?>"><strong><?= e($v['name']) ?></strong></a><?= !empty($v['demo']) ? ' <span class="tag demo-marke">' . te('Demo') . '</span>' : '' ?>
                 <details class="verein-bearbeiten"><summary class="klein"><?= te('umbenennen') ?></summary>
                     <input form="v<?= $vid ?>" name="name" value="<?= e($v['name']) ?>" required maxlength="200" aria-label="<?= te('Name') ?>"></details></td>
             <td><input form="v<?= $vid ?>" name="kurzname" value="<?= e((string) $v['kurzname']) ?>" maxlength="30" aria-label="<?= te('Kurzname') ?>" placeholder="–"></td>

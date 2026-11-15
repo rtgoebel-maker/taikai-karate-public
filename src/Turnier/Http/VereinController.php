@@ -20,9 +20,12 @@ final class VereinController extends Controller
     {
         $service = new VereinService($this->db);
         $demo = Session::istDemo();
-        $vereine = $service->uebersicht($demo ? self::erlaubteTurniere() : null);
+        $mitDemo = !$demo && $request->text('demo') === '1';
+        $vereine = $service->uebersicht($demo ? self::erlaubteTurniere() : null, $mitDemo);
         return $this->seite('verein/index', [
             'vereine' => $vereine,
+            'mitDemo' => $mitDemo,
+            'demoVereine' => $demo ? 0 : count($service->demoVereine()),
             'doppelt' => $demo ? [] : $service->vermutlichDoppelt($vereine),
             'leer' => $demo ? 0 : count((new StammdatenService($this->db))->leereVereine()),
             'nurLesen' => $demo,

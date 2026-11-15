@@ -905,4 +905,9 @@ return [
     'Urkunden gestalten ↗' => 'Design certificates ↗',
     'Weiter →' => 'Next →',
     'Optional: <a href="{leitung}">weitere Turnierleitungen ernennen</a>, Teilnehmer per <a href="{import}">Excel/CSV importieren</a>.' => 'Optional: <a href="{leitung}">appoint further tournament managers</a>, <a href="{import}">import participants via Excel/CSV</a>.',
+    '{n} Demo-Vereine eingeblendet (nur in Demo-Turnieren).' => '{n} demo clubs shown (only in demo tournaments).',
+    '{n} Vereine aus Demo-Turnieren sind ausgeblendet.' => '{n} clubs from demo tournaments are hidden.',
+    'Demo-Vereine anzeigen' => 'Show demo clubs',
+    'Ausblenden' => 'Hide',
+    'Ein Demo-Verein lässt sich nicht mit einem echten Verein zusammenführen.' => 'A demo club cannot be merged with a real club.',
 ];

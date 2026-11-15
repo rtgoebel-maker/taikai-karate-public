@@ -23,11 +23,17 @@ final class VereinService
      * Auswahlliste der Vereine in Formularen (Teilnehmer, Teams).
      *
      * @param list<int>|null $nurTurniere Demo-Nutzer: nur Vereine dieser Turniere – nie echte Vereine anderer Turniere
+     * @param bool $mitDemo auch Vereine, die es nur in Demo-Turnieren gibt (Formular eines Demo-Turniers)
      * @return list<array{id: int, name: string}>
      */
-    public function auswahl(?array $nurTurniere = null): array
+    public function auswahl(?array $nurTurniere = null, bool $mitDemo = false): array
     {
         $zeilen = $nurTurniere === null ? $this->db->alle('SELECT id, name FROM verein ORDER BY name') : $this->uebersicht($nurTurniere);
+        if ($nurTurniere === null && !$mitDemo) {
+            // echtes Turnier: keine Vereine, die es nur in Demo-Turnieren gibt
+            $demo = $this->demoVereine();
+            $zeilen = array_values(array_filter($zeilen, static fn(array $v): bool => !isset($demo[(int) $v['id']])));
+        }
         return array_map(static fn(array $v): array => ['id' => (int) $v['id'], 'name' => (string) $v['name']], $zeilen);
     }
 
@@ -55,9 +61,10 @@ final class VereinService
      * Vereine mit Zahlen (Athleten, Turniere, Coach-Konten).
      *
      * @param list<int>|null $nurTurniere nur Vereine und Zahlen dieser Turniere (Demo-Nutzer), Coach-Konten dann nicht
+     * @param bool $mitDemo Administration: auch Vereine, die es nur in Demo-Turnieren gibt (markiert mit „demo“)
      * @return list<array<string, mixed>>
      */
-    public function uebersicht(?array $nurTurniere = null): array
+    public function uebersicht(?array $nurTurniere = null, bool $mitDemo = false): array
     {
         if ($nurTurniere !== null) {
             if ($nurTurniere === []) {
@@ -75,13 +82,62 @@ final class VereinService
                   ORDER BY v.name",
             );
         }
-        return $this->db->alle(
+        $demo = $this->demoVereine();
+        $liste = [];
+        foreach ($this->db->alle(
             "SELECT v.id, v.name, v.kurzname,
                     (SELECT COUNT(*) FROM athlet a WHERE a.verein_id = v.id) AS athleten,
                     (SELECT COUNT(DISTINCT t.turnier_id) FROM teilnahme t JOIN athlet a ON a.id = t.athlet_id WHERE a.verein_id = v.id) AS turniere,
                     (SELECT COUNT(*) FROM benutzer b WHERE b.verein_id = v.id AND b.aktiv = 1) AS konten
                FROM verein v ORDER BY v.name",
-        );
+        ) as $v) {
+            $v['demo'] = isset($demo[(int) $v['id']]);
+            if ($mitDemo || !$v['demo']) {
+                $liste[] = $v;
+            }
+        }
+        return $liste;
+    }
+
+    /**
+     * Vereine, die es nur in Demo-Turnieren gibt: Athleten bzw. Teams in Demo-Turnieren, aber keine in echten Turnieren,
+     * keine Anmeldung zu einem echten Turnier und kein Coach-Konto. Leere Vereine zählen als echt (z. B. neu angelegt).
+     *
+     * @return array<int, true>
+     */
+    public function demoVereine(): array
+    {
+        $demoT = [];
+        $echtT = [];
+        foreach ($this->db->alle('SELECT id, einstellungen FROM turnier') as $t) {
+            if (DemoBesitz::istDemo($t)) {
+                $demoT[] = (int) $t['id'];
+            } else {
+                $echtT[] = (int) $t['id'];
+            }
+        }
+        if ($demoT === []) {
+            return [];
+        }
+        $genutzt = function (array $turniere): array {
+            if ($turniere === []) {
+                return [];
+            }
+            $in = implode(',', $turniere);
+            return array_flip(array_map('intval', $this->db->spalte(
+                "SELECT a.verein_id FROM athlet a JOIN teilnahme t ON t.athlet_id = a.id WHERE t.turnier_id IN ($in) AND a.verein_id IS NOT NULL
+                 UNION SELECT verein_id FROM team WHERE turnier_id IN ($in) AND verein_id IS NOT NULL
+                 UNION SELECT verein_id FROM anmeldung WHERE turnier_id IN ($in) AND verein_id IS NOT NULL",
+            )));
+        };
+        $echt = $genutzt($echtT) + array_flip(array_map('intval', $this->db->spalte('SELECT verein_id FROM benutzer WHERE verein_id IS NOT NULL')));
+        $demo = [];
+        foreach (array_keys($genutzt($demoT)) as $id) {
+            if (!isset($echt[$id])) {
+                $demo[$id] = true;
+            }
+        }
+        return $demo;
     }
 
     /**
@@ -144,6 +200,10 @@ final class VereinService
         }
         $v = $this->db->eine('SELECT id, name FROM verein WHERE id = ?', [$von]) ?? throw new FachFehler(t('Verein nicht gefunden.'));
         $n = $this->db->eine('SELECT id, name FROM verein WHERE id = ?', [$nach]) ?? throw new FachFehler(t('Verein nicht gefunden.'));
+        $demo = $this->demoVereine();
+        if (isset($demo[$von]) !== isset($demo[$nach])) {
+            throw new FachFehler(t('Ein Demo-Verein lässt sich nicht mit einem echten Verein zusammenführen.'));
+        }
         return [
             'von' => $v,
             'nach' => $n,

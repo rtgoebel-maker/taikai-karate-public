@@ -32,6 +32,17 @@ final class DemoBesitz
         return is_int($wert) && $wert > 0 ? $wert : null;
     }
 
+    /**
+     * Demo-Turnier: angelegt über „Demo-Turnier anlegen“ (Kennung „demo“) oder Turnier eines Demo-Zugangs (Besitzer).
+     *
+     * @param array<string, mixed> $turnier
+     */
+    public static function istDemo(array $turnier): bool
+    {
+        $e = self::einstellungen($turnier);
+        return is_array($e['demo'] ?? null) || self::besitzer($turnier) !== null;
+    }
+
     /** @param array<string, mixed> $turnier */
     public static function loeschenAb(array $turnier): ?string
     {
