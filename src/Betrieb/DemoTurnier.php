@@ -338,6 +338,7 @@ final class DemoTurnier
             'min_graduierung' => Graduierung::kyu(7),
             'oeffentlich' => 1,
         ]);
+        $db->update('turnier', ['tisch_pin_erlaubt' => 1], ['id' => $turnier]); // feste Demo-PINs (Schulung)
 
         $teamService = new TeamService($db);
         $klassenService = new KlassenService($db);

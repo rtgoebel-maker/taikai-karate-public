@@ -118,6 +118,10 @@ final class StammdatenService
                 'uuid' => Uuid::v4(),
                 'status' => TurnierPhase::VORBEREITUNG,
                 'erstellt_am' => date('Y-m-d H:i:s'),
+                // Geräte nur per QR-Code mit Freigabe; PIN-Anmeldung ist eine Notlösung und muss bewusst eingeschaltet werden
+                'tisch_pin_erlaubt' => 0,
+                // Kampfuhr für Kumite am Tablet ist Standard (Zeiten und Ton in den Einstellungen)
+                'einstellungen' => json_encode(['kampfuhr' => ['aktiv' => true]]),
             ]);
             $this->tatamisAnpassen($id, (int) $daten['anzahl_tatamis']);
             $this->protokoll->eintragen($id, 'turnier', $id, 'angelegt');

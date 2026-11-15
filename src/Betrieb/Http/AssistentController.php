@@ -52,6 +52,11 @@ final class AssistentController extends Controller
             'anmeldung' => ['einstellungen' => (new AnmeldungService($this->db))->einstellungen($turnier)],
             'zahlung' => ['zahlung' => (new RechnungService($this->db))->einstellungen($turnier)],
             'portal' => ['coach' => CoachService::einstellungen($turnier)],
+            'datenschutz' => ['vorlagen' => array_values(array_filter(
+                $this->db->alle('SELECT id, name, datum, einstellungen FROM turnier WHERE id <> ? ORDER BY datum DESC, id DESC', [$id]),
+                static fn(array $t): bool => \Wettkampf\Kern\Http\Session::leitet((int) $t['id'])
+                    && isset((json_decode((string) ($t['einstellungen'] ?? ''), true) ?: [])['datenschutz']['loeschfrist_wochen']),
+            ))],
             default => [],
         };
         return $this->seite('assistent/schritt', $daten);

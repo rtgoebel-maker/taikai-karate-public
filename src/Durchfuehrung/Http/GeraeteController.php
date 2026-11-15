@@ -7,6 +7,7 @@ namespace Wettkampf\Durchfuehrung\Http;
 use Wettkampf\Durchfuehrung\GeraeteKopplung;
 use Wettkampf\Kern\QrCode;
 use Wettkampf\Kern\Http\Controller;
+use Wettkampf\Domain\FachFehler;
 use Wettkampf\Kern\Http\Request;
 use Wettkampf\Kern\Http\Response;
 use Wettkampf\Kern\Http\Session;
@@ -87,10 +88,13 @@ final class GeraeteController extends Controller
     {
         $this->turnier($id);
         $erlaubt = $request->post('erlaubt') !== null;
+        if ($erlaubt && $request->post('risiko') === null) {
+            throw new FachFehler(t('Bitte bestätigen, dass die PIN-Anmeldung nur als Notlösung dient – sonst bleibt sie aus.'));
+        }
         $this->db->update('turnier', ['tisch_pin_erlaubt' => $erlaubt ? 1 : 0], ['id' => $id]);
         (new Protokoll($this->db))->eintragen($id, 'turnier', $id, 'tisch_pin', ['erlaubt' => $erlaubt]);
-        $this->erfolg($erlaubt ? t('Anmeldung per PIN ist wieder möglich.') : t('Anmeldung per PIN abgeschaltet – Geräte nur noch per QR-Code mit Freigabe.'));
-        return $this->weiter("turnier/$id/geraete");
+        $this->erfolg($erlaubt ? t('Anmeldung per PIN ist als Notlösung eingeschaltet.') : t('Anmeldung per PIN abgeschaltet – Geräte nur noch per QR-Code mit Freigabe.'));
+        return $this->weiterNach($request, "turnier/$id/geraete");
     }
 
     /**

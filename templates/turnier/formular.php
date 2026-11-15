@@ -38,8 +38,11 @@ $this->layout('layout', ['titel' => $neu ? t('Neues Turnier') : t('Einstellungen
         <label class="check"><input type="checkbox" name="oeffentlich" value="1"<?= chk($werte['oeffentlich']) ?>> <?= te('Öffentliche Statusseite aktiv (nur Name und Verein, keine Geburtsdaten)') ?></label>
         <p class="hilfe"><?= te('Das Alter der Starter wird immer am Turniertag berechnet.') ?></p>
         <?php if ($neu): ?>
-            <label class="check"><input type="checkbox" name="assistent_starten" value="1" checked> <?= th('Danach mit dem <strong>Einrichtungs-Assistenten</strong> weitermachen') ?>
-                <span class="hilfe"><?= te('führt Schritt für Schritt durch Klassen, Tatamis und PINs, Online-Anmeldung und Startgeld, Zahlungsangaben und Coaching-Portal – jeder Schritt lässt sich überspringen') ?></span></label>
+            <label class="assistent-option">
+                <input type="checkbox" name="assistent_starten" value="1" checked>
+                <span><strong><?= te('Danach mit dem Einrichtungs-Assistenten weitermachen') ?></strong>
+                    <span class="hilfe"><?= te('Führt Schritt für Schritt durch Klassen, Tatamis, Tablets & Ausruf, Online-Anmeldung, Startgeld und Zahlung, Coaching-Portal, Datenschutz und Urkunden – jeder Schritt lässt sich überspringen.') ?></span></span>
+            </label>
         <?php endif; ?>
         <div><button class="knopf primaer" type="submit"><?= $neu ? te('Turnier anlegen') : te('Speichern') ?></button></div>
     </form>
@@ -48,12 +51,13 @@ $this->layout('layout', ['titel' => $neu ? t('Neues Turnier') : t('Einstellungen
         <form method="post" action="<?= e(url("turnier/{$turnier['id']}/zugaenge")) ?>" class="karte formular">
             <?= csrf_feld() ?>
             <h2><?= te('Tatamis & Zugänge') ?> <?= info('zugaenge') ?></h2>
-            <p class="hilfe"><?= te('Empfohlen: Geräte unter „Geräte koppeln“ per QR-Code mit Freigabe anmelden. Als Notlösung meldet die Tischbesatzung ein Tablet mit der PIN des Tatamis an. Korrekturen bereits eingetragener Ergebnisse am Tablet erfordern die Leitungs-PIN. Leere Felder lassen die bisherige PIN unverändert.') ?></p>
+            <p class="hilfe"><?= te('Empfohlen: Geräte unter „Geräte koppeln“ per QR-Code mit Freigabe anmelden. Als Notlösung meldet die Tischbesatzung ein Tablet mit der PIN des Tatamis an. Korrekturen bereits eingetragener Ergebnisse am Tablet erfordern die Leitungs-PIN. Leere Felder lassen die bisherige PIN unverändert.') ?>
+                <?= (int) $turnier['tisch_pin_erlaubt'] ? th('Die Anmeldung per PIN ist <strong>eingeschaltet</strong> (<a href="{url}">Geräte koppeln</a>).', ['url' => url("turnier/{$turnier['id']}/geraete")]) : th('Die Anmeldung per PIN ist <strong>abgeschaltet</strong> – einschalten nur im Notfall unter <a href="{url}">Geräte koppeln</a>.', ['url' => url("turnier/{$turnier['id']}/geraete")]) ?></p>
             <label><?= te('Leitungs-PIN (für Korrekturen am Tablet)') ?>
                 <input name="leitung_pin" inputmode="numeric" pattern="\d{4,8}" placeholder="<?= $turnier['leitung_pin_hash'] ? te('gesetzt – zum Ändern neu eingeben') : te('noch nicht gesetzt') ?>" autocomplete="off">
             </label>
             <table class="tabelle">
-                <thead><tr><th><?= te('Nr.') ?></th><th><?= te('Bezeichnung') ?></th><th>PIN</th><th><?= te('Livestream-URL (optional)') ?></th><th><?= te('Stream-Einblendung') ?></th></tr></thead>
+                <thead><tr><th><?= te('Nr.') ?></th><th><?= te('Bezeichnung') ?></th><th><?= te('PIN (Notlösung)') ?></th><th><?= te('Livestream-URL (optional)') ?></th><th><?= te('Stream-Einblendung') ?></th></tr></thead>
                 <tbody>
                 <?php foreach ($tatamis as $t): ?>
                     <tr>

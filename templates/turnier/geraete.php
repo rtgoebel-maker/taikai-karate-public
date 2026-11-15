@@ -127,8 +127,15 @@ $adresseQuery = in_array($basis, $adressen, true) && count($adressen) > 1 ? ['ad
 <form method="post" action="<?= e(url("turnier/$tid/geraete/pin")) ?>" class="karte formular">
     <?= csrf_feld() ?>
     <h2><?= te('Notlösung: Anmeldung per PIN') ?></h2>
-    <p class="hilfe"><?= te('Ohne Kamera oder wenn die Kopplung nicht klappt, kann sich ein Gerät weiter mit der Tatami-PIN anmelden (Einstellungen → Tatamis & Zugänge).') ?>
+    <p class="hilfe"><?= te('Die Tatami-PINs vergeben Sie unter Einstellungen → Tatamis & Zugänge.') ?>
         <?= te('Abgeschaltet sind nur noch freigegebene Geräte möglich; per PIN angemeldete Geräte werden sofort abgemeldet.') ?></p>
-    <label class="check"><input type="checkbox" name="erlaubt" value="1"<?= (int) $turnier['tisch_pin_erlaubt'] ? ' checked' : '' ?>> <?= te('Anmeldung per PIN erlauben') ?></label>
+    <?php $pinErlaubt = (bool) (int) $turnier['tisch_pin_erlaubt']; ?>
+    <div class="meldung meldung-hinweis">
+        <strong><?= te('Nur für den Notfall.') ?></strong>
+        <?= te('Die Anmeldung per PIN ist für einen Offline-Betrieb gedacht (Hallen-Laptop bzw. lokal im Hallen-WLAN), wenn ein Gerät keine Kamera hat oder die Kopplung nicht klappt.') ?>
+        <?= te('Online ist davon abzuraten: Wer die PIN kennt, kann von überall Ergebnisse eintragen. Empfohlen ist die Kopplung per QR-Code mit Freigabe durch die Wettkampfleitung.') ?>
+    </div>
+    <label class="check"><input type="checkbox" name="erlaubt" value="1"<?= $pinErlaubt ? ' checked' : '' ?> data-pin-schalter> <?= te('Anmeldung per PIN erlauben (Notlösung)') ?></label>
+    <label class="check pin-risiko"><input type="checkbox" name="risiko" value="1"<?= $pinErlaubt ? ' checked' : '' ?>> <span><?= te('Ich habe verstanden: nur im Notfall, bevorzugt offline – online lieber per QR-Code koppeln.') ?></span></label>
     <div><button class="knopf" type="submit"><?= te('Speichern') ?></button></div>
 </form>

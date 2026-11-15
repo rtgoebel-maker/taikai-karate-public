@@ -639,3 +639,10 @@ ul.schlicht li:last-child { border-bottom: 0; }
 .urkunde-vorschau-spalte .urkunde-vorschau-rahmen { width: 357px; margin: .5rem auto .8rem; }
 .urkunde-vorschau-spalte .knopf-stapel { display: grid; gap: .5rem; }
 @media (max-width: 900px) { .urkunde-gestalten { grid-template-columns: 1fr; } .urkunde-vorschau-spalte { position: static; } .urkunde-zwei { grid-template-columns: 1fr; } }
+/* Neues Turnier: Einrichtungs-Assistent als hervorgehobene Option */
+.assistent-option { display: grid; grid-template-columns: auto 1fr; gap: .7rem; align-items: start; padding: .8rem 1rem; border: 1px solid var(--linie); border-radius: var(--radius); background: var(--primaer-hell); font-weight: 400; cursor: pointer; }
+.assistent-option input { margin-top: .25rem; }
+.assistent-option > span { display: grid; gap: .25rem; }
+/* PIN-Notlösung: Bestätigung erst sichtbar, wenn eingeschaltet */
+.pin-risiko { margin-left: 1.6rem; }
+form:has([data-pin-schalter]:not(:checked)) .pin-risiko { display: none; }

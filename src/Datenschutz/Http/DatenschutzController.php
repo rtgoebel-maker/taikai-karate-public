@@ -66,7 +66,7 @@ final class DatenschutzController extends Controller
             throw new FachFehler(t('In diesem Turnier sind noch keine Datenschutz-Angaben gespeichert.'));
         }
         $this->erfolg(t('Datenschutz-Angaben übernommen – bitte kurz prüfen, ob alles auch für dieses Turnier passt.'));
-        return $this->weiter("turnier/$id/datenschutz");
+        return $this->weiterNach($request, "turnier/$id/datenschutz");
     }
 
     /** ZIP mit Zahlungsliste, Belegen (PDF), versendeten Mails und Prüfsummen. */

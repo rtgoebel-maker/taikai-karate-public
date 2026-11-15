@@ -26,7 +26,7 @@ $fuss = static function (string $knopf) use ($vorheriger, $tid, $weiterPfad, $sc
     return '<div class="assistent-fuss">'
         . ($vorheriger !== null ? '<a class="knopf" href="' . e(url("turnier/$tid/assistent/$vorheriger")) . '">← ' . te('Zurück') . '</a>' : '<span></span>')
         . '<span class="knopfleiste">'
-        . ($schritt !== 'fertig' ? '<a href="' . e(url($weiterPfad)) . '">' . te('Überspringen') . '</a>' : '')
+        . ($schritt !== 'fertig' ? '<a' . ($knopf === '' ? ' class="knopf primaer"' : '') . ' href="' . e(url($weiterPfad)) . '">' . ($knopf === '' ? te('Weiter →') : te('Überspringen')) . '</a>' : '')
         . ($knopf !== '' ? '<button class="knopf primaer" type="submit">' . e($knopf) . '</button>' : '')
         . '</span></div>';
 };
@@ -87,11 +87,11 @@ $fuss = static function (string $knopf) use ($vorheriger, $tid, $weiterPfad, $sc
 <?php elseif ($schritt === 'tatamis'): ?>
     <form method="post" action="<?= e(url("turnier/$tid/zugaenge")) ?>" class="karte formular">
         <?= csrf_feld() ?><?= $weiterFeld ?>
-        <p><?= th('Die Tischbesatzung meldet ein Tablet mit der <strong>PIN ihrer Tatami</strong> an. Korrekturen bereits gesendeter Ergebnisse brauchen die <strong>Leitungs-PIN</strong>. PINs: 4–8 Ziffern. Leere Felder lassen bestehende PINs unverändert.') ?></p>
+        <p><?= th('Korrekturen bereits gesendeter Ergebnisse am Tablet brauchen die <strong>Leitungs-PIN</strong> (4–8 Ziffern). Tablets und Ausruf koppeln Sie im nächsten Schritt per QR-Code – Tatami-PINs sind nur für die Notlösung „Anmeldung per PIN“ nötig. Leere Felder lassen bestehende PINs unverändert.') ?></p>
         <label><?= te('Leitungs-PIN') ?> <input name="leitung_pin" inputmode="numeric" pattern="\d{4,8}" autocomplete="off" style="max-width:220px"
             placeholder="<?= !empty($turnier['leitung_pin_hash']) ? te('gesetzt – zum Ändern neu eingeben') : te('noch nicht gesetzt') ?>"></label>
         <table class="tabelle">
-            <thead><tr><th><?= te('Nr.') ?></th><th><?= te('Bezeichnung') ?></th><th>PIN</th></tr></thead>
+            <thead><tr><th><?= te('Nr.') ?></th><th><?= te('Bezeichnung') ?></th><th><?= te('PIN (Notlösung)') ?></th></tr></thead>
             <tbody>
             <?php foreach ($tatamis as $t): ?>
                 <tr>
@@ -112,6 +112,21 @@ $fuss = static function (string $knopf) use ($vorheriger, $tid, $weiterPfad, $sc
         <input type="hidden" name="kampfuhr_minuten_finale" value="<?= e((string) $uhr['minuten_finale']) ?>">
         <?php if ($uhr['ton']): ?><input type="hidden" name="kampfuhr_ton" value="1"><?php endif; ?>
         <p class="hilfe"><?= th('Kampfzeiten, Signalton und Livestream-Adressen unter <a href="{url}" target="_blank">Einstellungen ↗</a>.', ['url' => url("turnier/$tid/einstellungen")]) ?></p>
+        <?= $fuss(t('Speichern und weiter')) ?>
+    </form>
+
+<?php elseif ($schritt === 'geraete'): ?>
+    <form method="post" action="<?= e(url("turnier/$tid/geraete/pin")) ?>" class="karte formular">
+        <?= csrf_feld() ?><?= $weiterFeld ?>
+        <p><?= th('Am Turniertag scannt jedes Tablet (Tisch) und jedes Handy (Ausruf) den <strong>QR-Code seiner Tatami</strong>; die Wettkampfleitung gibt das Gerät unter <a href="{url}" target="_blank">Geräte koppeln ↗</a> frei. Die QR-Codes lassen sich vorab ausdrucken.', ['url' => url("turnier/$tid/geraete")]) ?></p>
+        <?php $pinErlaubt = (bool) (int) $turnier['tisch_pin_erlaubt']; ?>
+        <div class="meldung meldung-hinweis">
+            <strong><?= te('Nur für den Notfall.') ?></strong>
+            <?= te('Die Anmeldung per PIN ist für einen Offline-Betrieb gedacht (Hallen-Laptop bzw. lokal im Hallen-WLAN), wenn ein Gerät keine Kamera hat oder die Kopplung nicht klappt.') ?>
+            <?= te('Online ist davon abzuraten: Wer die PIN kennt, kann von überall Ergebnisse eintragen. Empfohlen ist die Kopplung per QR-Code mit Freigabe durch die Wettkampfleitung.') ?>
+        </div>
+        <label class="check"><input type="checkbox" name="erlaubt" value="1"<?= $pinErlaubt ? ' checked' : '' ?> data-pin-schalter> <?= te('Anmeldung per PIN erlauben (Notlösung)') ?></label>
+        <label class="check pin-risiko"><input type="checkbox" name="risiko" value="1"<?= $pinErlaubt ? ' checked' : '' ?>> <span><?= te('Ich habe verstanden: nur im Notfall, bevorzugt offline – online lieber per QR-Code koppeln.') ?></span></label>
         <?= $fuss(t('Speichern und weiter')) ?>
     </form>
 
@@ -170,6 +185,32 @@ $fuss = static function (string $knopf) use ($vorheriger, $tid, $weiterPfad, $sc
         <?= $fuss(t('Speichern und weiter')) ?>
     </form>
 
+<?php elseif ($schritt === 'datenschutz'): ?>
+    <section class="karte formular">
+        <p><?= te('Der ausrichtende Verein ist Verantwortlicher im Sinne der DSGVO. Auf der Seite Datenschutz entstehen die Datenschutzhinweise für Anmeldung und Statusseite, der Baustein für die Ausschreibung sowie Löschfrist und Pseudonymisierung nach dem Turnier.') ?></p>
+        <?php if ($stand['datenschutz']['erledigt']): ?>
+            <div class="meldung meldung-erfolg"><?= te('Die Datenschutz-Angaben sind eingerichtet.') ?></div>
+        <?php endif; ?>
+        <?php if ($vorlagen): ?>
+            <form method="post" action="<?= e(url("turnier/$tid/datenschutz/uebernehmen")) ?>" class="knopfleiste">
+                <?= csrf_feld() ?><?= $weiterFeld ?>
+                <label><?= te('Angaben übernehmen aus') ?>
+                    <select name="quelle"><?php foreach ($vorlagen as $v): ?><option value="<?= (int) $v['id'] ?>"><?= e($v['name']) ?> (<?= e(datum_de($v['datum'])) ?>)</option><?php endforeach; ?></select></label>
+                <button class="knopf primaer" type="submit"><?= te('Übernehmen und weiter') ?></button>
+            </form>
+        <?php endif; ?>
+        <p><a class="knopf<?= $vorlagen ? '' : ' primaer' ?>" href="<?= e(url("turnier/$tid/datenschutz")) ?>" target="_blank"><?= te('Datenschutz-Angaben öffnen ↗') ?></a></p>
+        <?= $fuss('') ?>
+    </section>
+
+<?php elseif ($schritt === 'urkunden'): ?>
+    <section class="karte formular">
+        <p><?= te('Urkunden druckt die Software für jede bestätigte Klasse. Untertitel, Unterschriften (auch als Bild), bis zu drei Logos und ein eigenes Hintergrundbild stellen Sie auf einer eigenen Seite ein – mit Vorschau einer Musterurkunde.') ?></p>
+        <p class="klein leise"><?= e($stand['urkunden']['text']) ?></p>
+        <p><a class="knopf primaer" href="<?= e(url("turnier/$tid/druck/urkunden/gestalten")) ?>" target="_blank"><?= te('Urkunden gestalten ↗') ?></a></p>
+        <?= $fuss('') ?>
+    </section>
+
 <?php else: ?>
     <section class="karte">
         <h2><?= te('Stand der Einrichtung') ?></h2>
@@ -189,7 +230,7 @@ $fuss = static function (string $knopf) use ($vorheriger, $tid, $weiterPfad, $sc
         <h2><?= te('Wie geht es weiter?') ?></h2>
         <ol>
             <li><?= th('<strong>Meldephase starten</strong> – erst dann ist die Online-Anmeldung geöffnet. Den Link für die Dojos gibt es danach unter <a href="{url}">Anmeldungen</a>.', ['url' => url("turnier/$tid/anmeldungen")]) ?></li>
-            <li><?= th('Optional: <a href="{leitung}">weitere Turnierleitungen ernennen</a>, <a href="{druck}">Logos und Unterschriften für Urkunden</a> hochladen, Teilnehmer per <a href="{import}">Excel/CSV importieren</a>.', ['leitung' => url("turnier/$tid/leitung"), 'druck' => url("turnier/$tid/druck"), 'import' => url("turnier/$tid/import")]) ?></li>
+            <li><?= th('Optional: <a href="{leitung}">weitere Turnierleitungen ernennen</a>, Teilnehmer per <a href="{import}">Excel/CSV importieren</a>.', ['leitung' => url("turnier/$tid/leitung"), 'import' => url("turnier/$tid/import")]) ?></li>
             <li><?= th('Nach dem Meldeschluss: Anmeldungen freigeben, Klassen prüfen, auslosen, Tatami-Plan – die <a href="{url}">Übersicht</a> zeigt jeweils, was noch offen ist.', ['url' => url("turnier/$tid")]) ?></li>
             <li><?= th('Vor dem Turniertag: <a href="{url}">Handbuch</a> und Handouts für Tischbesatzung und Ausruf, Notfall-Satz drucken.', ['url' => url('hilfe#ablauf')]) ?></li>
         </ol>
