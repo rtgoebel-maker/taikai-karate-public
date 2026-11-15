@@ -38,21 +38,21 @@ final class SicherungController extends Controller
         $datei = $request->files['datei'] ?? null;
         $fehler = is_array($datei) ? (int) ($datei['error'] ?? UPLOAD_ERR_NO_FILE) : UPLOAD_ERR_NO_FILE;
         if (in_array($fehler, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)) {
-            throw new FachFehler('Die Sicherungsdatei ist größer, als der Server annimmt (max. ' . self::uploadGrenze() . '). Bitte upload_max_filesize und post_max_size in der PHP-Konfiguration erhöhen (z. B. 64M).');
+            throw new FachFehler(t('Die Sicherungsdatei ist größer, als der Server annimmt (max. {grenze}). Bitte upload_max_filesize und post_max_size in der PHP-Konfiguration erhöhen (z. B. 64M).', ['grenze' => self::uploadGrenze()]));
         }
         if ($fehler !== UPLOAD_ERR_OK) {
-            throw new FachFehler('Bitte eine Sicherungsdatei (.json) auswählen.');
+            throw new FachFehler(t('Bitte eine Sicherungsdatei (.json) auswählen.'));
         }
         $daten = json_decode((string) file_get_contents($datei['tmp_name']), true);
         if (!is_array($daten)) {
-            throw new FachFehler('Die Datei enthält kein gültiges JSON.');
+            throw new FachFehler(t('Die Datei enthält kein gültiges JSON.'));
         }
         $ergebnis = $this->service()->importieren($daten);
-        $this->erfolg($ergebnis['herkunft'] === Turnierpaket::EIGENE
-            ? 'Turnier importiert (Prüfsumme dieser Installation gültig).'
-            : 'Turnier importiert. Die Sicherung stammt nicht von dieser Installation'
-                . ($ergebnis['herkunft'] === Turnierpaket::OHNE ? ' bzw. hat keine Prüfsumme' : '')
-                . ' – Tatami-PINs und Leitungs-PIN wurden deshalb nicht übernommen. Bitte unter Einstellungen neu vergeben.');
+        $this->erfolg(match ($ergebnis['herkunft']) {
+            Turnierpaket::EIGENE => t('Turnier importiert (Prüfsumme dieser Installation gültig).'),
+            Turnierpaket::OHNE => t('Turnier importiert. Die Sicherung stammt nicht von dieser Installation bzw. hat keine Prüfsumme – Tatami-PINs und Leitungs-PIN wurden deshalb nicht übernommen. Bitte unter Einstellungen neu vergeben.'),
+            default => t('Turnier importiert. Die Sicherung stammt nicht von dieser Installation – Tatami-PINs und Leitungs-PIN wurden deshalb nicht übernommen. Bitte unter Einstellungen neu vergeben.'),
+        });
         return $this->weiter('turnier/' . $ergebnis['turnier'] . ($ergebnis['herkunft'] === Turnierpaket::EIGENE ? '' : '/einstellungen'));
     }
 
@@ -72,8 +72,8 @@ final class SicherungController extends Controller
     /** Sofort einen automatischen Stand anlegen (z. B. vor einem riskanten Schritt). */
     public function autoJetzt(Request $request): Response
     {
-        $name = ($this->auto() ?? throw new FachFehler('Automatische Sicherungen gibt es nur mit SQLite und wenn sie nicht abgeschaltet sind.'))->sichern();
-        $this->erfolg("Sicherung $name angelegt.");
+        $name = ($this->auto() ?? throw new FachFehler(t('Automatische Sicherungen gibt es nur mit SQLite und wenn sie nicht abgeschaltet sind.')))->sichern();
+        $this->erfolg(t('Sicherung {name} angelegt.', ['name' => $name]));
         return $this->weiter('import-turnier');
     }
 
@@ -81,7 +81,7 @@ final class SicherungController extends Controller
     public function autoStand(Request $request, string $name): Response
     {
         $auto = $this->autoPflicht();
-        $stand = array_values(array_filter($auto->liste(), static fn(array $s) => $s['name'] === $name))[0] ?? throw new FachFehler('Diese Sicherung gibt es nicht.');
+        $stand = array_values(array_filter($auto->liste(), static fn(array $s) => $s['name'] === $name))[0] ?? throw new FachFehler(t('Diese Sicherung gibt es nicht.'));
         return $this->seite('sicherung/stand', ['stand' => $stand, 'turniere' => $auto->turniere($name, $this->arbeitsordner())]);
     }
 
@@ -96,7 +96,7 @@ final class SicherungController extends Controller
     {
         $paket = $this->autoPflicht()->turnierPaket($name, $turnierid, $this->arbeitsordner(), $this->app->wurzel . '/migrations', $this->app->instanz());
         $ergebnis = $this->service()->importieren($paket);
-        $this->erfolg("Turnier aus der Sicherung $name wiederhergestellt – als eigenes Turnier neben dem bisherigen. Bitte prüfen und das nicht mehr benötigte Turnier löschen bzw. archivieren.");
+        $this->erfolg(t('Turnier aus der Sicherung {name} wiederhergestellt – als eigenes Turnier neben dem bisherigen. Bitte prüfen und das nicht mehr benötigte Turnier löschen bzw. archivieren.', ['name' => $name]));
         return $this->weiter('turnier/' . $ergebnis['turnier']);
     }
 
@@ -107,7 +107,7 @@ final class SicherungController extends Controller
 
     private function autoPflicht(): AutoSicherung
     {
-        return $this->auto() ?? throw new FachFehler('Automatische Sicherungen sind hier nicht aktiv.');
+        return $this->auto() ?? throw new FachFehler(t('Automatische Sicherungen sind hier nicht aktiv.'));
     }
 
     private function arbeitsordner(): string

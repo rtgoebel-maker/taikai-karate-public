@@ -117,7 +117,7 @@ final class AnmeldungService
     /** @param array<string, mixed> $daten preis_* (Euro, Komma erlaubt), hinweis */
     public function einstellungenSpeichern(int $turnierId, array $daten): void
     {
-        $turnier = $this->db->eine('SELECT einstellungen FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler('Turnier nicht gefunden.');
+        $turnier = $this->db->eine('SELECT einstellungen FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler(t('Turnier nicht gefunden.'));
         $alle = json_decode((string) $turnier['einstellungen'], true) ?: [];
         $neu = ['hinweis' => trim((string) ($daten['hinweis'] ?? '')), 'zahlung_vor_freigabe' => !empty($daten['zahlung_vor_freigabe']), 'rechnung_fuer_dojos' => !empty($daten['rechnung_fuer_dojos'])];
         foreach (array_keys(self::POSTEN) as $schluessel) {
@@ -137,7 +137,7 @@ final class AnmeldungService
             return 0;
         }
         if (!is_numeric($euro) || (float) $euro < 0) {
-            throw new FachFehler("Ungültiger Betrag: $euro");
+            throw new FachFehler(t('Ungültiger Betrag: {betrag}', ['betrag' => $euro]));
         }
         return (int) round((float) $euro * 100);
     }
@@ -145,7 +145,7 @@ final class AnmeldungService
     /** 1550 → „15,50 €“ */
     public static function euro(int $cent): string
     {
-        return number_format($cent / 100, 2, ',', '.') . ' €';
+        return \Wettkampf\Kern\Sprache::euro($cent);
     }
 
     /**
@@ -156,14 +156,14 @@ final class AnmeldungService
     public function geschlossenGrund(array $turnier, ?string $heute = null): ?string
     {
         if (TurnierPhase::von($turnier) !== TurnierPhase::MELDEPHASE) {
-            return 'Die Online-Anmeldung ist für dieses Turnier derzeit nicht geöffnet.';
+            return t('Die Online-Anmeldung ist für dieses Turnier derzeit nicht geöffnet.');
         }
         $heute ??= date('Y-m-d');
         if (!empty($turnier['meldeschluss']) && $heute > $turnier['meldeschluss']) {
-            return 'Der Meldeschluss (' . date('d.m.Y', strtotime($turnier['meldeschluss'])) . ') ist vorbei.';
+            return t('Der Meldeschluss ({datum}) ist vorbei.', ['datum' => \Wettkampf\Kern\Sprache::datum(date('Y-m-d', (int) strtotime($turnier['meldeschluss'])))]);
         }
         if ($heute > $turnier['datum']) {
-            return 'Das Turnier hat bereits stattgefunden.';
+            return t('Das Turnier hat bereits stattgefunden.');
         }
         return null;
     }
@@ -237,16 +237,16 @@ final class AnmeldungService
     {
         $fehler = [];
         if ($kopf['dojo'] === '') {
-            $fehler[] = 'Bitte den Namen des Dojos angeben.';
+            $fehler[] = t('Bitte den Namen des Dojos angeben.');
         }
         if ($kopf['ansprechpartner'] === '') {
-            $fehler[] = 'Bitte eine Ansprechperson angeben.';
+            $fehler[] = t('Bitte eine Ansprechperson angeben.');
         }
         if (!filter_var($kopf['email'], FILTER_VALIDATE_EMAIL)) {
-            $fehler[] = 'Bitte eine gültige E-Mail-Adresse angeben.';
+            $fehler[] = t('Bitte eine gültige E-Mail-Adresse angeben.');
         }
         if ($daten['teilnehmer'] === []) {
-            $fehler[] = 'Bitte mindestens einen Teilnehmer eintragen.';
+            $fehler[] = t('Bitte mindestens einen Teilnehmer eintragen.');
         }
 
         $inTeam = [];
@@ -259,60 +259,61 @@ final class AnmeldungService
         $nr = 0;
         foreach ($daten['teilnehmer'] as $schluessel => $t) {
             $nr++;
-            $wer = trim("{$t['vorname']} {$t['nachname']}") ?: "Teilnehmer $nr";
+            $wer = trim("{$t['vorname']} {$t['nachname']}") ?: t('Teilnehmer {nr}', ['nr' => $nr]);
             if ($t['vorname'] === '' || $t['nachname'] === '') {
-                $fehler[] = "$wer: Vor- und Nachname angeben.";
+                $fehler[] = t('{wer}: Vor- und Nachname angeben.', ['wer' => $wer]);
             }
             if (!in_array($t['geschlecht'], ['w', 'm', 'd'], true)) {
-                $fehler[] = "$wer: Geschlecht wählen.";
+                $fehler[] = t('{wer}: Geschlecht wählen.', ['wer' => $wer]);
             }
             $datum = \DateTimeImmutable::createFromFormat('!Y-m-d', $t['geburtsdatum']);
             if ($datum === false || $datum->format('Y-m-d') !== $t['geburtsdatum']) {
-                $fehler[] = "$wer: gültiges Geburtsdatum angeben.";
+                $fehler[] = t('{wer}: gültiges Geburtsdatum angeben.', ['wer' => $wer]);
             } else {
                 $alter = Alter::amStichtag($t['geburtsdatum'], (string) $turnier['datum']);
                 if ($alter < 3 || $alter > 99) {
-                    $fehler[] = "$wer: Geburtsdatum prüfen (Alter am Turniertag: $alter).";
+                    $fehler[] = t('{wer}: Geburtsdatum prüfen (Alter am Turniertag: {alter}).', ['wer' => $wer, 'alter' => $alter]);
                 }
             }
             if ($t['graduierung'] < Graduierung::MIN || $t['graduierung'] > Graduierung::MAX) {
-                $fehler[] = "$wer: Graduierung wählen.";
+                $fehler[] = t('{wer}: Graduierung wählen.', ['wer' => $wer]);
             } elseif (!empty($turnier['min_graduierung']) && $t['graduierung'] < (int) $turnier['min_graduierung']) {
-                $fehler[] = "$wer: Mindestgraduierung für dieses Turnier ist " . Graduierung::text((int) $turnier['min_graduierung']) . '.';
+                $fehler[] = t('{wer}: Mindestgraduierung für dieses Turnier ist {grad}.', ['wer' => $wer, 'grad' => Graduierung::text((int) $turnier['min_graduierung'])]);
             }
             if (!$t['kata'] && $t['kumite'] === '' && !isset($inTeam[$schluessel])) {
-                $fehler[] = "$wer: mindestens eine Disziplin wählen (oder einem Team zuordnen).";
+                $fehler[] = t('{wer}: mindestens eine Disziplin wählen (oder einem Team zuordnen).', ['wer' => $wer]);
             }
             $id = mb_strtolower("{$t['vorname']}|{$t['nachname']}|{$t['geburtsdatum']}");
             if (isset($gesehen[$id])) {
-                $fehler[] = "$wer ist doppelt eingetragen.";
+                $fehler[] = t('{wer} ist doppelt eingetragen.', ['wer' => $wer]);
             }
             $gesehen[$id] = true;
         }
 
         $proDisziplin = ['kata_team' => [], 'kumite_team' => []];
         foreach ($daten['teams'] as $i => $team) {
-            $wer = $team['name'] !== '' ? "Team „{$team['name']}“" : 'Team ' . ($i + 1);
+            $wer = $team['name'] !== '' ? t('Team „{name}“', ['name' => $team['name']]) : t('Team {nr}', ['nr' => $i + 1]);
             if ($team['name'] === '') {
-                $fehler[] = "$wer: Teamnamen angeben.";
+                $fehler[] = t('{wer}: Teamnamen angeben.', ['wer' => $wer]);
             }
             if ($team['disziplin'] === '') {
-                $fehler[] = "$wer: Kata-Team oder Kumite-Team wählen.";
+                $fehler[] = t('{wer}: Kata-Team oder Kumite-Team wählen.', ['wer' => $wer]);
                 continue;
             }
             $alle = array_merge($team['mitglieder'], array_filter([$team['ersatz']]));
             if (count($team['mitglieder']) !== 3) {
-                $fehler[] = "$wer: genau 3 Mitglieder auswählen.";
+                $fehler[] = t('{wer}: genau 3 Mitglieder auswählen.', ['wer' => $wer]);
             }
             if (count($alle) !== count(array_unique($alle))) {
-                $fehler[] = "$wer: jedes Mitglied nur einmal auswählen.";
+                $fehler[] = t('{wer}: jedes Mitglied nur einmal auswählen.', ['wer' => $wer]);
             }
             foreach ($alle as $m) {
                 if (!isset($daten['teilnehmer'][$m])) {
-                    $fehler[] = "$wer: ein ausgewähltes Mitglied steht nicht (mehr) in der Teilnehmerliste.";
+                    $fehler[] = t('{wer}: ein ausgewähltes Mitglied steht nicht (mehr) in der Teilnehmerliste.', ['wer' => $wer]);
                 } elseif (isset($proDisziplin[$team['disziplin']][$m])) {
                     $t = $daten['teilnehmer'][$m];
-                    $fehler[] = "{$t['vorname']} {$t['nachname']} ist in mehreren " . ($team['disziplin'] === 'kata_team' ? 'Kata' : 'Kumite') . '-Teams.';
+                    $werte = ['name' => "{$t['vorname']} {$t['nachname']}"];
+                    $fehler[] = $team['disziplin'] === 'kata_team' ? t('{name} ist in mehreren Kata-Teams.', $werte) : t('{name} ist in mehreren Kumite-Teams.', $werte);
                 }
                 $proDisziplin[$team['disziplin']][$m] = true;
             }
@@ -337,7 +338,7 @@ final class AnmeldungService
         foreach (self::POSTEN as $schluessel => $text) {
             if ($anzahl[$schluessel] > 0) {
                 $einzel = (int) $einstellungen[$schluessel];
-                $posten[] = ['text' => $text, 'anzahl' => $anzahl[$schluessel], 'einzel' => $einzel, 'summe' => $einzel * $anzahl[$schluessel]];
+                $posten[] = ['text' => \Wettkampf\Kern\Sprache::t($text), 'anzahl' => $anzahl[$schluessel], 'einzel' => $einzel, 'summe' => $einzel * $anzahl[$schluessel]];
             }
         }
         return ['posten' => $posten, 'summe' => array_sum(array_column($posten, 'summe'))];
@@ -355,18 +356,18 @@ final class AnmeldungService
      */
     public function einreichen(int $turnierId, array $post, ?string $code = null, ?int $vereinId = null): string
     {
-        $turnier = $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler('Turnier nicht gefunden.');
+        $turnier = $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler(t('Turnier nicht gefunden.'));
         if ($grund = $this->geschlossenGrund($turnier)) {
             throw new FachFehler($grund);
         }
         $alt = $code === null ? null : $this->perCode($turnierId, $code);
         if ($alt !== null && $alt['status'] !== 'eingereicht') {
-            throw new FachFehler('Diese Anmeldung wurde bereits ' . $alt['status'] . ' und kann nicht mehr geändert werden. Bitte an die Wettkampfleitung wenden.');
+            throw new FachFehler(t('Diese Anmeldung wurde bereits {status} und kann nicht mehr geändert werden. Bitte an die Wettkampfleitung wenden.', ['status' => $alt['status'] === 'freigegeben' ? t('freigegeben') : ($alt['status'] === 'abgelehnt' ? t('abgelehnt') : $alt['status'])]));
         }
         // Meldung eines Coach-Kontos (neu oder schon verknüpft): fest für das Dojo, Name aus den Stammdaten
         $vereinId ??= $alt !== null && $alt['verein_id'] !== null ? (int) $alt['verein_id'] : null;
         if ($vereinId !== null) {
-            $post['dojo'] = (string) ($this->db->wert('SELECT name FROM verein WHERE id = ?', [$vereinId]) ?? throw new FachFehler('Das Dojo dieser Meldung gibt es nicht mehr.'));
+            $post['dojo'] = (string) ($this->db->wert('SELECT name FROM verein WHERE id = ?', [$vereinId]) ?? throw new FachFehler(t('Das Dojo dieser Meldung gibt es nicht mehr.')));
         }
         ['kopf' => $kopf, 'daten' => $daten] = $this->normalisieren($post);
         $fehler = $this->pruefen($turnier, $kopf, $daten);
@@ -469,13 +470,12 @@ final class AnmeldungService
         return $this->db->transaktion(function () use ($turnierId, $anmeldungId, $kontoZuordnen) {
             $a = $this->anmeldung($turnierId, $anmeldungId);
             if ($a['status'] !== 'eingereicht') {
-                throw new FachFehler('Nur eingereichte Anmeldungen können freigegeben werden.');
+                throw new FachFehler(t('Nur eingereichte Anmeldungen können freigegeben werden.'));
             }
             $turnier = $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$turnierId]) ?? [];
             $stand = $this->stand($a, $turnier);
             if ($this->einstellungen($turnier)['zahlung_vor_freigabe'] && $stand['offen'] > 0) {
-                throw new FachFehler('Die Zahlung ist noch offen (' . self::euro($stand['offen']) . '). Freigabe erst nach Zahlungseingang – '
-                    . 'bitte zuerst die Zahlung erfassen oder unter Anmeldungen → Einstellungen „Freigabe erst nach Zahlungseingang“ ausschalten.');
+                throw new FachFehler(t('Die Zahlung ist noch offen ({betrag}). Freigabe erst nach Zahlungseingang – bitte zuerst die Zahlung erfassen oder unter Anmeldungen → Einstellungen „Freigabe erst nach Zahlungseingang“ ausschalten.', ['betrag' => self::euro($stand['offen'])]));
             }
             $eigenerVerein = $this->eigenerVerein($a, Session::coachVerein());
             $daten = json_decode((string) $a['daten'], true);
@@ -523,7 +523,7 @@ final class AnmeldungService
                 $konten = new Konten($this->db);
                 foreach ($konten->zurAnmeldung((string) $a['uuid']) as $konto) {
                     if ($konten->vereinZuordnen($konto['id'], $vereinId, $turnierId)) {
-                        $hinweise[] = "Zugang {$konto['email']} dem Dojo zugeordnet";
+                        $hinweise[] = t('Zugang {email} dem Dojo zugeordnet', ['email' => $konto['email']]);
                     }
                 }
             }
@@ -546,7 +546,7 @@ final class AnmeldungService
     {
         $a = $this->anmeldung($turnierId, $anmeldungId);
         if ($a['status'] !== 'eingereicht') {
-            throw new FachFehler('Nur eingereichte Anmeldungen können abgelehnt werden.');
+            throw new FachFehler(t('Nur eingereichte Anmeldungen können abgelehnt werden.'));
         }
         $this->db->update('anmeldung', ['status' => 'abgelehnt', 'grund' => trim($grund) ?: null], ['id' => $anmeldungId]);
         $this->protokoll->eintragen($turnierId, 'anmeldung', $anmeldungId, 'abgelehnt', ['grund' => $grund]);
@@ -557,7 +557,7 @@ final class AnmeldungService
     {
         $a = $this->anmeldung($turnierId, $anmeldungId);
         if ($a['status'] !== 'abgelehnt') {
-            throw new FachFehler('Nur abgelehnte Anmeldungen können wieder geöffnet werden.');
+            throw new FachFehler(t('Nur abgelehnte Anmeldungen können wieder geöffnet werden.'));
         }
         $this->db->update('anmeldung', ['status' => 'eingereicht', 'grund' => null], ['id' => $anmeldungId]);
         $this->protokoll->eintragen($turnierId, 'anmeldung', $anmeldungId, 'wieder_geoeffnet');
@@ -585,15 +585,15 @@ final class AnmeldungService
     {
         $a = $this->anmeldung($turnierId, $anmeldungId);
         if ($a['status'] === 'abgelehnt') {
-            throw new FachFehler('Für eine abgelehnte Anmeldung wird keine Zahlung erfasst.');
+            throw new FachFehler(t('Für eine abgelehnte Anmeldung wird keine Zahlung erfasst.'));
         }
         $cent = self::cent($betrag);
         if ($cent <= 0) {
-            throw new FachFehler('Bitte den erhaltenen Betrag eingeben.');
+            throw new FachFehler(t('Bitte den erhaltenen Betrag eingeben.'));
         }
         $datum = trim($datum) === '' ? date('Y-m-d') : trim($datum);
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $datum) || strtotime($datum) === false || $datum > date('Y-m-d', strtotime('+1 day'))) {
-            throw new FachFehler('Ungültiges Zahlungsdatum.');
+            throw new FachFehler(t('Ungültiges Zahlungsdatum.'));
         }
         $this->db->update('anmeldung', [
             'bezahlt_cent' => $cent,
@@ -615,6 +615,6 @@ final class AnmeldungService
     public function anmeldung(int $turnierId, int $anmeldungId): array
     {
         return $this->db->eine('SELECT * FROM anmeldung WHERE id = ? AND turnier_id = ?', [$anmeldungId, $turnierId])
-            ?? throw new FachFehler('Anmeldung nicht gefunden.');
+            ?? throw new FachFehler(t('Anmeldung nicht gefunden.'));
     }
 }

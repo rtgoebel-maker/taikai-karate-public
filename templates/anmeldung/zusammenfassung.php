@@ -13,14 +13,14 @@ $name = static fn (?string $schluessel) => $schluessel !== null && isset($angabe
 $teamsVon = [];
 foreach ($angaben['teams'] as $team) {
     foreach (array_merge($team['mitglieder'], array_filter([$team['ersatz']])) as $m) {
-        $teamsVon[$m][] = $team['name'] . ($m === $team['ersatz'] ? ' (Ersatz)' : '');
+        $teamsVon[$m][] = $team['name'] . ($m === $team['ersatz'] ? t(' (Ersatz)') : '');
     }
 }
 ?>
-<h2>Teilnehmer (<?= count($angaben['teilnehmer']) ?>)</h2>
+<h2><?= te('Teilnehmer ({n})', ['n' => count($angaben['teilnehmer'])]) ?></h2>
 <div class="tabelle-scroll">
 <table class="tabelle">
-    <thead><tr><th>#</th><th>Name</th><th>Geschlecht</th><th>Geburtsdatum</th><th>Alter*</th><th>Graduierung</th><th>Kata</th><th>Kumite</th><th>Team</th></tr></thead>
+    <thead><tr><th>#</th><th><?= te('Name') ?></th><th><?= te('Geschlecht') ?></th><th><?= te('Geburtsdatum') ?></th><th><?= te('Alter*') ?></th><th><?= te('Graduierung') ?></th><th>Kata</th><th>Kumite</th><th><?= te('Team') ?></th></tr></thead>
     <tbody>
     <?php $nr = 0; foreach ($angaben['teilnehmer'] as $schluessel => $t): $nr++; ?>
         <tr>
@@ -38,12 +38,12 @@ foreach ($angaben['teams'] as $team) {
     </tbody>
 </table>
 </div>
-<p class="klein">* Alter am Turniertag – danach richtet sich die Klasse.</p>
+<p class="klein"><?= te('* Alter am Turniertag – danach richtet sich die Klasse.') ?></p>
 
 <?php if ($angaben['teams']): ?>
-    <h2>Teams (<?= count($angaben['teams']) ?>)</h2>
+    <h2><?= te('Teams ({n})', ['n' => count($angaben['teams'])]) ?></h2>
     <table class="tabelle">
-        <thead><tr><th>Team</th><th>Disziplin</th><th>Mitglieder</th><th>Ersatz</th></tr></thead>
+        <thead><tr><th><?= te('Team') ?></th><th><?= te('Disziplin') ?></th><th><?= te('Mitglieder') ?></th><th><?= te('Ersatz') ?></th></tr></thead>
         <tbody>
         <?php foreach ($angaben['teams'] as $team): ?>
             <tr>
@@ -57,5 +57,5 @@ foreach ($angaben['teams'] as $team) {
     </table>
 <?php endif; ?>
 
-<h2>Startgeld</h2>
+<h2><?= te('Startgeld') ?></h2>
 <?= $this->teil('anmeldung/preis', ['preis' => $preis]) ?>

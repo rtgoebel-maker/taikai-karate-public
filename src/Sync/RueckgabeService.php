@@ -29,7 +29,7 @@ final class RueckgabeService
         $jetzt ??= time();
         $auftrag = $this->auftrag($turnierId);
         if (!hash_equals($this->instanz->id(), (string) $auftrag['fuehrung_instanz'])) {
-            throw new FachFehler('Dieser Laptop führt das Turnier nicht (mehr) – zurückgeben ist nicht möglich.');
+            throw new FachFehler(t('Dieser Laptop führt das Turnier nicht (mehr) – zurückgeben ist nicht möglich.'));
         }
         $sicherung = (new SicherungService($this->db))->exportieren($turnierId);
         $mitgebracht = array_flip(json_decode((string) ($auftrag['athleten_bei_uebergabe'] ?? '[]'), true) ?: []);
@@ -58,13 +58,13 @@ final class RueckgabeService
         try {
             $antwort = $transport->post(rtrim((string) $auftrag['online_url'], '/') . EmpfangService::PFAD_RUECKGABE, $inhalt, $kopf);
         } catch (Throwable $e) {
-            throw new FachFehler('Rückgabe nicht möglich: ' . $e->getMessage() . ' Der Laptop führt weiter; später erneut versuchen.');
+            throw new FachFehler(t('Rückgabe nicht möglich: {fehler} Der Laptop führt weiter; später erneut versuchen.', ['fehler' => $e->getMessage()]));
         }
         $daten = json_decode($antwort['body'], true);
         if ($antwort['status'] !== 200 || ($daten['ok'] ?? null) !== true) {
-            $text = is_array($daten) && is_string($daten['fehler'] ?? null) ? $daten['fehler'] : 'Antwort ' . $antwort['status'];
-            throw new FachFehler('Online hat die Rückgabe nicht angenommen: ' . mb_substr($text, 0, 300) . ($antwort['status'] === 413 || $antwort['status'] === 400
-                ? ' (Bei großen Logos ggf. post_max_size auf dem Server erhöhen.)' : ''));
+            $text = is_array($daten) && is_string($daten['fehler'] ?? null) ? $daten['fehler'] : t('Antwort {status}', ['status' => $antwort['status']]);
+            throw new FachFehler(t('Online hat die Rückgabe nicht angenommen: {fehler}', ['fehler' => mb_substr($text, 0, 300)]) . ($antwort['status'] === 413 || $antwort['status'] === 400
+                ? ' ' . t('(Bei großen Logos ggf. post_max_size auf dem Server erhöhen.)') : ''));
         }
 
         $zeit = date('Y-m-d H:i:s', $jetzt);
@@ -80,7 +80,7 @@ final class RueckgabeService
     {
         $auftrag = $this->auftrag($turnierId);
         if (hash_equals($this->instanz->id(), (string) $auftrag['fuehrung_instanz'])) {
-            throw new FachFehler('Erst an Online zurückgeben – dieser Laptop führt das Turnier noch.');
+            throw new FachFehler(t('Erst an Online zurückgeben – dieser Laptop führt das Turnier noch.'));
         }
         (new StammdatenService($this->db))->turnierLoeschen($turnierId);
     }
@@ -89,6 +89,6 @@ final class RueckgabeService
     private function auftrag(int $turnierId): array
     {
         return $this->db->eine('SELECT a.*, t.uuid, t.fuehrung_instanz FROM sync_auftrag a JOIN turnier t ON t.id = a.turnier_id WHERE a.turnier_id = ?', [$turnierId])
-            ?? throw new FachFehler('Dieses Turnier wurde nicht von Online übernommen.');
+            ?? throw new FachFehler(t('Dieses Turnier wurde nicht von Online übernommen.'));
     }
 }

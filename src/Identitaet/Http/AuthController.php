@@ -50,13 +50,13 @@ final class AuthController extends Controller
             $schutz->pruefen('setup', $ip);
             if (!$einrichtung->codePasst($request->text('code'))) {
                 $schutz->fehlschlag('setup', $ip);
-                throw new FachFehler('Der Einrichtungscode ist falsch. Er steht in der Datei data/einrichtung.token auf dem Server.');
+                throw new FachFehler(t('Der Einrichtungscode ist falsch. Er steht in der Datei data/einrichtung.token auf dem Server.'));
             }
             $schutz->erfolg('setup', $ip);
         }
         $passwort = (string) $request->post('passwort', '');
         if ($passwort !== $request->post('passwort2')) {
-            throw new FachFehler('Die Passwörter stimmen nicht überein.');
+            throw new FachFehler(t('Die Passwörter stimmen nicht überein.'));
         }
         // erstes Konto = globale Administration
         $id = (new Konten($this->db))->anlegen($request->post, $passwort, true);
@@ -64,7 +64,7 @@ final class AuthController extends Controller
         $rechte = (new Konten($this->db))->rechte($id) ?? throw new \RuntimeException('Konto fehlt nach dem Anlegen.');
         Session::anmelden($id, $rechte['name'], true, [], $rechte['verein']);
         (new Protokoll($this->db))->eintragen(null, 'benutzer', $id, 'eingerichtet');
-        $this->erfolg('Einrichtung abgeschlossen. Willkommen!');
+        $this->erfolg(t('Einrichtung abgeschlossen. Willkommen!'));
         return $this->weiter('/');
     }
 
@@ -91,18 +91,18 @@ final class AuthController extends Controller
         $passwortOk = password_verify((string) $request->post('passwort', ''), $benutzer['passwort_hash'] ?? Konten::KEIN_KONTO_HASH);
         if ($benutzer === null || !$passwortOk) {
             $schutz->fehlschlag($ziel, $ip);
-            throw new FachFehler('E-Mail oder Passwort ist falsch.');
+            throw new FachFehler(t('E-Mail oder Passwort ist falsch.'));
         }
         $schutz->erfolg($ziel, $ip);
         if ((int) ($benutzer['bestaetigung_offen'] ?? 0)) {
-            throw new FachFehler('Bitte zuerst die E-Mail-Adresse bestätigen – den Link haben Sie per E-Mail erhalten. Einen neuen Link gibt es unter „Passwort vergessen“.');
+            throw new FachFehler(t('Bitte zuerst die E-Mail-Adresse bestätigen – den Link haben Sie per E-Mail erhalten. Einen neuen Link gibt es unter „Passwort vergessen“.'));
         }
-        $rechte = $konten->rechte((int) $benutzer['id']) ?? throw new FachFehler('E-Mail oder Passwort ist falsch.');
+        $rechte = $konten->rechte((int) $benutzer['id']) ?? throw new FachFehler(t('E-Mail oder Passwort ist falsch.'));
         $istLeitung = $rechte['admin'] || $rechte['turniere'] !== [];
         // selbst angelegtes Dojo-Konto (Online-Anmeldung) sieht vor der Zuordnung zum Dojo seine eigenen Meldungen
         $selbstAngelegt = $benutzer['ablauf_am'] !== null;
         if (!$istLeitung && $rechte['verein'] === null && !$selbstAngelegt) {
-            throw new FachFehler('Für dieses Konto ist noch kein Bereich freigeschaltet. Die Administration kann ihm ein Dojo zuordnen oder eine Turnierleitung es einem Turnier.');
+            throw new FachFehler(t('Für dieses Konto ist noch kein Bereich freigeschaltet. Die Administration kann ihm ein Dojo zuordnen oder eine Turnierleitung es einem Turnier.'));
         }
         $zurueck = self::internerPfad($request->text('zurueck'));
         $id = (int) $benutzer['id'];
@@ -156,7 +156,7 @@ final class AuthController extends Controller
             $ergebnis = ['benutzer' => $id, 'zurueck' => (string) $offen['zurueck']];
             $uebrig = $this->app->authenticatorApp()->wiederherstellungOffen($id);
             if (preg_match('/[a-z]/i', $request->text('code'))) {
-                Session::flash('hinweis', "Mit Wiederherstellungscode angemeldet – noch $uebrig übrig. Unter „Konto & Sicherheit“ die App neu einrichten bzw. neue Codes erzeugen.");
+                Session::flash('hinweis', t('Mit Wiederherstellungscode angemeldet – noch {n} übrig. Unter „Konto & Sicherheit“ die App neu einrichten bzw. neue Codes erzeugen.', ['n' => $uebrig]));
             }
         } else {
             $ergebnis = ZweiterFaktor::pruefen($request->text('code'));
@@ -171,19 +171,19 @@ final class AuthController extends Controller
     /** Neuen Code per E-Mail schicken – auch statt der App (höchstens 3 je 10 Minuten und Konto). */
     public function codeNeu(Request $request): Response
     {
-        $offen = ZweiterFaktor::offen() ?? throw new FachFehler('Bitte erneut mit E-Mail und Passwort anmelden.');
+        $offen = ZweiterFaktor::offen() ?? throw new FachFehler(t('Bitte erneut mit E-Mail und Passwort anmelden.'));
         if ($offen['art'] === 'einrichten') {
-            throw new FachFehler('Bitte zuerst die Authenticator-App einrichten.');
+            throw new FachFehler(t('Bitte zuerst die Authenticator-App einrichten.'));
         }
         $drossel = new Drossel($this->db);
         $drossel->pruefen('mfa-neu:' . $offen['benutzer'], 3, 600);
         $drossel->zaehlen('mfa-neu:' . $offen['benutzer'], 600);
-        $konto = $this->db->eine('SELECT email, name FROM benutzer WHERE id = ?', [$offen['benutzer']]) ?? throw new FachFehler('Konto nicht gefunden.');
+        $konto = $this->db->eine('SELECT email, name FROM benutzer WHERE id = ?', [$offen['benutzer']]) ?? throw new FachFehler(t('Konto nicht gefunden.'));
         if (filter_var((string) $konto['email'], FILTER_VALIDATE_EMAIL) === false) {
-            throw new FachFehler('Für dieses Konto ist keine E-Mail-Adresse hinterlegt.');
+            throw new FachFehler(t('Für dieses Konto ist keine E-Mail-Adresse hinterlegt.'));
         }
         $this->codeSenden($offen['benutzer'], (string) $konto['email'], (string) $konto['name'], $offen['zurueck']);
-        $this->erfolg($offen['art'] === 'app' ? 'Code per E-Mail ist unterwegs.' : 'Neuer Code ist unterwegs – der vorige gilt nicht mehr.');
+        $this->erfolg($offen['art'] === 'app' ? t('Code per E-Mail ist unterwegs.') : t('Neuer Code ist unterwegs – der vorige gilt nicht mehr.'));
         return $this->weiter('login/code');
     }
 
@@ -208,7 +208,7 @@ final class AuthController extends Controller
     {
         $offen = ZweiterFaktor::gueltig();
         if (($offen['art'] ?? '') !== 'einrichten' || !isset($offen['geheimnis'])) {
-            throw new FachFehler('Bitte erneut mit E-Mail und Passwort anmelden.');
+            throw new FachFehler(t('Bitte erneut mit E-Mail und Passwort anmelden.'));
         }
         $id = (int) $offen['benutzer'];
         try {
@@ -224,14 +224,14 @@ final class AuthController extends Controller
     private function codeSenden(int $benutzerId, string $email, string $name, string $zurueck): void
     {
         $transport = Postausgang::transport($this->app->mailKonfiguration(), $this->app->wurzel)
-            ?? throw new FachFehler('Der E-Mail-Versand ist nicht eingerichtet.');
+            ?? throw new FachFehler(t('Der E-Mail-Versand ist nicht eingerichtet.'));
         $code = ZweiterFaktor::starten($benutzerId, $zurueck);
         try {
-            $transport->senden($email, 'Ihr Anmeldecode – Taikai – Karate', ZweiterFaktor::mailText($code, $name));
+            $transport->senden($email, t('Ihr Anmeldecode – Taikai – Karate'), ZweiterFaktor::mailText($code, $name));
         } catch (\Throwable $f) {
             ZweiterFaktor::verwerfen();
             error_log('Anmeldecode nicht verschickt: ' . $f->getMessage());
-            throw new FachFehler('Der Anmeldecode konnte nicht per E-Mail verschickt werden (E-Mail-Versand gestört). Bitte die Administration informieren.');
+            throw new FachFehler(t('Der Anmeldecode konnte nicht per E-Mail verschickt werden (E-Mail-Versand gestört). Bitte die Administration informieren.'));
         }
     }
 
@@ -239,7 +239,7 @@ final class AuthController extends Controller
     private function anmeldungAbschliessen(int $benutzerId, string $zurueck): Response
     {
         $konten = new Konten($this->db);
-        $rechte = $konten->rechte($benutzerId) ?? throw new FachFehler('Das Konto ist nicht mehr aktiv.');
+        $rechte = $konten->rechte($benutzerId) ?? throw new FachFehler(t('Das Konto ist nicht mehr aktiv.'));
         $istLeitung = $rechte['admin'] || $rechte['turniere'] !== [];
         Session::anmelden($benutzerId, $rechte['name'], $rechte['admin'], $rechte['turniere'], $rechte['verein']);
         (new Protokoll($this->db))->aufraeumen(); // Aufbewahrungsfrist globaler Einträge (ohne Cronjob)

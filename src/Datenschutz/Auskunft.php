@@ -146,7 +146,7 @@ final class Auskunft
                 $aka = (int) $b['aka_start_id'] === $sid;
                 $begegnungen[] = [
                     'phase' => $b['phase'], 'runde' => $b['runde'], 'seite' => $aka ? 'AKA' : 'SHIRO', 'kata' => $aka ? $b['kata_aka'] : $b['kata_shiro'],
-                    'ergebnis' => $b['sieger_start_id'] === null ? ($b['status'] === 'beendet' ? 'unentschieden/offen' : 'offen') : ((int) $b['sieger_start_id'] === $sid ? 'gewonnen' : 'verloren'),
+                    'ergebnis' => $b['sieger_start_id'] === null ? ($b['status'] === 'beendet' ? t('unentschieden/offen') : t('offen')) : ((int) $b['sieger_start_id'] === $sid ? t('gewonnen') : t('verloren')),
                     'entscheidung' => $b['entscheidung'], 'wertung' => $b['wertung'], 'beendet_am' => $b['beendet_am'],
                 ];
             }
@@ -175,7 +175,7 @@ final class Auskunft
             foreach ((array) ((json_decode((string) $a['daten'], true) ?: [])['teilnehmer'] ?? []) as $t) {
                 if (is_array($t) && mb_strtolower(trim((string) ($t['vorname'] ?? ''))) === mb_strtolower(trim($vorname))
                     && mb_strtolower(trim((string) ($t['nachname'] ?? ''))) === mb_strtolower(trim($nachname))) {
-                    $liste[] = ['quelle' => 'Online-Anmeldung durch das Dojo „' . $a['dojo'] . '“', 'eingereicht_am' => $a['eingereicht_am'], 'status' => $a['status'],
+                    $liste[] = ['quelle' => t('Online-Anmeldung durch das Dojo „{dojo}“', ['dojo' => $a['dojo']]), 'eingereicht_am' => $a['eingereicht_am'], 'status' => $a['status'],
                         'angaben' => array_intersect_key($t, array_flip(['vorname', 'nachname', 'geschlecht', 'geburtsdatum', 'graduierung', 'kata', 'kumite']))];
                 }
             }

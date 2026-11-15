@@ -44,18 +44,18 @@ final class ErgebnisService
         $this->db->transaktion(function () use ($turnierId, $begegnungId, $eingabe, $darfKorrigieren) {
             $b = $this->begegnungMitKlasse($turnierId, $begegnungId);
             if (isset($eingabe['version']) && $eingabe['version'] !== '' && (int) $eingabe['version'] !== (int) $b['version']) {
-                throw new FachFehler('Das Ergebnis wurde zwischenzeitlich an anderer Stelle geändert. Bitte neu laden.');
+                throw new FachFehler(t('Das Ergebnis wurde zwischenzeitlich an anderer Stelle geändert. Bitte neu laden.'));
             }
             if ($b['aka_start_id'] === null || $b['shiro_start_id'] === null) {
-                throw new FachFehler('Die Begegnung ist noch nicht vollständig besetzt.');
+                throw new FachFehler(t('Die Begegnung ist noch nicht vollständig besetzt.'));
             }
             if ($b['status'] === 'freilos') {
-                throw new FachFehler('Freilos – hier gibt es nichts einzutragen.');
+                throw new FachFehler(t('Freilos – hier gibt es nichts einzutragen.'));
             }
             $alt = null;
             if ($b['status'] === 'beendet') {
                 if (!$darfKorrigieren) {
-                    throw new FachFehler('Das Ergebnis ist bereits eingetragen. Korrekturen nur mit Berechtigung der Wettkampfleitung.');
+                    throw new FachFehler(t('Das Ergebnis ist bereits eingetragen. Korrekturen nur mit Berechtigung der Wettkampfleitung.'));
                 }
                 $this->korrekturVorbereiten($b);
                 $alt = ['sieger' => $b['sieger_start_id'], 'entscheidung' => $b['entscheidung'], 'wertung' => $b['wertung']];
@@ -85,7 +85,7 @@ final class ErgebnisService
         $this->db->transaktion(function () use ($turnierId, $begegnungId) {
             $b = $this->begegnungMitKlasse($turnierId, $begegnungId);
             if ($b['status'] !== 'bereit') {
-                throw new FachFehler('Nur bereite Begegnungen können gestartet werden.');
+                throw new FachFehler(t('Nur bereite Begegnungen können gestartet werden.'));
             }
             // auf derselben Tatami läuft immer nur eine Begegnung
             if ($b['tatami_id'] !== null) {
@@ -109,7 +109,7 @@ final class ErgebnisService
         $this->db->transaktion(function () use ($turnierId, $begegnungId, $unterbrochen) {
             $b = $this->begegnungMitKlasse($turnierId, $begegnungId);
             if ($b['status'] !== 'laeuft') {
-                throw new FachFehler('Nur ein laufender Kampf kann unterbrochen oder fortgesetzt werden.');
+                throw new FachFehler(t('Nur ein laufender Kampf kann unterbrochen oder fortgesetzt werden.'));
             }
             $this->db->update('begegnung', ['unterbrochen_am' => $unterbrochen ? date('Y-m-d H:i:s') : null], ['id' => $begegnungId]);
             $this->protokoll->eintragen($turnierId, 'begegnung', $begegnungId, $unterbrochen ? 'unterbrochen' : 'fortgesetzt');
@@ -124,9 +124,9 @@ final class ErgebnisService
     public function tischAbschliessen(int $turnierId, int $klasseId): void
     {
         $k = $this->db->eine('SELECT * FROM klasse WHERE id = ? AND turnier_id = ?', [$klasseId, $turnierId])
-            ?? throw new FachFehler('Klasse nicht gefunden.');
+            ?? throw new FachFehler(t('Klasse nicht gefunden.'));
         if (!in_array($k['status'], ['beendet', 'bestaetigt'], true)) {
-            throw new FachFehler("In Gruppe {$k['code']} sind noch nicht alle Kämpfe entschieden.");
+            throw new FachFehler(t('In Gruppe {code} sind noch nicht alle Kämpfe entschieden.', ['code' => $k['code']]));
         }
         if ($k['tisch_abschluss_am'] !== null) {
             return;
@@ -174,14 +174,14 @@ final class ErgebnisService
                 [$auftrittId],
             );
             if ($a === null || (int) $a['turnier_id'] !== $turnierId) {
-                throw new FachFehler('Auftritt nicht gefunden.');
+                throw new FachFehler(t('Auftritt nicht gefunden.'));
             }
             if (isset($eingabe['version']) && $eingabe['version'] !== '' && (int) $eingabe['version'] !== (int) $a['version']) {
-                throw new FachFehler('Die Wertung wurde zwischenzeitlich an anderer Stelle geändert. Bitte neu laden.');
+                throw new FachFehler(t('Die Wertung wurde zwischenzeitlich an anderer Stelle geändert. Bitte neu laden.'));
             }
             if ($a['status'] === 'beendet') {
                 if (!$darfKorrigieren) {
-                    throw new FachFehler('Die Wertung ist bereits eingetragen. Korrekturen nur mit Berechtigung der Wettkampfleitung.');
+                    throw new FachFehler(t('Die Wertung ist bereits eingetragen. Korrekturen nur mit Berechtigung der Wettkampfleitung.'));
                 }
                 $this->bestaetigungPruefen((int) $a['klasse_id']);
                 if ($a['phase_typ'] === 'punkte_vorrunde') {
@@ -289,7 +289,7 @@ final class ErgebnisService
     {
         $klasse = $this->klasse($turnierId, $klasseId);
         if ($klasse['status'] !== 'beendet') {
-            throw new FachFehler("Klasse {$klasse['code']} ist noch nicht abgeschlossen oder hat einen offenen Gleichstand.");
+            throw new FachFehler(t('Klasse {code} ist noch nicht abgeschlossen oder hat einen offenen Gleichstand.', ['code' => $klasse['code']]));
         }
         $this->db->transaktion(function () use ($turnierId, $klasseId) {
             $this->db->query(
@@ -333,7 +333,7 @@ final class ErgebnisService
         if ($b['disziplin'] === 'kumite_team' && $b['wertungssystem'] === 'kumite') {
             $kaempfe = array_values(array_filter((array) ($e['kaempfe'] ?? []), static fn($k) => ($k['sieger'] ?? '') !== ''));
             if ($kaempfe === []) {
-                throw new FachFehler('Bitte die Einzelkämpfe eintragen.');
+                throw new FachFehler(t('Bitte die Einzelkämpfe eintragen.'));
             }
             return Wertung::team(array_map(static fn($k) => [
                 'sieger' => (string) $k['sieger'],
@@ -348,7 +348,7 @@ final class ErgebnisService
             'punkte' => Wertung::punkteBegegnung((array) ($e['aka_werte'] ?? []), (array) ($e['shiro_werte'] ?? []), json_decode((string) $b['optionen'], true) ?: [], $kr, $hantei),
             'kumite' => Wertung::kumite($e, $kr, $hantei),
             'sanbon' => Wertung::kumite($e, $kr, $hantei, Wertung::ZIEL_SANBON),
-            default => throw new FachFehler('Unbekanntes Wertungssystem.'),
+            default => throw new FachFehler(t('Unbekanntes Wertungssystem.')),
         };
     }
 
@@ -374,7 +374,7 @@ final class ErgebnisService
         );
         if ($folge !== null) {
             $nr = KlassenAnsicht::kampfNummern($this->db, (int) $b['klasse_id'])[(int) $folge['id']] ?? '?';
-            throw new FachFehler("Der Folgekampf (Kampf $nr) ist bereits entschieden. Bitte zuerst dort korrigieren.");
+            throw new FachFehler(t('Der Folgekampf (Kampf {nr}) ist bereits entschieden. Bitte zuerst dort korrigieren.', ['nr' => $nr]));
         }
         if ($b['phase_typ'] === 'pool') {
             $this->finalrundeZuruecksetzen((int) $b['klasse_id']);
@@ -391,7 +391,7 @@ final class ErgebnisService
         $ergebnisse = (int) $this->db->wert("SELECT COUNT(*) FROM begegnung WHERE phase_id = ? AND status IN ('beendet', 'laeuft')", [$final['id']])
             + (int) $this->db->wert("SELECT COUNT(*) FROM auftritt WHERE phase_id = ? AND status = 'beendet'", [$final['id']]);
         if ($ergebnisse > 0) {
-            throw new FachFehler('In der Finalrunde liegen bereits Ergebnisse vor. Eine Korrektur der Vorrunde ist nicht mehr möglich.');
+            throw new FachFehler(t('In der Finalrunde liegen bereits Ergebnisse vor. Eine Korrektur der Vorrunde ist nicht mehr möglich.'));
         }
         $this->db->delete('begegnung', ['phase_id' => $final['id']]);
         $this->db->delete('auftritt', ['phase_id' => $final['id']]);
@@ -403,7 +403,7 @@ final class ErgebnisService
     private function bestaetigungPruefen(int $klasseId): void
     {
         if ($this->db->wert('SELECT status FROM klasse WHERE id = ?', [$klasseId]) === 'bestaetigt') {
-            throw new FachFehler('Die Platzierungen dieser Klasse sind bereits bestätigt. Bitte zuerst die Bestätigung aufheben.');
+            throw new FachFehler(t('Die Platzierungen dieser Klasse sind bereits bestätigt. Bitte zuerst die Bestätigung aufheben.'));
         }
     }
 
@@ -423,7 +423,7 @@ final class ErgebnisService
             [$begegnungId],
         );
         if ($b === null || (int) $b['turnier_id'] !== $turnierId) {
-            throw new FachFehler('Begegnung nicht gefunden.');
+            throw new FachFehler(t('Begegnung nicht gefunden.'));
         }
         return $b;
     }
@@ -432,7 +432,7 @@ final class ErgebnisService
     private function klasse(int $turnierId, int $klasseId): array
     {
         return $this->db->eine('SELECT * FROM klasse WHERE id = ? AND turnier_id = ?', [$klasseId, $turnierId])
-            ?? throw new FachFehler('Klasse nicht gefunden.');
+            ?? throw new FachFehler(t('Klasse nicht gefunden.'));
     }
 
     private function text(mixed $wert): ?string

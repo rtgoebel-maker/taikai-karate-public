@@ -23,9 +23,9 @@ $blaetter = $blaetter ?: [['quer' => false, 'bloecke' => []]];
 ?>
 <?php foreach ($blaetter as $blatt): ?>
 <div class="blatt<?= $blatt['quer'] ? ' quer' : '' ?>">
-    <?= $this->teil('druck/kopf', ['turnier' => $turnier, 'ueberschrift' => 'Kampfliste ' . $tatami['bezeichnung'], 'zusatz' => 'Tischbesatzung']) ?>
+    <?= $this->teil('druck/kopf', ['turnier' => $turnier, 'ueberschrift' => t('Kampfliste {tatami}', ['tatami' => $tatami['bezeichnung']]), 'zusatz' => t('Tischbesatzung')]) ?>
     <?= $this->teil('druck/kampf_bloecke', ['bloecke' => $blatt['bloecke']]) ?>
-    <?php if (!$bloecke): ?><p>Dieser Tatami sind noch keine Phasen zugeordnet (Tatami-Plan).</p><?php endif; ?>
-    <div class="unterschrift"><div>Tischbesatzung</div><div>Hauptkampfrichter</div><div>Wettkampfleitung</div></div>
+    <?php if (!$bloecke): ?><p><?= te('Dieser Tatami sind noch keine Phasen zugeordnet (Tatami-Plan).') ?></p><?php endif; ?>
+    <div class="unterschrift"><div><?= te('Tischbesatzung') ?></div><div><?= te('Hauptkampfrichter') ?></div><div><?= te('Wettkampfleitung') ?></div></div>
 </div>
 <?php endforeach; ?>

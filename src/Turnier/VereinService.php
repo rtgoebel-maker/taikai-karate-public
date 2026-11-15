@@ -87,10 +87,10 @@ final class VereinService
     public function vorschau(int $von, int $nach): array
     {
         if ($von === $nach || $von <= 0 || $nach <= 0) {
-            throw new FachFehler('Bitte zwei verschiedene Vereine wählen.');
+            throw new FachFehler(t('Bitte zwei verschiedene Vereine wählen.'));
         }
-        $v = $this->db->eine('SELECT id, name FROM verein WHERE id = ?', [$von]) ?? throw new FachFehler('Verein nicht gefunden.');
-        $n = $this->db->eine('SELECT id, name FROM verein WHERE id = ?', [$nach]) ?? throw new FachFehler('Verein nicht gefunden.');
+        $v = $this->db->eine('SELECT id, name FROM verein WHERE id = ?', [$von]) ?? throw new FachFehler(t('Verein nicht gefunden.'));
+        $n = $this->db->eine('SELECT id, name FROM verein WHERE id = ?', [$nach]) ?? throw new FachFehler(t('Verein nicht gefunden.'));
         return [
             'von' => $v,
             'nach' => $n,
@@ -126,7 +126,7 @@ final class VereinService
      */
     public function seite(int $id): array
     {
-        $verein = $this->db->eine('SELECT id, name, kurzname FROM verein WHERE id = ?', [$id]) ?? throw new FachFehler('Verein nicht gefunden.');
+        $verein = $this->db->eine('SELECT id, name, kurzname FROM verein WHERE id = ?', [$id]) ?? throw new FachFehler(t('Verein nicht gefunden.'));
         $zeilen = $this->db->alle(
             "SELECT a.id AS athlet_id, a.vorname, a.nachname, SUBSTR(a.geburtsdatum, 1, 4) AS jahrgang, a.graduierung,
                     t.id AS teilnahme_id, t.status, tu.id AS turnier_id, tu.name AS turnier, tu.datum

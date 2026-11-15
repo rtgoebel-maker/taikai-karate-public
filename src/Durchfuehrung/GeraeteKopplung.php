@@ -70,7 +70,7 @@ final class GeraeteKopplung
             [$rolle, $tatamiId, TurnierPhase::ABGESCHLOSSEN],
         );
         if ($zeile === null || !hash_equals($this->hmac($tatamiId, $rolle, (string) $zeile['salz']), $token)) {
-            throw new FachFehler('Dieser QR-Code gilt nicht (mehr). Bitte den aktuellen Code bei der Wettkampfleitung scannen.');
+            throw new FachFehler(t('Dieser QR-Code gilt nicht (mehr). Bitte den aktuellen Code bei der Wettkampfleitung scannen.'));
         }
         unset($zeile['salz']);
         return $zeile;
@@ -89,7 +89,7 @@ final class GeraeteKopplung
         // höchstens 20 offene Anfragen je Turnier – sonst kann man die Freigabeliste zumüllen
         $this->db->query('DELETE FROM tatami_geraet WHERE status = ? AND erstellt_am < ?', ['wartet', date('Y-m-d H:i:s', time() - self::WARTEN_SEKUNDEN)]);
         if ((int) $this->db->wert('SELECT COUNT(*) FROM tatami_geraet WHERE turnier_id = ? AND status = ?', [$tatami['turnier_id'], 'wartet']) >= 20) {
-            throw new FachFehler('Zu viele offene Anfragen – bitte die Wettkampfleitung, wartende Geräte freizugeben oder abzulehnen.');
+            throw new FachFehler(t('Zu viele offene Anfragen – bitte die Wettkampfleitung, wartende Geräte freizugeben oder abzulehnen.'));
         }
         $token = Cookie::token();
         $pruefwort = self::PRUEF_ZEICHEN[random_int(0, strlen(self::PRUEF_ZEICHEN) - 1)] . random_int(2, 9) . '-' . random_int(10, 99);
@@ -177,7 +177,7 @@ final class GeraeteKopplung
     {
         $g = $this->geraet($turnierId, $geraetId);
         if ($g['status'] !== 'wartet') {
-            throw new FachFehler('Dieses Gerät wartet nicht (mehr) auf Freigabe.');
+            throw new FachFehler(t('Dieses Gerät wartet nicht (mehr) auf Freigabe.'));
         }
         $this->db->update('tatami_geraet', ['status' => 'frei', 'freigegeben_am' => date('Y-m-d H:i:s'), 'freigegeben_von' => $von], ['id' => $geraetId]);
         (new Protokoll($this->db))->eintragen($turnierId, 'tatami_geraet', $geraetId, 'freigegeben', ['name' => $g['name'], 'rolle' => $g['rolle'], 'tatami_id' => $g['tatami_id']]);
@@ -221,7 +221,7 @@ final class GeraeteKopplung
     public static function rollePruefen(string $rolle): void
     {
         if (!isset(self::ROLLEN[$rolle])) {
-            throw new FachFehler('Unbekannte Rolle.');
+            throw new FachFehler(t('Unbekannte Rolle.'));
         }
     }
 
@@ -234,13 +234,13 @@ final class GeraeteKopplung
     private function geraet(int $turnierId, int $geraetId): array
     {
         return $this->db->eine('SELECT * FROM tatami_geraet WHERE id = ? AND turnier_id = ?', [$geraetId, $turnierId])
-            ?? throw new FachFehler('Gerät nicht gefunden.');
+            ?? throw new FachFehler(t('Gerät nicht gefunden.'));
     }
 
     private function tatamiImTurnier(int $turnierId, int $tatamiId): void
     {
         if ($this->db->wert('SELECT 1 FROM tatami WHERE id = ? AND turnier_id = ?', [$tatamiId, $turnierId]) === null) {
-            throw new FachFehler('Tatami nicht gefunden.');
+            throw new FachFehler(t('Tatami nicht gefunden.'));
         }
     }
 }

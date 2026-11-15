@@ -50,7 +50,7 @@ final class DatenschutzController extends Controller
     {
         $this->turnier($id);
         (new DatenschutzEinstellungen($this->db))->speichern($id, $request->post);
-        $this->erfolg('Datenschutz-Angaben gespeichert.');
+        $this->erfolg(t('Datenschutz-Angaben gespeichert.'));
         return $this->weiter("turnier/$id/datenschutz");
     }
 
@@ -60,12 +60,12 @@ final class DatenschutzController extends Controller
         $this->turnier($id);
         $quelle = (int) $request->zahl('quelle', 0);
         if ($quelle === $id || !Session::leitet($quelle) || $this->db->wert('SELECT 1 FROM turnier WHERE id = ?', [$quelle]) === null) {
-            throw new NichtGefunden('Turnier nicht gefunden.');
+            throw new NichtGefunden(t('Turnier nicht gefunden.'));
         }
         if (!(new DatenschutzEinstellungen($this->db))->uebernehmen($id, $quelle)) {
-            throw new FachFehler('In diesem Turnier sind noch keine Datenschutz-Angaben gespeichert.');
+            throw new FachFehler(t('In diesem Turnier sind noch keine Datenschutz-Angaben gespeichert.'));
         }
-        $this->erfolg('Datenschutz-Angaben übernommen – bitte kurz prüfen, ob alles auch für dieses Turnier passt.');
+        $this->erfolg(t('Datenschutz-Angaben übernommen – bitte kurz prüfen, ob alles auch für dieses Turnier passt.'));
         return $this->weiter("turnier/$id/datenschutz");
     }
 
@@ -85,15 +85,16 @@ final class DatenschutzController extends Controller
     {
         $turnier = $this->turnier($id);
         if ($request->text('bestaetigung') !== trim((string) $turnier['name'])) {
-            throw new FachFehler('Zur Bestätigung bitte den Turniernamen genau so eingeben, wie er oben steht.');
+            throw new FachFehler(t('Zur Bestätigung bitte den Turniernamen genau so eingeben, wie er oben steht.'));
         }
         if (!$this->fristen()->exportErledigt($turnier) && $request->post('ohne_export') === null) {
-            throw new FachFehler('Erst den Buchhaltungsexport erstellen – oder bestätigen, dass ohne Export pseudonymisiert werden soll.');
+            throw new FachFehler(t('Erst den Buchhaltungsexport erstellen – oder bestätigen, dass ohne Export pseudonymisiert werden soll.'));
         }
         $ergebnis = (new Pseudonymisierung($this->db))->turnier($id, $this->app->instanz()->id());
         $this->sicherungenErsetzen();
-        $this->erfolg("Pseudonymisiert: {$ergebnis['starter']} Starter" . ($ergebnis['behalten'] ? ", {$ergebnis['behalten']} Platzierte mit Namen behalten" : '')
-            . ", {$ergebnis['anmeldungen']} Anmeldungen, {$ergebnis['mails']} E-Mails gelöscht.");
+        $this->erfolg($ergebnis['behalten']
+            ? t('Pseudonymisiert: {starter} Starter, {behalten} Platzierte mit Namen behalten, {anmeldungen} Anmeldungen, {mails} E-Mails gelöscht.', $ergebnis)
+            : t('Pseudonymisiert: {starter} Starter, {anmeldungen} Anmeldungen, {mails} E-Mails gelöscht.', $ergebnis));
         return $this->weiter("turnier/$id/datenschutz");
     }
 
@@ -101,7 +102,7 @@ final class DatenschutzController extends Controller
     public function hinweiseAnmeldung(Request $request, string $schluessel): Response
     {
         $id = (new AnmeldungService($this->db))->turnierPerSchluessel($schluessel)
-            ?? throw new NichtGefunden('Diesen Anmeldelink gibt es nicht (mehr).');
+            ?? throw new NichtGefunden(t('Diesen Anmeldelink gibt es nicht (mehr).'));
         return $this->hinweise($this->turnier($id), url("melden/$schluessel"));
     }
 
@@ -110,7 +111,7 @@ final class DatenschutzController extends Controller
     {
         $turnier = $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$id]);
         if ($turnier === null || (!(int) $turnier['oeffentlich'] && !Session::leitet($id))) {
-            throw new NichtGefunden('Turnier nicht gefunden.');
+            throw new NichtGefunden(t('Turnier nicht gefunden.'));
         }
         return $this->hinweise($turnier, url("live/$id"));
     }

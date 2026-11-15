@@ -27,7 +27,7 @@ final class KontoController extends Controller
     public function bestaetigen(Request $request, string $token): Response
     {
         (new DojoKonten($this->db))->bestaetigen($token);
-        $this->erfolg('Danke – die E-Mail-Adresse ist bestätigt. Bitte jetzt anmelden; unter „Meine Meldungen“ sehen Sie den Bearbeitungsstand.');
+        $this->erfolg(t('Danke – die E-Mail-Adresse ist bestätigt. Bitte jetzt anmelden; unter „Meine Meldungen“ sehen Sie den Bearbeitungsstand.'));
         return $this->weiter('login');
     }
 
@@ -57,14 +57,14 @@ final class KontoController extends Controller
         } catch (FachFehler) {
             // Grenze je Adresse erreicht: nichts verschicken, gleiche Antwort
         }
-        $this->erfolg('Falls es ein Konto mit dieser E-Mail-Adresse gibt, ist eine E-Mail mit einem Link unterwegs (bitte auch im Spam-Ordner nachsehen).');
+        $this->erfolg(t('Falls es ein Konto mit dieser E-Mail-Adresse gibt, ist eine E-Mail mit einem Link unterwegs (bitte auch im Spam-Ordner nachsehen).'));
         return $this->weiter('login');
     }
 
     public function neuFormular(Request $request, string $token): Response
     {
         if (!(new DojoKonten($this->db))->passwortTokenGueltig($token)) {
-            throw new NichtGefunden('Der Link ist ungültig oder abgelaufen – bitte unter „Passwort vergessen“ einen neuen anfordern.');
+            throw new NichtGefunden(t('Der Link ist ungültig oder abgelaufen – bitte unter „Passwort vergessen“ einen neuen anfordern.'));
         }
         return $this->seite('auth/passwort_neu', ['token' => $token, 'min' => Konten::MIN_PASSWORT]);
     }
@@ -72,12 +72,12 @@ final class KontoController extends Controller
     public function neu(Request $request, string $token): Response
     {
         (new DojoKonten($this->db))->passwortNeu($token, (string) $request->post('passwort', ''), (string) $request->post('passwort2', ''));
-        $this->erfolg('Neues Passwort gespeichert – bitte damit anmelden.');
+        $this->erfolg(t('Neues Passwort gespeichert – bitte damit anmelden.'));
         return $this->weiter('login');
     }
 
     private function post(): Postausgang
     {
-        return $this->app->postausgang() ?? throw new NichtGefunden('Diese Funktion ist hier nicht eingerichtet (kein E-Mail-Versand). Bitte an die Wettkampfleitung wenden.');
+        return $this->app->postausgang() ?? throw new NichtGefunden(t('Diese Funktion ist hier nicht eingerichtet (kein E-Mail-Versand). Bitte an die Wettkampfleitung wenden.'));
     }
 }

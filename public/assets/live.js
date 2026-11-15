@@ -13,6 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const weg = document.body.classList.contains('offline');
         const status = document.getElementById('live-status');
         status.classList.toggle('weg', weg);
-        status.querySelector('.live-text').textContent = weg ? 'keine Verbindung' : 'live';
+        status.querySelector('.live-text').textContent = weg ? Wettkampf.t('keine Verbindung') : Wettkampf.t('live');
     }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
 });

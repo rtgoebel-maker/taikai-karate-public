@@ -6,22 +6,22 @@
  * @var list<array<string, mixed>> $teilnehmer
  * @var list<array<string, mixed>> $vereine
  */
-$this->layout('layout', ['titel' => 'Teams', 'turnier' => $turnier, 'aktiv' => 'teams']);
+$this->layout('layout', ['titel' => t('Teams'), 'turnier' => $turnier, 'aktiv' => 'teams']);
 $tid = $turnier['id'];
 ?>
-<h1>Teams <?= info('teams') ?></h1>
-<p class="leise">Kata-Teams starten in der Altersklasse des ältesten Mitglieds. Nach der 2:1-Regel darf ein Mitglied für einen anderen Verein starten als im Einzel – dazu beim Hinzufügen den Verein wählen.</p>
+<h1><?= te('Teams') ?> <?= info('teams') ?></h1>
+<p class="leise"><?= te('Kata-Teams starten in der Altersklasse des ältesten Mitglieds. Nach der 2:1-Regel darf ein Mitglied für einen anderen Verein starten als im Einzel – dazu beim Hinzufügen den Verein wählen.') ?></p>
 <div class="zwei-spalten">
     <div>
         <?php if ($teams): ?>
             <div class="karte knopfleiste team-suche">
-                <input type="search" id="team-suche" placeholder="Suchen: Team, Verein, Mitglied oder Klasse …" aria-label="Teams durchsuchen" autocomplete="off">
-                <select id="team-disziplin" aria-label="Disziplin" style="max-width:180px">
-                    <option value="">Alle Teams</option>
-                    <option value="kata_team">Kata-Teams</option>
-                    <option value="kumite_team">Kumite-Teams</option>
+                <input type="search" id="team-suche" placeholder="<?= te('Suchen: Team, Verein, Mitglied oder Klasse …') ?>" aria-label="<?= te('Teams durchsuchen') ?>" autocomplete="off">
+                <select id="team-disziplin" aria-label="<?= te('Disziplin') ?>" style="max-width:180px">
+                    <option value=""><?= te('Alle Teams') ?></option>
+                    <option value="kata_team"><?= te('Kata-Teams') ?></option>
+                    <option value="kumite_team"><?= te('Kumite-Teams') ?></option>
                 </select>
-                <span class="klein" id="team-treffer"><?= count($teams) ?> Teams</span>
+                <span class="klein" id="team-treffer"><?= te('{n} Teams', ['n' => count($teams)]) ?></span>
             </div>
         <?php endif; ?>
         <?php foreach ($teams as $team):
@@ -37,9 +37,9 @@ $tid = $turnier['id'];
                     <?php foreach (array_filter(explode(',', (string) $team['klassen'])) as $code): ?>
                         <span class="tag ok"><?= e($code) ?></span>
                     <?php endforeach; ?>
-                    <?php if (!$team['klassen']): ?><span class="tag warn">keine Klasse</span><?php endif; ?>
+                    <?php if (!$team['klassen']): ?><span class="tag warn"><?= te('keine Klasse') ?></span><?php endif; ?>
                 </div>
-                <p class="klein">Verein: <?= e($team['verein'] ?? '–') ?></p>
+                <p class="klein"><?= te('Verein: {verein}', ['verein' => $team['verein'] ?? '–']) ?></p>
                 <table class="tabelle">
                     <tbody>
                     <?php foreach ($mitglieder[$team['id']] ?? [] as $m): ?>
@@ -47,10 +47,10 @@ $tid = $turnier['id'];
                             <td><?= e($m['nachname'] . ', ' . $m['vorname']) ?></td>
                             <td><?= e(grad((int) $m['graduierung'])) ?></td>
                             <td><?= e($m['verein']) ?><?= (int) $m['verein_id'] !== (int) $team['verein_id'] ? ' <span class="tag warn">2:1</span>' : '' ?></td>
-                            <td><?= $m['rolle'] === 'ersatz' ? '<span class="tag">Ersatz</span>' : '' ?></td>
+                            <td><?= $m['rolle'] === 'ersatz' ? '<span class="tag">' . te('Ersatz') . '</span>' : '' ?></td>
                             <td class="rechts">
                                 <form method="post" action="<?= e(url("turnier/$tid/team/{$team['id']}/mitglied/{$m['id']}/entfernen")) ?>" class="inline">
-                                    <?= csrf_feld() ?><button class="knopf klein" type="submit">Entfernen</button>
+                                    <?= csrf_feld() ?><button class="knopf klein" type="submit"><?= te('Entfernen') ?></button>
                                 </form>
                             </td>
                         </tr>
@@ -60,37 +60,37 @@ $tid = $turnier['id'];
                 <form method="post" action="<?= e(url("turnier/$tid/team/{$team['id']}/mitglied")) ?>" class="knopfleiste" style="margin-top:.5rem">
                     <?= csrf_feld() ?>
                     <select name="teilnahme_id" required style="max-width:280px">
-                        <option value="">Mitglied wählen …</option>
+                        <option value=""><?= te('Mitglied wählen …') ?></option>
                         <?php foreach ($teilnehmer as $t): ?>
                             <option value="<?= $t['id'] ?>"><?= e($t['nachname'] . ', ' . $t['vorname'] . ' (' . ($t['verein'] ?? '–') . ')') ?></option>
                         <?php endforeach; ?>
                     </select>
-                    <select name="rolle" style="max-width:120px"><option value="stamm">Stamm</option><option value="ersatz">Ersatz</option></select>
-                    <select name="verein_id" style="max-width:220px" title="Verein, für den das Mitglied im Team startet">
-                        <option value="">startet für Heimatverein</option>
+                    <select name="rolle" style="max-width:120px"><option value="stamm"><?= te('Stamm') ?></option><option value="ersatz"><?= te('Ersatz') ?></option></select>
+                    <select name="verein_id" style="max-width:220px" title="<?= te('Verein, für den das Mitglied im Team startet') ?>">
+                        <option value=""><?= te('startet für Heimatverein') ?></option>
                         <?php foreach ($vereine as $v): ?><option value="<?= $v['id'] ?>"><?= e($v['name']) ?></option><?php endforeach; ?>
                     </select>
-                    <button class="knopf klein" type="submit">Hinzufügen</button>
+                    <button class="knopf klein" type="submit"><?= te('Hinzufügen') ?></button>
                 </form>
-                <form method="post" action="<?= e(url("turnier/$tid/team/{$team['id']}/loeschen")) ?>" data-bestaetigen="Team löschen?" style="margin-top:.5rem">
-                    <?= csrf_feld() ?><button class="link" type="submit">Team löschen</button>
+                <form method="post" action="<?= e(url("turnier/$tid/team/{$team['id']}/loeschen")) ?>" data-bestaetigen="<?= te('Team löschen?') ?>" style="margin-top:.5rem">
+                    <?= csrf_feld() ?><button class="link" type="submit"><?= te('Team löschen') ?></button>
                 </form>
             </div>
         <?php endforeach; ?>
-        <div class="karte leer" id="team-keine" hidden>Kein Team passt zur Suche.</div>
-        <?php if (!$teams): ?><div class="karte leer">Noch keine Teams. Teams werden auch beim Import über die Spalten „Kata Team“/„Kumite Team“ angelegt.</div><?php endif; ?>
+        <div class="karte leer" id="team-keine" hidden><?= te('Kein Team passt zur Suche.') ?></div>
+        <?php if (!$teams): ?><div class="karte leer"><?= te('Noch keine Teams. Teams werden auch beim Import über die Spalten „Kata Team“/„Kumite Team“ angelegt.') ?></div><?php endif; ?>
     </div>
     <form method="post" action="<?= e(url("turnier/$tid/teams")) ?>" class="karte formular" style="align-self:start">
         <?= csrf_feld() ?>
-        <h2>Neues Team</h2>
-        <label>Name <input name="name" required placeholder="z. B. Karate Dojo Musterstadt 1"></label>
-        <label>Disziplin
-            <select name="disziplin"><option value="kata_team">Kata-Team</option><option value="kumite_team">Kumite-Team</option></select>
+        <h2><?= te('Neues Team') ?></h2>
+        <label><?= te('Name') ?> <input name="name" required placeholder="<?= te('z. B. Karate Dojo Musterstadt 1') ?>"></label>
+        <label><?= te('Disziplin') ?>
+            <select name="disziplin"><option value="kata_team"><?= te('Kata-Team') ?></option><option value="kumite_team"><?= te('Kumite-Team') ?></option></select>
         </label>
-        <label>Verein
+        <label><?= te('Verein') ?>
             <select name="verein_id"><option value="">–</option><?php foreach ($vereine as $v): ?><option value="<?= $v['id'] ?>"><?= e($v['name']) ?></option><?php endforeach; ?></select>
         </label>
-        <div><button class="knopf primaer" type="submit">Anlegen</button></div>
+        <div><button class="knopf primaer" type="submit"><?= te('Anlegen') ?></button></div>
     </form>
 </div>
 <script src="<?= e(asset('team.js')) ?>" defer></script>

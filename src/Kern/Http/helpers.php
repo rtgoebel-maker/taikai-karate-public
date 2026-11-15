@@ -62,13 +62,47 @@ if (!function_exists('e')) {
         return '<input type="hidden" name="_csrf" value="' . e(Session::csrfToken()) . '">';
     }
 
+    /** Datum in der Sprache der Oberfläche (14.03.2026 bzw. 14 Mar 2026). */
     function datum_de(?string $iso): string
     {
-        if ($iso === null || $iso === '') {
-            return '';
-        }
-        $teile = explode('-', substr($iso, 0, 10));
-        return count($teile) === 3 ? "$teile[2].$teile[1].$teile[0]" : $iso;
+        return \Wettkampf\Kern\Sprache::datum($iso);
+    }
+
+    /**
+     * Übersetzen – deutscher Text als Schlüssel, Platzhalter {name}. Liefert reinen Text (für HTML: te()).
+     * Schlüssel immer in einfachen Anführungszeichen (Katalogtest).
+     *
+     * @param array<string, scalar|null> $werte
+     */
+    function t(string $de, array $werte = []): string
+    {
+        return \Wettkampf\Kern\Sprache::t($de, $werte);
+    }
+
+    /**
+     * Übersetzen und für HTML escapen.
+     *
+     * @param array<string, scalar|null> $werte
+     */
+    function te(string $de, array $werte = []): string
+    {
+        return e(\Wettkampf\Kern\Sprache::t($de, $werte));
+    }
+
+    /**
+     * Übersetzen mit HTML im Text selbst (z. B. <strong>, Links aus dem Katalog – vertrauenswürdig); die Platzhalter werden escaped.
+     *
+     * @param array<string, scalar|null> $werte
+     */
+    function th(string $de, array $werte = []): string
+    {
+        return \Wettkampf\Kern\Sprache::t($de, array_map(static fn($w) => e($w), $werte));
+    }
+
+    /** Aktuelle Sprache (de/en), z. B. für <html lang>. */
+    function sprache(): string
+    {
+        return \Wettkampf\Kern\Sprache::aktuell();
     }
 
     function grad(?int $grad): string
@@ -79,9 +113,9 @@ if (!function_exists('e')) {
     function geschlecht_text(string $g): string
     {
         return match ($g) {
-            'w' => 'weiblich',
-            'm' => 'männlich',
-            'd' => 'divers',
+            'w' => t('weiblich'),
+            'm' => t('männlich'),
+            'd' => t('divers'),
             'mixed' => 'mixed',
             default => $g,
         };
@@ -91,16 +125,22 @@ if (!function_exists('e')) {
     function status_text(string $status): string
     {
         return match ($status) {
-            'offen' => 'offen',
-            'ausgelost' => 'ausgelost',
-            'bereit' => 'bereit',
-            'wartet' => 'wartet',
-            'laeuft' => 'läuft',
-            'beendet' => 'beendet',
-            'bestaetigt' => 'bestätigt',
-            'zusammengelegt' => 'zusammengelegt',
-            'zurueckgezogen' => 'zurückgezogen',
-            'freilos' => 'Freilos',
+            'offen' => t('offen'),
+            'ausgelost' => t('ausgelost'),
+            'bereit' => t('bereit'),
+            'wartet' => t('wartet'),
+            'laeuft' => t('läuft'),
+            'beendet' => t('beendet'),
+            'bestaetigt' => t('bestätigt'),
+            'zusammengelegt' => t('zusammengelegt'),
+            'zurueckgezogen' => t('zurückgezogen'),
+            'freilos' => t('Freilos'),
+            // Status einer Teilnahme
+            'gemeldet' => t('gemeldet'),
+            'anwesend' => t('anwesend'),
+            'gesperrt' => t('gesperrt||Teilnehmer'),
+            'abgemeldet' => t('abgemeldet'),
+            'nicht_erschienen' => t('nicht erschienen'),
             default => $status,
         };
     }
@@ -111,10 +151,10 @@ if (!function_exists('e')) {
             return kumite_form_text(substr($d, 7));
         }
         return match ($d) {
-            'kata' => 'Kata Einzel',
-            'kumite' => 'Kumite Einzel',
-            'kata_team' => 'Kata-Team',
-            'kumite_team' => 'Kumite-Team',
+            'kata' => t('Kata Einzel'),
+            'kumite' => t('Kumite Einzel'),
+            'kata_team' => t('Kata-Team'),
+            'kumite_team' => t('Kumite-Team'),
             default => $d,
         };
     }
@@ -133,9 +173,9 @@ if (!function_exists('e')) {
     function wertung_text(?string $w): string
     {
         return match ($w) {
-            'flaggen' => 'Flaggen',
-            'punkte' => 'Punkte',
-            'kumite' => 'Kumite (Ippon/Wazaari)',
+            'flaggen' => t('Flaggen'),
+            'punkte' => t('Punkte'),
+            'kumite' => t('Kumite (Ippon/Wazaari)'),
             'sanbon' => 'Kumite Shobu Sanbon',
             null, '' => '',
             default => $w,

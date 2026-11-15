@@ -43,12 +43,12 @@ final class Fehlerbehandlung implements MiddlewareInterface
         } catch (NichtGefunden $e) {
             $antwort = $this->app->fehlerAntwort($istApi, 404, $e->getMessage());
         } catch (HttpNotFoundException) {
-            $antwort = $this->app->fehlerAntwort($istApi, 404, 'Seite nicht gefunden.');
+            $antwort = $this->app->fehlerAntwort($istApi, 404, t('Seite nicht gefunden.'));
         } catch (HttpMethodNotAllowedException) {
-            $antwort = $this->app->fehlerAntwort($istApi, 405, 'Methode nicht erlaubt.');
+            $antwort = $this->app->fehlerAntwort($istApi, 405, t('Methode nicht erlaubt.'));
         } catch (Throwable $e) {
             error_log((string) $e);
-            $text = $this->app->config['debug'] ? $e->getMessage() . "\n" . $e->getTraceAsString() : 'Interner Fehler.';
+            $text = $this->app->config['debug'] ? $e->getMessage() . "\n" . $e->getTraceAsString() : t('Interner Fehler.');
             $antwort = $this->app->fehlerAntwort($istApi, 500, $text);
         }
         return PsrBruecke::antwort($antwort);

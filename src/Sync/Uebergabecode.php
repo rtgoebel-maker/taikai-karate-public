@@ -30,7 +30,7 @@ final class Uebergabecode
     {
         $code = strtoupper((string) preg_replace('/[\s-]+/', '', $eingabe));
         if (strlen($code) !== self::LAENGE || strspn($code, self::ZEICHEN) !== self::LAENGE) {
-            throw new FachFehler('Der Übergabe-Code hat nicht das richtige Format (z. B. K7QM-2XPA-R9).');
+            throw new FachFehler(t('Der Übergabe-Code hat nicht das richtige Format (z. B. K7QM-2XPA-R9).'));
         }
         return $code;
     }

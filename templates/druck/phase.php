@@ -13,9 +13,9 @@ $leerZeilen ??= 0;
 $kr = (int) $klasse['kampfrichter'];
 ?>
 <?php if ($phase['status'] === 'wartet' && $handschrift && $leerZeilen > 0): ?>
-    <p class="klein">Finalisten stehen nach der Vorrunde fest – bei Technikausfall hier von Hand eintragen.</p>
+    <p class="klein"><?= te('Finalisten stehen nach der Vorrunde fest – bei Technikausfall hier von Hand eintragen.') ?></p>
     <table class="kata-tabelle">
-        <thead><tr><th>#</th><th>Name</th><th>Verein</th><th class="kata-spalte">Kata</th><?php for ($i = 1; $i <= $kr; $i++): ?><th>KR <?= $i ?></th><?php endfor; ?><th>Summe</th><th>Platz</th></tr></thead>
+        <thead><tr><th>#</th><th><?= te('Name') ?></th><th><?= te('Verein') ?></th><th class="kata-spalte">Kata</th><?php for ($i = 1; $i <= $kr; $i++): ?><th><?= te('KR {nr}', ['nr' => $i]) ?></th><?php endfor; ?><th><?= te('Summe') ?></th><th><?= te('Platz') ?></th></tr></thead>
         <tbody>
         <?php for ($z = 1; $z <= $leerZeilen; $z++): ?>
             <tr class="leerzeile"><td><?= $z ?></td><td></td><td></td><td></td><?= str_repeat('<td></td>', $kr) ?><td></td><td></td></tr>
@@ -23,17 +23,17 @@ $kr = (int) $klasse['kampfrichter'];
         </tbody>
     </table>
 <?php elseif ($phase['status'] === 'wartet'): ?>
-    <p class="leise">Finalrunde – Teilnehmer stehen nach der Vorrunde fest.</p>
+    <p class="leise"><?= te('Finalrunde – Teilnehmer stehen nach der Vorrunde fest.') ?></p>
 <?php elseif ($phase['art'] === 'ko'): ?>
     <?= $this->teil('teile/sdm_baum', [
-        'phase' => $phase, 'code' => $klasse['code'] . ' · ' . $phase['bezeichnung'],
+        'phase' => $phase, 'code' => $klasse['code'] . ' · ' . \Wettkampf\Durchfuehrung\PhasenErzeugung::bezeichnungText($phase['bezeichnung']),
         'stand' => $stand ?? date('Y-m-d H:i:s'), 'revision' => $revision ?? 0,
-        'zielText' => $phase['typ'] === 'pool' ? ($klasse['finale_art'] === 'punkte' ? 'Punktefinale' : 'Finalrunde') : null,
+        'zielText' => $phase['typ'] === 'pool' ? ($klasse['finale_art'] === 'punkte' ? t('Punktefinale') : t('Finalrunde')) : null,
         'druck' => true,
     ]) ?>
 <?php elseif ($phase['art'] === 'jgj'): ?>
     <table class="sb-jgj">
-        <thead><tr><th style="width:12mm">Nr.</th><th>Shiro</th><th>Aka</th><?= $handschrift ? '<th style="width:35mm">Sieger</th>' : '' ?></tr></thead>
+        <thead><tr><th style="width:12mm"><?= te('Nr.') ?></th><th>Shiro</th><th>Aka</th><?= $handschrift ? '<th style="width:35mm">' . te('Sieger') . '</th>' : '' ?></tr></thead>
         <tbody>
         <?php foreach ($phase['begegnungen'] as $b):
             $sieger = $b['sieger_start_id'] === null ? null : ((int) $b['sieger_start_id'] === (int) $b['aka_start_id'] ? 'aka' : 'shiro');
@@ -49,9 +49,9 @@ $kr = (int) $klasse['kampfrichter'];
         </tbody>
     </table>
     <?php if (array_filter($phase['tabelle'] ?? [], static fn ($z) => $z['kaempfe'] > 0)): ?>
-        <h3>Tabelle</h3>
+        <h3><?= te('Tabelle') ?></h3>
         <table>
-            <thead><tr><th>Platz</th><th>Name</th><th>Verein</th><th>Kämpfe</th><th>Siege</th><th>Ippon</th><th>Wazaari</th></tr></thead>
+            <thead><tr><th><?= te('Platz') ?></th><th><?= te('Name') ?></th><th><?= te('Verein') ?></th><th><?= te('Kämpfe') ?></th><th><?= te('Siege') ?></th><th>Ippon</th><th>Wazaari</th></tr></thead>
             <tbody>
             <?php foreach ($phase['tabelle'] as $z): ?>
                 <tr><td><?= $z['platz'] ?></td><td><?= e($z['name']) ?></td><td><?= e($z['verein']) ?></td>
@@ -62,7 +62,7 @@ $kr = (int) $klasse['kampfrichter'];
     <?php endif; ?>
 <?php else: ?>
     <table class="kata-tabelle">
-        <thead><tr><th>#</th><th>Name</th><th>Verein</th><th class="kata-spalte">Kata</th><?php for ($i = 1; $i <= $kr; $i++): ?><th>KR <?= $i ?></th><?php endfor; ?><th>Summe</th></tr></thead>
+        <thead><tr><th>#</th><th><?= te('Name') ?></th><th><?= te('Verein') ?></th><th class="kata-spalte">Kata</th><?php for ($i = 1; $i <= $kr; $i++): ?><th><?= te('KR {nr}', ['nr' => $i]) ?></th><?php endfor; ?><th><?= te('Summe') ?></th></tr></thead>
         <tbody>
         <?php foreach ($phase['auftritte'] as $a):
             $werte = $a['wertung_daten']['werte'] ?? [];

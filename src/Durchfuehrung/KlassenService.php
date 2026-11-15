@@ -80,17 +80,17 @@ final class KlassenService
                 [$turnierId, $felder['code'], $klasseId ?? 0],
             );
             if ($doppelt !== null) {
-                throw new FachFehler("Der Klassen-Code „{$felder['code']}“ ist bereits vergeben.");
+                throw new FachFehler(t('Der Klassen-Code „{code}“ ist bereits vergeben.', ['code' => $felder['code']]));
             }
             if ($klasseId === null) {
                 $klasseId = $this->db->insert('klasse', $felder + ['turnier_id' => $turnierId, 'uuid' => Uuid::v4()]);
             } else {
                 $alt = $this->db->eine('SELECT * FROM klasse WHERE id = ? AND turnier_id = ?', [$klasseId, $turnierId])
-                    ?? throw new FachFehler('Klasse nicht gefunden.');
+                    ?? throw new FachFehler(t('Klasse nicht gefunden.'));
                 if ($alt['status'] !== 'offen' && $alt['status'] !== 'zusammengelegt') {
                     foreach (['disziplin', 'modus', 'anzahl_pools', 'aufsteiger_pro_pool', 'finale_art', 'finalisten', 'wertung', 'wertung_finale'] as $f) {
                         if ((string) $alt[$f] !== (string) $felder[$f]) {
-                            throw new FachFehler('Die Klasse ist bereits ausgelost. Modus und Wertung können erst nach Zurücknehmen der Auslosung geändert werden.');
+                            throw new FachFehler(t('Die Klasse ist bereits ausgelost. Modus und Wertung können erst nach Zurücknehmen der Auslosung geändert werden.'));
                         }
                     }
                 }
@@ -120,15 +120,15 @@ final class KlassenService
     {
         $this->db->transaktion(function () use ($turnierId, $klasseId) {
             $klasse = $this->db->eine('SELECT * FROM klasse WHERE id = ? AND turnier_id = ?', [$klasseId, $turnierId])
-                ?? throw new FachFehler('Klasse nicht gefunden.');
+                ?? throw new FachFehler(t('Klasse nicht gefunden.'));
             if (!in_array($klasse['status'], ['offen', 'zusammengelegt'], true)) {
-                throw new FachFehler('Eine ausgeloste Klasse kann nicht gelöscht werden.');
+                throw new FachFehler(t('Eine ausgeloste Klasse kann nicht gelöscht werden.'));
             }
             if ((int) $this->db->wert('SELECT COUNT(*) FROM start WHERE klasse_id = ?', [$klasseId]) > 0) {
-                throw new FachFehler('Die Klasse hat noch Starter. Bitte zuerst verschieben oder zusammenlegen.');
+                throw new FachFehler(t('Die Klasse hat noch Starter. Bitte zuerst verschieben oder zusammenlegen.'));
             }
             if ((int) $this->db->wert("SELECT COUNT(*) FROM klasse WHERE zusammengelegt_in = ?", [$klasseId]) > 0) {
-                throw new FachFehler('In diese Klasse sind andere Klassen zusammengelegt. Bitte zuerst aufheben.');
+                throw new FachFehler(t('In diese Klasse sind andere Klassen zusammengelegt. Bitte zuerst aufheben.'));
             }
             $this->db->delete('klasse', ['id' => $klasseId]);
             $this->protokoll->eintragen($turnierId, 'klasse', $klasseId, 'geloescht', ['code' => $klasse['code']]);
@@ -141,10 +141,10 @@ final class KlassenService
         $this->db->transaktion(function () use ($turnierId, $klasseId, $teilnahmeId, $teamId) {
             $klasse = $this->offeneKlasse($turnierId, $klasseId);
             $spalte = $teilnahmeId !== null ? 'teilnahme_id' : 'team_id';
-            $wer = $teilnahmeId ?? $teamId ?? throw new FachFehler('Bitte einen Starter wählen.');
+            $wer = $teilnahmeId ?? $teamId ?? throw new FachFehler(t('Bitte einen Starter wählen.'));
             $tabelle = $teilnahmeId !== null ? 'teilnahme' : 'team';
             if ($this->db->wert("SELECT id FROM $tabelle WHERE id = ? AND turnier_id = ?", [$wer, $turnierId]) === null) {
-                throw new FachFehler('Starter gehört nicht zu diesem Turnier.');
+                throw new FachFehler(t('Starter gehört nicht zu diesem Turnier.'));
             }
             // bisherige Starts derselben Disziplin entfernen (nur aus offenen Klassen)
             foreach ($this->db->alle(
@@ -157,7 +157,7 @@ final class KlassenService
                     return;
                 }
                 if ($s['klasse_status'] !== 'offen') {
-                    throw new FachFehler('Der Starter ist in dieser Disziplin bereits in einer ausgelosten Klasse.');
+                    throw new FachFehler(t('Der Starter ist in dieser Disziplin bereits in einer ausgelosten Klasse.'));
                 }
                 $this->db->delete('start', ['id' => $s['id']]);
             }
@@ -173,10 +173,10 @@ final class KlassenService
             [$startId],
         );
         if ($start === null || (int) $start['turnier_id'] !== $turnierId) {
-            throw new FachFehler('Start nicht gefunden.');
+            throw new FachFehler(t('Start nicht gefunden.'));
         }
         if ($start['klasse_status'] !== 'offen') {
-            throw new FachFehler('Die Klasse ist bereits ausgelost. Der Starter kann nur noch abgemeldet werden.');
+            throw new FachFehler(t('Die Klasse ist bereits ausgelost. Der Starter kann nur noch abgemeldet werden.'));
         }
         $this->db->delete('start', ['id' => $startId]);
         $this->protokoll->eintragen($turnierId, 'start', $startId, 'entfernt');
@@ -194,12 +194,12 @@ final class KlassenService
             $ziel = $this->offeneKlasse($turnierId, $zielId);
             $quellIds = array_values(array_unique(array_filter($quellIds, static fn($id) => (int) $id !== $zielId)));
             if ($quellIds === []) {
-                throw new FachFehler('Bitte mindestens eine weitere Klasse zum Zusammenlegen wählen.');
+                throw new FachFehler(t('Bitte mindestens eine weitere Klasse zum Zusammenlegen wählen.'));
             }
             foreach ($quellIds as $quellId) {
                 $quelle = $this->offeneKlasse($turnierId, (int) $quellId);
                 if ($quelle['disziplin'] !== $ziel['disziplin']) {
-                    throw new FachFehler("{$quelle['code']} und {$ziel['code']} haben unterschiedliche Disziplinen.");
+                    throw new FachFehler(t('{quelle} und {ziel} haben unterschiedliche Disziplinen.', ['quelle' => $quelle['code'], 'ziel' => $ziel['code']]));
                 }
                 $this->db->query(
                     'UPDATE start SET klasse_id = ?, herkunft_klasse_id = COALESCE(herkunft_klasse_id, ?) WHERE klasse_id = ?',
@@ -224,7 +224,7 @@ final class KlassenService
         $this->db->transaktion(function () use ($turnierId, $quellId) {
             $quelle = $this->db->eine('SELECT * FROM klasse WHERE id = ? AND turnier_id = ?', [$quellId, $turnierId]);
             if ($quelle === null || $quelle['status'] !== 'zusammengelegt') {
-                throw new FachFehler('Diese Klasse ist nicht zusammengelegt.');
+                throw new FachFehler(t('Diese Klasse ist nicht zusammengelegt.'));
             }
             $this->offeneKlasse($turnierId, (int) $quelle['zusammengelegt_in']);
             $this->db->query(
@@ -282,11 +282,11 @@ final class KlassenService
                 $grund = null;
                 $gleichesGeschlecht = $andere['geschlecht'] === $klein['geschlecht'];
                 if ($gleichesGeschlecht && $this->bereichGleich($klein, $andere, 'grad') && $this->benachbart($klein, $andere, 'alter')) {
-                    $grund = 'benachbarte Altersklasse';
+                    $grund = t('benachbarte Altersklasse');
                 } elseif ($gleichesGeschlecht && $this->bereichGleich($klein, $andere, 'alter') && $this->benachbart($klein, $andere, 'grad')) {
-                    $grund = 'benachbarter Graduierungsbereich';
+                    $grund = t('benachbarter Graduierungsbereich');
                 } elseif (!$gleichesGeschlecht && $this->bereichGleich($klein, $andere, 'alter') && $this->bereichGleich($klein, $andere, 'grad')) {
-                    $grund = 'gleiche Alters-/Gradgruppe, anderes Geschlecht (mixed)';
+                    $grund = t('gleiche Alters-/Gradgruppe, anderes Geschlecht (mixed)');
                 }
                 if ($grund !== null) {
                     $vorschlaege[(int) $klein['id']][] = [
@@ -316,10 +316,13 @@ final class KlassenService
             }
             $n = (int) $k['anzahl'];
             if ($n > 0 && !self::findetStatt($k, $n)) {
-                $hinweise[] = ['typ' => 'fehler', 'text' => "{$k['code']}: nur $n von mindestens " . self::mindestens($k)
-                    . ' Startern – die Klasse findet nicht statt. Zusammenlegen oder Starter umsetzen.', 'klasse_id' => (int) $k['id']];
+                $hinweise[] = ['typ' => 'fehler', 'text' => t('{code}: nur {n} von mindestens {min} Startern – die Klasse findet nicht statt. Zusammenlegen oder Starter umsetzen.', [
+                    'code' => $k['code'], 'n' => $n, 'min' => self::mindestens($k),
+                ]), 'klasse_id' => (int) $k['id']];
             } elseif ($n >= 2 && $n <= 3) {
-                $hinweise[] = ['typ' => 'hinweis', 'text' => "{$k['code']}: nur $n Starter – " . ($n === 2 ? 'ein Kampf um Platz 1/2.' : 'jeder gegen jeden, kein Platz 4.'), 'klasse_id' => (int) $k['id']];
+                $hinweise[] = ['typ' => 'hinweis', 'text' => $n === 2
+                    ? t('{code}: nur {n} Starter – ein Kampf um Platz 1/2.', ['code' => $k['code'], 'n' => $n])
+                    : t('{code}: nur {n} Starter – jeder gegen jeden, kein Platz 4.', ['code' => $k['code'], 'n' => $n]), 'klasse_id' => (int) $k['id']];
             }
         }
 
@@ -339,7 +342,7 @@ final class KlassenService
                 if (!in_array($disziplin, $belegt, true)) {
                     $hinweise[] = [
                         'typ' => 'fehler',
-                        'text' => "{$t['vorname']} {$t['nachname']}: " . ucfirst($disziplin) . ' gemeldet, aber keiner Klasse zugeordnet.',
+                        'text' => t('{name}: {disziplin} gemeldet, aber keiner Klasse zugeordnet.', ['name' => "{$t['vorname']} {$t['nachname']}", 'disziplin' => ucfirst($disziplin)]),
                         'teilnahme_id' => (int) $t['id'],
                     ];
                 }
@@ -355,7 +358,7 @@ final class KlassenService
              HAVING COUNT(*) > 1",
             [$turnierId],
         ) as $d) {
-            $hinweise[] = ['typ' => 'fehler', 'text' => "{$d['vorname']} {$d['nachname']}: mehrfach gemeldet ({$d['codes']}) – nur eine Meldung erlaubt."];
+            $hinweise[] = ['typ' => 'fehler', 'text' => t('{name}: mehrfach gemeldet ({codes}) – nur eine Meldung erlaubt.', ['name' => "{$d['vorname']} {$d['nachname']}", 'codes' => $d['codes']])];
         }
 
         // Teams
@@ -369,13 +372,13 @@ final class KlassenService
             [$turnierId],
         ) as $team) {
             if ((int) $team['stamm'] !== 3) {
-                $hinweise[] = ['typ' => 'hinweis', 'text' => "Team {$team['name']}: {$team['stamm']} Stammmitglieder (üblich: 3)."];
+                $hinweise[] = ['typ' => 'hinweis', 'text' => t('Team {name}: {n} Stammmitglieder (üblich: 3).', ['name' => $team['name'], 'n' => $team['stamm']])];
             }
             if ((int) $team['fremd'] > 1) {
-                $hinweise[] = ['typ' => 'fehler', 'text' => "Team {$team['name']}: mehr als ein vereinsfremdes Mitglied (2:1-Regel)."];
+                $hinweise[] = ['typ' => 'fehler', 'text' => t('Team {name}: mehr als ein vereinsfremdes Mitglied (2:1-Regel).', ['name' => $team['name']])];
             }
             if ((int) $team['starts'] === 0 && (int) $team['stamm'] > 0) {
-                $hinweise[] = ['typ' => 'fehler', 'text' => "Team {$team['name']}: keiner Klasse zugeordnet."];
+                $hinweise[] = ['typ' => 'fehler', 'text' => t('Team {name}: keiner Klasse zugeordnet.', ['name' => $team['name']])];
             }
         }
         return $hinweise;
@@ -386,10 +389,10 @@ final class KlassenService
     {
         $klasse = $this->db->eine('SELECT * FROM klasse WHERE id = ? AND turnier_id = ?', [$klasseId, $turnierId]);
         if ($klasse === null) {
-            throw new FachFehler('Klasse nicht gefunden.');
+            throw new FachFehler(t('Klasse nicht gefunden.'));
         }
         if ($klasse['status'] !== 'offen') {
-            throw new FachFehler("Klasse {$klasse['code']} ist bereits ausgelost oder zusammengelegt.");
+            throw new FachFehler(t('Klasse {code} ist bereits ausgelost oder zusammengelegt.', ['code' => $klasse['code']]));
         }
         return $klasse;
     }
@@ -425,44 +428,44 @@ final class KlassenService
         $wertungFinale = ($d['wertung_finale'] ?? '') ?: null;
 
         if ($code === '') {
-            throw new FachFehler('Bitte einen Klassen-Code angeben (z. B. „C1“).');
+            throw new FachFehler(t('Bitte einen Klassen-Code angeben (z. B. „C1“).'));
         }
         if (!in_array($disziplin, self::DISZIPLINEN, true)) {
-            throw new FachFehler('Ungültige Disziplin.');
+            throw new FachFehler(t('Ungültige Disziplin.'));
         }
         if (!in_array($geschlecht, ['w', 'm', 'mixed'], true)) {
-            throw new FachFehler('Ungültiges Geschlecht.');
+            throw new FachFehler(t('Ungültiges Geschlecht.'));
         }
         if (!in_array($modus, self::MODI, true)) {
-            throw new FachFehler('Ungültiger Modus.');
+            throw new FachFehler(t('Ungültiger Modus.'));
         }
         if (!in_array($wertung, self::WERTUNGEN, true) || ($wertungFinale !== null && !in_array($wertungFinale, self::WERTUNGEN, true))) {
-            throw new FachFehler('Ungültiges Wertungssystem.');
+            throw new FachFehler(t('Ungültiges Wertungssystem.'));
         }
         if (in_array('sanbon', [$wertung, $wertungFinale], true) && $disziplin !== 'kumite') {
-            throw new FachFehler('Shobu Sanbon gibt es nur im Kumite Einzel.');
+            throw new FachFehler(t('Shobu Sanbon gibt es nur im Kumite Einzel.'));
         }
         if ($modus === 'punkte' && $wertung !== 'punkte') {
-            throw new FachFehler('Im Modus „Punkte-Vorrunde“ muss die Vorrunde im Punktesystem gewertet werden.');
+            throw new FachFehler(t('Im Modus „Punkte-Vorrunde“ muss die Vorrunde im Punktesystem gewertet werden.'));
         }
         $alterMin = $int($d['alter_min'] ?? null);
         $alterMax = $int($d['alter_max'] ?? null);
         $gradMin = $int($d['grad_min'] ?? null);
         $gradMax = $int($d['grad_max'] ?? null);
         if ($alterMin !== null && $alterMax !== null && $alterMin > $alterMax) {
-            throw new FachFehler('Das Mindestalter ist größer als das Höchstalter.');
+            throw new FachFehler(t('Das Mindestalter ist größer als das Höchstalter.'));
         }
         if ($gradMin !== null && $gradMax !== null && $gradMin > $gradMax) {
-            throw new FachFehler('Der Graduierungsbereich ist ungültig („von“ muss der niedrigere Grad sein).');
+            throw new FachFehler(t('Der Graduierungsbereich ist ungültig („von“ muss der niedrigere Grad sein).'));
         }
         $pools = max(1, min(16, (int) ($d['anzahl_pools'] ?? 1)));
         $aufsteiger = (int) ($d['aufsteiger_pro_pool'] ?? 2);
         if (!in_array($aufsteiger, [1, 2, 4, 8], true)) {
-            throw new FachFehler('Aufsteiger je Pool: 1, 2, 4 oder 8.');
+            throw new FachFehler(t('Aufsteiger je Pool: 1, 2, 4 oder 8.'));
         }
         $kampfrichter = (int) ($d['kampfrichter'] ?? 5);
         if (!in_array($kampfrichter, [3, 5, 7], true)) {
-            throw new FachFehler('Anzahl der Kampfrichter: 3, 5 oder 7.');
+            throw new FachFehler(t('Anzahl der Kampfrichter: 3, 5 oder 7.'));
         }
         $optionen = is_array($d['optionen'] ?? null) ? $d['optionen'] : json_decode((string) ($d['optionen'] ?? ''), true);
 

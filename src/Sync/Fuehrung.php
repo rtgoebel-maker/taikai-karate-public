@@ -37,9 +37,11 @@ final class Fuehrung
     /** @param array<string, mixed> $turnier */
     public static function text(array $turnier): string
     {
-        $wo = ($turnier['fuehrung_name'] ?? '') !== '' ? '„' . $turnier['fuehrung_name'] . '“' : 'einer anderen Installation';
-        $seit = ($turnier['fuehrung_seit'] ?? '') !== '' ? ' seit ' . date('d.m.Y H:i', (int) strtotime((string) $turnier['fuehrung_seit'])) : '';
-        $stand = ($turnier['fuehrung_stand'] ?? '') !== '' ? ' Angezeigt wird der Stand von ' . date('d.m.Y H:i', (int) strtotime((string) $turnier['fuehrung_stand'])) . ' Uhr.' : '';
-        return "Nur lesend: Das Turnier wird$seit auf $wo geführt. Änderungen bitte dort vornehmen.$stand";
+        $wo = ($turnier['fuehrung_name'] ?? '') !== '' ? '„' . $turnier['fuehrung_name'] . '“' : t('einer anderen Installation');
+        $text = ($turnier['fuehrung_seit'] ?? '') !== ''
+            ? t('Nur lesend: Das Turnier wird seit {seit} auf {wo} geführt. Änderungen bitte dort vornehmen.', ['seit' => date('d.m.Y H:i', (int) strtotime((string) $turnier['fuehrung_seit'])), 'wo' => $wo])
+            : t('Nur lesend: Das Turnier wird auf {wo} geführt. Änderungen bitte dort vornehmen.', ['wo' => $wo]);
+        $stand = ($turnier['fuehrung_stand'] ?? '') !== '' ? ' ' . t('Angezeigt wird der Stand von {zeit} Uhr.', ['zeit' => date('d.m.Y H:i', (int) strtotime((string) $turnier['fuehrung_stand']))]) : '';
+        return $text . $stand;
     }
 }

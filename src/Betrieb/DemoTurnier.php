@@ -63,18 +63,18 @@ final class DemoTurnier
     public function anlegen(string $datum, ?string $name = null, bool $mitTeams = false, ?int $logosVon = null, string $phase = TurnierPhase::VORBEREITUNG): array
     {
         if (!isset(self::PHASEN[$phase])) {
-            throw new FachFehler('Unbekannte Turnierphase.');
+            throw new FachFehler(t('Unbekannte Turnierphase.'));
         }
         $tag = DateTimeImmutable::createFromFormat('!Y-m-d', $datum);
         if ($tag === false || $tag->format('Y-m-d') !== $datum) {
-            throw new FachFehler('Bitte ein gültiges Datum angeben.');
+            throw new FachFehler(t('Bitte ein gültiges Datum angeben.'));
         }
         $name = trim((string) $name);
         if (mb_strlen($name) > 200) {
-            throw new FachFehler('Der Name ist zu lang.');
+            throw new FachFehler(t('Der Name ist zu lang.'));
         }
         if ($logosVon !== null && $this->db->wert('SELECT id FROM turnier WHERE id = ?', [$logosVon]) === null) {
-            throw new FachFehler('Turnier für die Logos nicht gefunden.');
+            throw new FachFehler(t('Turnier für die Logos nicht gefunden.'));
         }
         return $this->db->transaktion(function () use ($tag, $name, $mitTeams, $logosVon, $phase) {
             $demo = $this->erzeugen($tag, $name !== '' ? $name : null, $mitTeams, $logosVon);

@@ -3,18 +3,18 @@
  * @var array<string, mixed> $turnier
  * @var list<array<string, mixed>> $klassen
  */
-$this->layout('layout', ['titel' => 'Ergebnisse', 'turnier' => $turnier, 'aktiv' => 'ergebnisse']);
+$this->layout('layout', ['titel' => t('Ergebnisse'), 'turnier' => $turnier, 'aktiv' => 'ergebnisse']);
 $tid = $turnier['id'];
-$statusText = ['ausgelost' => 'ausgelost', 'laeuft' => 'läuft', 'beendet' => 'beendet – zu bestätigen', 'bestaetigt' => 'bestätigt'];
+$statusText = ['ausgelost' => t('ausgelost'), 'laeuft' => t('läuft'), 'beendet' => t('beendet – zu bestätigen'), 'bestaetigt' => t('bestätigt')];
 $statusTag = ['ausgelost' => '', 'laeuft' => 'warn', 'beendet' => 'info', 'bestaetigt' => 'ok'];
 ?>
 <div class="titelzeile">
-    <h1>Ergebnisse <?= info('ergebnisse') ?></h1>
-    <a class="knopf" href="<?= e(url("turnier/$tid/druck/siegerliste")) ?>" target="_blank">Siegerliste drucken</a>
+    <h1><?= te('Ergebnisse') ?> <?= info('ergebnisse') ?></h1>
+    <a class="knopf" href="<?= e(url("turnier/$tid/druck/siegerliste")) ?>" target="_blank"><?= te('Siegerliste drucken') ?></a>
 </div>
-<p class="leise">Platzierungen werden nach dem letzten Kampf einer Klasse automatisch berechnet und erscheinen erst nach Bestätigung in Siegerliste und Statusseite.</p>
+<p class="leise"><?= te('Platzierungen werden nach dem letzten Kampf einer Klasse automatisch berechnet und erscheinen erst nach Bestätigung in Siegerliste und Statusseite.') ?></p>
 <table class="tabelle">
-    <thead><tr><th>Klasse</th><th>Fortschritt</th><th>Status</th><th>1.</th><th>2.</th><th>3.</th><th>4.</th><th></th></tr></thead>
+    <thead><tr><th><?= te('Klasse') ?></th><th><?= te('Fortschritt') ?></th><th><?= te('Status') ?></th><th>1.</th><th>2.</th><th>3.</th><th>4.</th><th></th></tr></thead>
     <tbody>
     <?php foreach ($klassen as $k):
         $platz = array_column($k['platzierungen'], null, 'platz');
@@ -28,11 +28,11 @@ $statusTag = ['ausgelost' => '', 'laeuft' => 'warn', 'beendet' => 'info', 'besta
             <?php endfor; ?>
             <td>
                 <?php if ($k['status'] === 'beendet'): ?>
-                    <form method="post" action="<?= e(url("turnier/$tid/klasse/{$k['id']}/bestaetigen")) ?>"><?= csrf_feld() ?><button class="knopf klein primaer" type="submit">Bestätigen</button></form>
+                    <form method="post" action="<?= e(url("turnier/$tid/klasse/{$k['id']}/bestaetigen")) ?>"><?= csrf_feld() ?><button class="knopf klein primaer" type="submit"><?= te('Bestätigen') ?></button></form>
                 <?php endif; ?>
             </td>
         </tr>
     <?php endforeach; ?>
-    <?php if (!$klassen): ?><tr><td colspan="8" class="leise">Noch keine ausgelosten Klassen.</td></tr><?php endif; ?>
+    <?php if (!$klassen): ?><tr><td colspan="8" class="leise"><?= te('Noch keine ausgelosten Klassen.') ?></td></tr><?php endif; ?>
     </tbody>
 </table>

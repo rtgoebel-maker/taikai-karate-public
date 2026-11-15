@@ -123,6 +123,8 @@ body.offline .kopf { background: #5b1f1f; }
 .kopf .vollbild { margin-left: auto; min-width: 2.4rem; min-height: 2.2rem; border: 1px solid #8fa0bf; border-radius: 8px; background: transparent; color: #fff; font: inherit; font-size: 1.1rem; line-height: 1; cursor: pointer; }
 .kopf .vollbild.an { background: rgba(255, 255, 255, .15); }
 .kopf .vollbild[hidden] { display: none; }
+.kopf .kopf-sprache { margin-left: auto; color: #fff; font-size: .8rem; text-decoration: none; border: 1px solid #8fa0bf; border-radius: 8px; padding: .2rem .5rem; white-space: nowrap; }
+.kopf .vollbild:not([hidden]) + .kopf-sprache { margin-left: 0; }
 /* Querformat mit Notch: Inhalt nicht unter der Kamera */
 .kopf, .ansichten { padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); }
 @media (max-width: 440px) { .ansichten { padding-left: max(.6rem, env(safe-area-inset-left)); padding-right: max(.6rem, env(safe-area-inset-right)); } }

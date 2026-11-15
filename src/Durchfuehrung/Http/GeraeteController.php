@@ -55,7 +55,7 @@ final class GeraeteController extends Controller
     {
         $this->turnier($id);
         $this->app->geraeteKopplung()->freigeben($id, $geraetid, Session::akteur());
-        $this->erfolg('Gerät freigegeben – es meldet sich in wenigen Sekunden selbst an.');
+        $this->erfolg(t('Gerät freigegeben – es meldet sich in wenigen Sekunden selbst an.'));
         return $this->weiter("turnier/$id/geraete");
     }
 
@@ -63,7 +63,7 @@ final class GeraeteController extends Controller
     {
         $this->turnier($id);
         $this->app->geraeteKopplung()->sperren($id, $geraetid);
-        $this->erfolg('Gerät abgemeldet und gesperrt.');
+        $this->erfolg(t('Gerät abgemeldet und gesperrt.'));
         return $this->weiter("turnier/$id/geraete");
     }
 
@@ -78,7 +78,7 @@ final class GeraeteController extends Controller
     {
         $this->turnier($id);
         $this->app->geraeteKopplung()->qrErneuern($id, (int) $request->zahl('tatami_id'));
-        $this->erfolg('Neue QR-Codes erzeugt – die alten (auch ausgedruckte) gelten nicht mehr. Gekoppelte Geräte bleiben angemeldet.');
+        $this->erfolg(t('Neue QR-Codes erzeugt – die alten (auch ausgedruckte) gelten nicht mehr. Gekoppelte Geräte bleiben angemeldet.'));
         return $this->weiter("turnier/$id/geraete");
     }
 
@@ -89,7 +89,7 @@ final class GeraeteController extends Controller
         $erlaubt = $request->post('erlaubt') !== null;
         $this->db->update('turnier', ['tisch_pin_erlaubt' => $erlaubt ? 1 : 0], ['id' => $id]);
         (new Protokoll($this->db))->eintragen($id, 'turnier', $id, 'tisch_pin', ['erlaubt' => $erlaubt]);
-        $this->erfolg($erlaubt ? 'Anmeldung per PIN ist wieder möglich.' : 'Anmeldung per PIN abgeschaltet – Geräte nur noch per QR-Code mit Freigabe.');
+        $this->erfolg($erlaubt ? t('Anmeldung per PIN ist wieder möglich.') : t('Anmeldung per PIN abgeschaltet – Geräte nur noch per QR-Code mit Freigabe.'));
         return $this->weiter("turnier/$id/geraete");
     }
 

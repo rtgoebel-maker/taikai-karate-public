@@ -35,7 +35,7 @@
                 await Wettkampf.post(url, { phase_id: gezogen.dataset.phase, tatami_id: spalte.dataset.tatami, position });
                 location.reload();
             } catch (fehler) {
-                Wettkampf.hinweis(fehler.message, { titel: 'Verschieben nicht möglich', art: 'gefahr' });
+                Wettkampf.hinweis(fehler.message, { titel: Wettkampf.t('Verschieben nicht möglich'), art: 'gefahr' });
             }
         });
     });

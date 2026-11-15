@@ -21,6 +21,7 @@ use Wettkampf\Meldung\RechnungService;
  * - LIESMICH.txt und pruefsummen.sha256 (SHA-256 je Datei, Nachweis der Unverändertheit)
  *
  * Belege entstehen aus dem aktuellen Stand – deshalb vor der Pseudonymisierung exportieren (wird vermerkt).
+ * Dateinamen im ZIP bleiben immer gleich; Inhalte (Spaltenköpfe, LIESMICH, Vermerk) in der Sprache der auslösenden Person.
  */
 final class Buchhaltungsexport
 {
@@ -35,20 +36,20 @@ final class Buchhaltungsexport
     public function erstellen(int $turnierId): string
     {
         if (!class_exists(\ZipArchive::class)) {
-            throw new FachFehler('ZIP-Export ist auf diesem Server nicht verfügbar (PHP-Erweiterung zip).');
+            throw new FachFehler(t('ZIP-Export ist auf diesem Server nicht verfügbar (PHP-Erweiterung zip).'));
         }
-        $turnier = $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler('Turnier nicht gefunden.');
+        $turnier = $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler(t('Turnier nicht gefunden.'));
         if (DatenschutzEinstellungen::lesen($turnier)['pseudonymisiert_am'] !== null) {
-            throw new FachFehler('Das Turnier ist bereits pseudonymisiert – der Buchhaltungsexport muss vorher erstellt werden. Bitte die damals exportierte Datei verwenden.');
+            throw new FachFehler(t('Das Turnier ist bereits pseudonymisiert – der Buchhaltungsexport muss vorher erstellt werden. Bitte die damals exportierte Datei verwenden.'));
         }
         $jetzt = date('Y-m-d H:i:s');
-        $vermerk = 'Archivkopie aus Taikai – Karate, erstellt am ' . date('d.m.Y H:i', (int) strtotime($jetzt)) . ' · ' . $turnier['name'];
+        $vermerk = t('Archivkopie aus Taikai – Karate, erstellt am {zeit} · {turnier}', ['zeit' => self::zeit($jetzt), 'turnier' => $turnier['name']]);
         $dateien = [];
 
         $rechnungen = new RechnungService($this->db);
         $anmeldungen = $this->db->alle('SELECT * FROM anmeldung WHERE turnier_id = ? ORDER BY id', [$turnierId]);
-        $zeilen = [['Nummer', 'Dojo', 'Ansprechpartner', 'E-Mail', 'Status', 'Eingereicht am', 'Zahlungsaufforderung Version', 'Zahlungsaufforderung vom',
-            'Betrag (EUR)', 'Bezahlt (EUR)', 'Bezahlt am', 'Offen (EUR)', 'Notiz zur Zahlung', 'Beleg']];
+        $zeilen = [[t('Nummer'), t('Dojo'), t('Ansprechpartner'), t('E-Mail'), t('Status'), t('Eingereicht am'), t('Zahlungsaufforderung Version'), t('Zahlungsaufforderung vom'),
+            t('Betrag (EUR)'), t('Bezahlt (EUR)'), t('Bezahlt am'), t('Offen (EUR)'), t('Notiz zur Zahlung'), t('Beleg')]];
         foreach ($anmeldungen as $a) {
             $nummer = $rechnungen->nummerAnmeldung($turnier, (int) $a['id']);
             $beleg = '';
@@ -68,7 +69,7 @@ final class Buchhaltungsexport
         // Rechnungen je Dojo nur, wenn die Leitung die Rechnungsseite eingerichtet hat (Absender eingetragen)
         if ($rechnungen->einstellungen($turnier)['absender'] !== '') {
             $e = $rechnungen->einstellungen($turnier);
-            $zeilen = [['Rechnungs-Nr.', 'Dojo', 'Rechnungsdatum', 'Fällig', 'Betrag (EUR)', 'Beleg']];
+            $zeilen = [[t('Rechnungs-Nr.'), t('Dojo'), t('Rechnungsdatum'), t('Fällig'), t('Betrag (EUR)'), t('Beleg')]];
             foreach ($rechnungen->rechnungen($turnierId) as $r) {
                 $beleg = '';
                 if (PdfBeleg::verfuegbar()) {
@@ -88,7 +89,8 @@ final class Buchhaltungsexport
         // Versendete E-Mails (Geschäftsbriefe) mit Anhängen
         foreach ($this->db->alle('SELECT * FROM mail_ausgang WHERE turnier_id = ? AND gesendet_am IS NOT NULL ORDER BY id', [$turnierId]) as $m) {
             $basis = 'mails/' . substr(str_replace([' ', ':', '-'], '', (string) $m['gesendet_am']), 0, 14) . '-' . (int) $m['id'] . '-' . self::dateiname((string) $m['anlass']);
-            $dateien[$basis . '.txt'] = "An: {$m['empfaenger']}\nBetreff: {$m['betreff']}\nErstellt: {$m['erstellt_am']}\nGesendet: {$m['gesendet_am']}\n\n{$m['text']}\n";
+            $dateien[$basis . '.txt'] = t('An') . ": {$m['empfaenger']}\n" . t('Betreff') . ": {$m['betreff']}\n" . t('Erstellt') . ": {$m['erstellt_am']}\n"
+                . t('Gesendet') . ": {$m['gesendet_am']}\n\n{$m['text']}\n";
             foreach (json_decode((string) ($m['anhaenge'] ?? ''), true) ?: [] as $i => $anhang) {
                 if (is_array($anhang) && isset($anhang['name'], $anhang['daten'])) {
                     $dateien[$basis . '-anhang' . ($i + 1) . '-' . self::dateiname((string) $anhang['name'])] = (string) base64_decode((string) $anhang['daten'], true);
@@ -96,7 +98,7 @@ final class Buchhaltungsexport
             }
         }
 
-        $zeilen = [['Zeit', 'Anmeldung', 'Aktion', 'Angaben', 'Durch']];
+        $zeilen = [[t('Zeit'), t('Anmeldung'), t('Aktion'), t('Angaben'), t('Durch')]];
         foreach ($this->db->alle("SELECT * FROM audit_log WHERE turnier_id = ? AND entitaet = 'anmeldung' ORDER BY id", [$turnierId]) as $p) {
             $zeilen[] = [$p['zeit'], $p['entitaet_id'], $p['aktion'], $p['daten'], $p['benutzer']];
         }
@@ -112,7 +114,7 @@ final class Buchhaltungsexport
         $datei = (string) tempnam(sys_get_temp_dir(), 'bh');
         $zip = new \ZipArchive();
         if ($zip->open($datei, \ZipArchive::OVERWRITE) !== true) {
-            throw new FachFehler('Die ZIP-Datei konnte nicht angelegt werden.');
+            throw new FachFehler(t('Die ZIP-Datei konnte nicht angelegt werden.'));
         }
         foreach ($dateien as $name => $inhalt) {
             $zip->addFromString($name, $inhalt);
@@ -137,21 +139,33 @@ final class Buchhaltungsexport
     /** @param array<string, mixed> $turnier */
     private function liesmich(array $turnier, string $jetzt, int $anmeldungen): string
     {
-        return "Buchhaltungsexport – {$turnier['name']} ({$turnier['datum']})\n"
-            . 'Erstellt am ' . date('d.m.Y H:i', (int) strtotime($jetzt)) . " mit Taikai – Karate.\n\n"
-            . "Inhalt\n"
-            . "- zahlungen.csv: {$anmeldungen} Online-Anmeldungen mit Zahlungsaufforderung (Nummer = Verwendungszweck), Zahlungseingang und offenem Betrag\n"
-            . "- belege/: Rechnung bzw. Zahlungsbeleg je Anmeldung als PDF (Posten, ohne Starterliste); ggf. Rechnungen je Dojo (rechnungen-je-dojo.csv)\n"
-            . "- mails/: versendete E-Mails des Turniers (Anmeldebestätigungen, Zahlungsaufforderungen) mit Anhängen\n"
-            . "- verlauf-zahlungen.csv: Änderungsverlauf der Anmeldungen (eingereicht, geändert, Zahlung erfasst, freigegeben …)\n"
-            . "- pruefsummen.sha256: SHA-256 je Datei (prüfen z. B. mit: sha256sum -c pruefsummen.sha256)\n\n"
-            . "Aufbewahrung\n"
-            . "Diese Datei unverändert außerhalb von Taikai – Karate archivieren (z. B. beim Kassenwart bzw. in der Vereinsbuchhaltung).\n"
-            . "Die Software ist kein Archiv: Nach Ablauf der Löschfrist werden die Personenangaben dort pseudonymisiert.\n"
-            . "Fristen nach § 147 AO / § 257 HGB (Stand 2025): Buchungsbelege wie Rechnungen 8 Jahre, Geschäftsbriefe 6 Jahre,\n"
-            . "jeweils ab Ende des Kalenderjahres. Für gemeinnützige Vereine bitte mit Kassenprüfung bzw. Steuerberatung abstimmen.\n"
-            . "Die Datei enthält personenbezogene Daten (meldende Personen und E-Mails an sie): nur für Berechtigte zugänglich ablegen\n"
-            . "und nach Ablauf der Frist löschen.\n";
+        return implode("\n", [
+            t('Buchhaltungsexport – {turnier} ({datum})', ['turnier' => $turnier['name'], 'datum' => $turnier['datum']]),
+            t('Erstellt am {zeit} mit Taikai – Karate.', ['zeit' => self::zeit($jetzt)]),
+            '',
+            t('Inhalt'),
+            t('- zahlungen.csv: {anzahl} Online-Anmeldungen mit Zahlungsaufforderung (Nummer = Verwendungszweck), Zahlungseingang und offenem Betrag', ['anzahl' => $anmeldungen]),
+            t('- belege/: Rechnung bzw. Zahlungsbeleg je Anmeldung als PDF (Posten, ohne Starterliste); ggf. Rechnungen je Dojo (rechnungen-je-dojo.csv)'),
+            t('- mails/: versendete E-Mails des Turniers (Anmeldebestätigungen, Zahlungsaufforderungen) mit Anhängen'),
+            t('- verlauf-zahlungen.csv: Änderungsverlauf der Anmeldungen (eingereicht, geändert, Zahlung erfasst, freigegeben …)'),
+            t('- pruefsummen.sha256: SHA-256 je Datei (prüfen z. B. mit: sha256sum -c pruefsummen.sha256)'),
+            '',
+            t('Aufbewahrung'),
+            t('Diese Datei unverändert außerhalb von Taikai – Karate archivieren (z. B. beim Kassenwart bzw. in der Vereinsbuchhaltung).'),
+            t('Die Software ist kein Archiv: Nach Ablauf der Löschfrist werden die Personenangaben dort pseudonymisiert.'),
+            t('Fristen nach § 147 AO / § 257 HGB (Stand 2025): Buchungsbelege wie Rechnungen 8 Jahre, Geschäftsbriefe 6 Jahre,'),
+            t('jeweils ab Ende des Kalenderjahres. Für gemeinnützige Vereine bitte mit Kassenprüfung bzw. Steuerberatung abstimmen.'),
+            t('Die Datei enthält personenbezogene Daten (meldende Personen und E-Mails an sie): nur für Berechtigte zugänglich ablegen'),
+            t('und nach Ablauf der Frist löschen.'),
+            '',
+        ]);
+    }
+
+    /** Zeitpunkt (JJJJ-MM-TT HH:MM:SS) als Datum in der aktuellen Sprache mit Uhrzeit, z. B. 14.03.2026 10:15. */
+    private static function zeit(string $iso): string
+    {
+        $ts = (int) strtotime($iso);
+        return datum_de(date('Y-m-d', $ts)) . date(' H:i', $ts);
     }
 
     /** @param list<list<mixed>> $zeilen */

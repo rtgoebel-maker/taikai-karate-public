@@ -58,7 +58,7 @@ final class SicherheitController extends Controller
     public function appEinrichten(Request $request): Response
     {
         $id = $this->ich();
-        $geheimnis = $_SESSION[self::GEHEIMNIS] ?? throw new FachFehler('Bitte die Seite neu laden und den QR-Code erneut scannen.');
+        $geheimnis = $_SESSION[self::GEHEIMNIS] ?? throw new FachFehler(t('Bitte die Seite neu laden und den QR-Code erneut scannen.'));
         $drossel = new Drossel($this->db);
         $drossel->pruefen('app-einrichten:' . $id, 10, 600);
         $drossel->zaehlen('app-einrichten:' . $id, 600);
@@ -71,8 +71,8 @@ final class SicherheitController extends Controller
     {
         $id = $this->passwortBestaetigt($request);
         $this->app->authenticatorApp()->entfernen($id, 'selbst');
-        $this->erfolg('Authenticator-App entfernt.' . ($this->app->zweiterFaktorPflicht() && $this->app->postausgang() === null
-            ? ' Bei der nächsten Anmeldung muss sie neu eingerichtet werden (zweiter Faktor ist Pflicht).' : ''));
+        $this->erfolg(t('Authenticator-App entfernt.') . ($this->app->zweiterFaktorPflicht() && $this->app->postausgang() === null
+            ? ' ' . t('Bei der nächsten Anmeldung muss sie neu eingerichtet werden (zweiter Faktor ist Pflicht).') : ''));
         return $this->weiter('konto/sicherheit');
     }
 
@@ -80,7 +80,7 @@ final class SicherheitController extends Controller
     {
         $id = $this->passwortBestaetigt($request);
         if (!$this->app->authenticatorApp()->aktiv($id)) {
-            throw new FachFehler('Bitte zuerst die Authenticator-App einrichten.');
+            throw new FachFehler(t('Bitte zuerst die Authenticator-App einrichten.'));
         }
         return $this->seite('auth/wiederherstellung', ['codes' => $this->app->authenticatorApp()->wiederherstellungNeu($id), 'weiter' => url('konto/sicherheit')]);
     }
@@ -101,11 +101,11 @@ final class SicherheitController extends Controller
             Session::rechteAktualisieren($rechte['name'], $rechte['admin'], $rechte['turniere'], $rechte['verein']);
         }
         if ($alt !== null) {
-            $this->app->postausgang()?->einreihen($alt, 'E-Mail-Adresse geändert – Taikai – Karate', self::hinweisText(
-                'die E-Mail-Adresse Ihres Kontos wurde gerade auf ' . $neueEmail . ' geändert. Mit ihr melden Sie sich künftig an.',
+            $this->app->postausgang()?->einreihen($alt, t('E-Mail-Adresse geändert – Taikai – Karate'), self::hinweisText(
+                t('die E-Mail-Adresse Ihres Kontos wurde gerade auf {email} geändert. Mit ihr melden Sie sich künftig an.', ['email' => $neueEmail]),
             ), 'konto_email_geaendert');
         }
-        $this->erfolg($alt !== null ? 'Angaben gespeichert – künftig mit ' . $neueEmail . ' anmelden.' : 'Angaben gespeichert.');
+        $this->erfolg($alt !== null ? t('Angaben gespeichert – künftig mit {email} anmelden.', ['email' => $neueEmail]) : t('Angaben gespeichert.'));
         return $this->weiter('konto/sicherheit');
     }
 
@@ -114,7 +114,7 @@ final class SicherheitController extends Controller
     {
         $neu = (string) $request->post('neu', '');
         if ($neu !== (string) $request->post('neu2', '')) {
-            throw new FachFehler('Die beiden Eingaben des neuen Passworts stimmen nicht überein.');
+            throw new FachFehler(t('Die beiden Eingaben des neuen Passworts stimmen nicht überein.'));
         }
         Konten::passwortPruefen($neu);
         $id = $this->passwortBestaetigt($request);
@@ -123,30 +123,30 @@ final class SicherheitController extends Controller
             session_regenerate_id(true);
         }
         $email = (string) ($this->db->wert('SELECT email FROM benutzer WHERE id = ?', [$id]) ?? '');
-        $this->app->postausgang()?->einreihen($email, 'Passwort geändert – Taikai – Karate', self::hinweisText(
-            'das Passwort Ihres Kontos wurde gerade geändert. Vertraute Geräte fragen bei der nächsten Anmeldung wieder nach dem Code.',
+        $this->app->postausgang()?->einreihen($email, t('Passwort geändert – Taikai – Karate'), self::hinweisText(
+            t('das Passwort Ihres Kontos wurde gerade geändert. Vertraute Geräte fragen bei der nächsten Anmeldung wieder nach dem Code.'),
         ), 'konto_passwort_geaendert');
-        $this->erfolg('Passwort geändert.');
+        $this->erfolg(t('Passwort geändert.'));
         return $this->weiter('konto/sicherheit');
     }
 
     private static function hinweisText(string $was): string
     {
-        return "Guten Tag,\n\n$was\n\n"
-            . "Das waren nicht Sie? Dann bitte sofort über „Passwort vergessen“ ein neues Passwort setzen und die Administration informieren.\n"
-            . "\n-- \nDiese Nachricht wurde automatisch von Taikai – Karate verschickt.";
+        return t('Guten Tag,') . "\n\n$was\n\n"
+            . t('Das waren nicht Sie? Dann bitte sofort über „Passwort vergessen“ ein neues Passwort setzen und die Administration informieren.') . "\n"
+            . "\n-- \n" . t('Diese Nachricht wurde automatisch von Taikai – Karate verschickt.');
     }
 
     public function vertrauenWiderrufen(Request $request): Response
     {
         (new KontoVertrauen($this->db))->widerrufen($this->ich());
-        $this->erfolg('Kein Gerät wird mehr ohne Code angemeldet.');
+        $this->erfolg(t('Kein Gerät wird mehr ohne Code angemeldet.'));
         return $this->weiter('konto/sicherheit');
     }
 
     private function ich(): int
     {
-        return (int) (Session::benutzer()['id'] ?? throw new FachFehler('Bitte anmelden.'));
+        return (int) (Session::benutzer()['id'] ?? throw new FachFehler(t('Bitte anmelden.')));
     }
 
     /** Passwort des eigenen Kontos prüfen; Fehlversuche sperren wie beim Login. */
@@ -159,7 +159,7 @@ final class SicherheitController extends Controller
         $schutz->pruefen($ziel, $ip);
         if (!(new Konten($this->db))->passwortStimmt($id, (string) $request->post('passwort', ''))) {
             $schutz->fehlschlag($ziel, $ip);
-            throw new FachFehler('Das Passwort ist falsch.');
+            throw new FachFehler(t('Das Passwort ist falsch.'));
         }
         $schutz->erfolg($ziel, $ip);
         return $id;

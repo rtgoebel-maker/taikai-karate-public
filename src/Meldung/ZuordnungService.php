@@ -56,7 +56,7 @@ final class ZuordnungService
 
         $hinweise = [];
         if ($t['min_graduierung'] !== null && (int) $t['graduierung'] < (int) $t['min_graduierung']) {
-            $hinweise[] = "$name: Graduierung unter der Mindestgraduierung des Turniers.";
+            $hinweise[] = t('{name}: Graduierung unter der Mindestgraduierung des Turniers.', ['name' => $name]);
         }
         foreach (['kata', 'kumite'] as $disziplin) {
             $vorhanden = array_values(array_filter($starts, fn($s) => ($this->klassen[$s['klasse_id']]['disziplin'] ?? null) === $disziplin));
@@ -67,7 +67,7 @@ final class ZuordnungService
             $kandidat = new Kandidat($disziplin, $t['geschlecht'], $alter, (int) $t['graduierung'], $meldungen[$disziplin]);
             $hinweis = $this->einordnen($kandidat, $vorhanden, ['teilnahme_id' => $teilnahmeId]);
             if ($hinweis !== null) {
-                $hinweise[] = "$name: $hinweis";
+                $hinweise[] = t('{name}: {hinweis}', ['name' => $name, 'hinweis' => $hinweis]);
             }
         }
         return $hinweise;
@@ -98,10 +98,10 @@ final class ZuordnungService
         $starts = $this->db->alle('SELECT * FROM start WHERE team_id = ?', [$teamId]);
         if ($mitglieder === []) {
             $this->autoStartsEntfernen($starts);
-            return ["Team {$team['name']}: noch keine Mitglieder."];
+            return [t('Team {name}: noch keine Mitglieder.', ['name' => $team['name']])];
         }
         $hinweis = $this->einordnen(Kandidat::team($team['disziplin'], $mitglieder), $starts, ['team_id' => $teamId]);
-        return $hinweis === null ? [] : ["Team {$team['name']}: $hinweis"];
+        return $hinweis === null ? [] : [t('Team {name}: {hinweis}', ['name' => $team['name'], 'hinweis' => $hinweis])];
     }
 
     /** @return array{starts: int, hinweise: list<string>} */
@@ -155,19 +155,19 @@ final class ZuordnungService
         }
         if ($ergebnis['status'] === 'keine') {
             $this->autoStartsEntfernen($vorhanden);
-            return "$text gemeldet, aber keine passende Klasse (Alter/Graduierung/Geschlecht prüfen).";
+            return t('{disziplin} gemeldet, aber keine passende Klasse (Alter/Graduierung/Geschlecht prüfen).', ['disziplin' => $text]);
         }
         if (count($ziele) > 1) {
             $codes = implode(' / ', array_map(fn($id) => $this->klassen[$id]['code'], array_keys($ziele)));
-            return "$text: mehrere Klassen möglich ($codes) – bitte Kumite-Form angeben oder Klasse manuell wählen.";
+            return t('{disziplin}: mehrere Klassen möglich ({codes}) – bitte Kumite-Form angeben oder Klasse manuell wählen.', ['disziplin' => $text, 'codes' => $codes]);
         }
         $zielId = (int) array_key_first($ziele);
         $herkunft = $ziele[$zielId] !== $zielId ? $ziele[$zielId] : null;
         if ($this->klassen[$zielId]['status'] !== 'offen') {
-            return "$text: Klasse {$this->klassen[$zielId]['code']} ist bereits ausgelost – Start bitte manuell nachtragen.";
+            return t('{disziplin}: Klasse {klasse} ist bereits ausgelost – Start bitte manuell nachtragen.', ['disziplin' => $text, 'klasse' => $this->klassen[$zielId]['code']]);
         }
         if (!$this->autoStartsEntfernen($vorhanden)) {
-            return "$text: bisherige Klasse ist bereits ausgelost – Wechsel bitte manuell prüfen.";
+            return t('{disziplin}: bisherige Klasse ist bereits ausgelost – Wechsel bitte manuell prüfen.', ['disziplin' => $text]);
         }
         $this->db->insert('start', $wer + ['klasse_id' => $zielId, 'herkunft_klasse_id' => $herkunft, 'manuell' => 0]);
         return null;
@@ -233,8 +233,8 @@ final class ZuordnungService
         return match ($d) {
             'kata' => 'Kata',
             'kumite' => 'Kumite',
-            'kata_team' => 'Kata-Team',
-            'kumite_team' => 'Kumite-Team',
+            'kata_team' => t('Kata-Team'),
+            'kumite_team' => t('Kumite-Team'),
             default => $d,
         };
     }

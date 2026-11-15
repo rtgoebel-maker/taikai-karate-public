@@ -36,7 +36,7 @@ final class AuslosungService
         return $this->db->transaktion(function () use ($turnierId, $klasseId, $seed) {
             $klasse = $this->klasse($turnierId, $klasseId);
             if ($klasse['status'] === 'zusammengelegt') {
-                throw new FachFehler("Klasse {$klasse['code']} ist zusammengelegt – bitte die Zielklasse auslosen.");
+                throw new FachFehler(t('Klasse {code} ist zusammengelegt – bitte die Zielklasse auslosen.', ['code' => $klasse['code']]));
             }
             $tatamis = [];
             if ($klasse['status'] !== 'offen') {
@@ -47,8 +47,9 @@ final class AuslosungService
 
             $starter = $this->starter($klasseId);
             if (!KlassenService::findetStatt($klasse, count($starter))) {
-                throw new FachFehler("Klasse {$klasse['code']} hat nur " . count($starter) . ' von mindestens ' . KlassenService::mindestens($klasse)
-                    . ' Startern und findet nicht statt. Bitte zusammenlegen oder die Mindestanzahl der Klasse anpassen.');
+                throw new FachFehler(t('Klasse {code} hat nur {n} von mindestens {min} Startern und findet nicht statt. Bitte zusammenlegen oder die Mindestanzahl der Klasse anpassen.', [
+                    'code' => $klasse['code'], 'n' => count($starter), 'min' => KlassenService::mindestens($klasse),
+                ]));
             }
             $seed ??= Zufall::neuerSeed();
             $ergebnis = $this->erzeugung->klasseErzeugen($klasse, $starter, new Zufall($seed));
@@ -115,7 +116,7 @@ final class AuslosungService
                 return;
             }
             if ($this->hatErgebnisse($klasseId)) {
-                throw new FachFehler("In Klasse {$klasse['code']} liegen bereits Ergebnisse vor. Die Auslosung kann nicht mehr geändert werden.");
+                throw new FachFehler(t('In Klasse {code} liegen bereits Ergebnisse vor. Die Auslosung kann nicht mehr geändert werden.', ['code' => $klasse['code']]));
             }
             $this->db->delete('phase', ['klasse_id' => $klasseId]);
             $this->db->delete('platzierung', ['klasse_id' => $klasseId]);
@@ -202,6 +203,6 @@ final class AuslosungService
     private function klasse(int $turnierId, int $klasseId): array
     {
         return $this->db->eine('SELECT * FROM klasse WHERE id = ? AND turnier_id = ?', [$klasseId, $turnierId])
-            ?? throw new FachFehler('Klasse nicht gefunden.');
+            ?? throw new FachFehler(t('Klasse nicht gefunden.'));
     }
 }

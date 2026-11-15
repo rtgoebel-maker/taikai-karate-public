@@ -14,8 +14,8 @@ $laufend = count(array_filter($tatamis, static fn ($t) => $t['laufend'] !== null
     && ($t['laufend']['status'] === 'laeuft' || !empty($t['laufend']['gruppe_begonnen']) || !empty($t['laufend']['aufruf']['fertig']))));
 ?>
 <div class="live-kopf">
-    <div><strong><?= $laufend ?></strong> Tatamis im Einsatz</div>
-    <div><strong><?= (int) $zahlen['beendet'] ?> / <?= (int) $zahlen['gesamt'] ?></strong> Kämpfe und Vorträge beendet</div>
+    <div><?= th('<strong>{n}</strong> Tatamis im Einsatz', ['n' => $laufend]) ?></div>
+    <div><?= th('<strong>{beendet} / {gesamt}</strong> Kämpfe und Vorträge beendet', ['beendet' => (int) $zahlen['beendet'], 'gesamt' => (int) $zahlen['gesamt']]) ?></div>
 </div>
 <div class="tatami-reihe-rahmen">
     <div class="tatami-reihe" style="--tatamis: <?= max(1, count($tatamis)) ?>">

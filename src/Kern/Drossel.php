@@ -20,7 +20,7 @@ final class Drossel
     public function pruefen(string $ziel, int $max, int $sekunden, ?int $jetzt = null): void
     {
         if ($this->anzahl($ziel, $sekunden, $jetzt ?? time()) >= $max) {
-            throw new FachFehler('Zu viele Anfragen in kurzer Zeit. Bitte später erneut versuchen.');
+            throw new FachFehler(t('Zu viele Anfragen in kurzer Zeit. Bitte später erneut versuchen.'));
         }
     }
 

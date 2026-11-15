@@ -51,7 +51,7 @@ abstract class Controller
     {
         $turnier = $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$id]);
         if ($turnier === null) {
-            throw new NichtGefunden('Turnier nicht gefunden.');
+            throw new NichtGefunden(t('Turnier nicht gefunden.'));
         }
         return $turnier;
     }
@@ -65,7 +65,7 @@ abstract class Controller
     {
         $zeile = $this->db->eine("SELECT * FROM $tabelle WHERE id = ?", [$id]);
         if ($zeile === null || ($turnierId !== null && (int) $zeile['turnier_id'] !== $turnierId)) {
-            throw new NichtGefunden('Datensatz nicht gefunden.');
+            throw new NichtGefunden(t('Datensatz nicht gefunden.'));
         }
         return $zeile;
     }

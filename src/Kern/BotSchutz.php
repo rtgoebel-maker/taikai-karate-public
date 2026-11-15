@@ -75,8 +75,7 @@ final class BotSchutz
             return;
         }
         $jetzt ??= time();
-        $fehler = new FachFehler('Das Formular konnte nicht angenommen werden – bitte die Seite neu laden und erneut absenden. '
-            . '(Schutz vor automatischen Anmeldungen; JavaScript muss eingeschaltet sein.)');
+        $fehler = new FachFehler(t('Das Formular konnte nicht angenommen werden – bitte die Seite neu laden und erneut absenden. (Schutz vor automatischen Anmeldungen; JavaScript muss eingeschaltet sein.)'));
         if (trim((string) ($post[self::FELD_FALLE] ?? '')) !== '') {
             throw $fehler;
         }
@@ -92,7 +91,7 @@ final class BotSchutz
         }
         $alter = $jetzt - (int) $tZeit;
         if ($alter > self::MAX_ALTER) {
-            throw new FachFehler('Die Seite war zu lange geöffnet – bitte neu laden und erneut absenden.');
+            throw new FachFehler(t('Die Seite war zu lange geöffnet – bitte neu laden und erneut absenden.'));
         }
         if ($alter < min($mindestSekunden ?? $this->mindestSekunden, $this->mindestSekunden)) {
             throw $fehler; // schneller abgeschickt, als ein Mensch das Formular ausfüllen kann

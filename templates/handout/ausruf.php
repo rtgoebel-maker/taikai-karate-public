@@ -7,10 +7,11 @@ $kopf = static fn (string $seite) => '<div class="ho-kopf"><div><div class="ho-a
 ?>
 <div class="blatt">
     <?= $kopf('Seite 1 von 2') ?>
-    <p>Der Ausrufer ruft die Starter einer Gruppe auf und meldet, wer da ist. Er nutzt ein Handy mit der Ansicht <strong>„Ausruf“</strong> derselben Tatami (gleiche PIN wie das Tablet).</p>
+    <p>Der Ausrufer ruft die Starter einer Gruppe auf und meldet, wer da ist. Er nutzt ein Handy mit der Ansicht <strong>„Ausruf“</strong> derselben Tatami.</p>
 
     <h2><span class="ho-nr">1</span>Anmelden</h2>
-    <p>Adresse der Wettkampfsoftware mit <strong>/tisch</strong> öffnen, Tatami wählen, Ansicht <strong>„Ausruf – Starter aufrufen (Handy)“</strong>, PIN, <span class="ho-knopf">Anmelden</span>. Tipp: die Seite zum Startbildschirm hinzufügen.</p>
+    <p>Den <strong>QR-Code „Ausruf“</strong> der Tatami scannen, Namen eingeben und das <strong>Prüfwort</strong> der Wettkampfleitung nennen – nach der Freigabe meldet sich das Handy selbst an. Notlösung, falls erlaubt: Adresse mit <strong>/tisch</strong>, Tatami, Ansicht „Ausruf“, PIN.</p>
+    <p><strong>Tipp:</strong> die Seite zum Startbildschirm hinzufügen – dann läuft sie wie eine App ohne Adress- und Tableiste. Sprache oben umschaltbar (<strong>English</strong>).</p>
 
     <h2><span class="ho-nr">2</span>Starter abhaken</h2>
     <div class="ho-schritt hoch">

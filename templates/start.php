@@ -3,24 +3,24 @@
  * @var list<array<string, mixed>> $turniere nur die Turniere, die das Konto leiten darf
  * @var bool $istAdmin
  */
-$this->layout('layout', ['titel' => 'Turniere']);
+$this->layout('layout', ['titel' => t('Turniere')]);
 ?>
 <div class="titelzeile">
-    <h1><?= $istAdmin ? 'Turniere' : 'Meine Turniere' ?></h1>
-    <?php if ($istAdmin): ?><a class="knopf primaer" href="<?= e(url('turnier/neu')) ?>">Neues Turnier</a><?php endif; ?>
+    <h1><?= $istAdmin ? te('Turniere') : te('Meine Turniere') ?></h1>
+    <?php if ($istAdmin): ?><a class="knopf primaer" href="<?= e(url('turnier/neu')) ?>"><?= te('Neues Turnier') ?></a><?php endif; ?>
 </div>
 <?php if (!$turniere): ?>
     <div class="karte leer">
         <?php if ($istAdmin): ?>
-            <p>Noch kein Turnier angelegt.</p>
-            <p class="klein">Ein Turnier kann auch aus einer Sicherung importiert werden: <a href="<?= e(url('import-turnier')) ?>">Turnier importieren</a></p>
+            <p><?= te('Noch kein Turnier angelegt.') ?></p>
+            <p class="klein"><?= te('Ein Turnier kann auch aus einer Sicherung importiert werden:') ?> <a href="<?= e(url('import-turnier')) ?>"><?= te('Turnier importieren') ?></a></p>
         <?php else: ?>
-            <p>Diesem Konto ist noch kein Turnier zugeordnet. Die Administration oder eine Turnierleitung kann es zur Turnierleitung ernennen.</p>
+            <p><?= te('Diesem Konto ist noch kein Turnier zugeordnet. Die Administration oder eine Turnierleitung kann es zur Turnierleitung ernennen.') ?></p>
         <?php endif; ?>
     </div>
 <?php else: ?>
     <table class="tabelle">
-        <thead><tr><th>Datum</th><th>Turnier</th><th>Ort</th><th>Tatamis</th><th>Status</th></tr></thead>
+        <thead><tr><th><?= te('Datum') ?></th><th><?= te('Turnier') ?></th><th><?= te('Ort') ?></th><th><?= te('Tatamis') ?></th><th><?= te('Status') ?></th></tr></thead>
         <tbody>
         <?php foreach ($turniere as $t): ?>
             <tr>
@@ -33,5 +33,5 @@ $this->layout('layout', ['titel' => 'Turniere']);
         <?php endforeach; ?>
         </tbody>
     </table>
-    <?php if ($istAdmin): ?><p class="klein"><a href="<?= e(url('import-turnier')) ?>">Turnier aus Sicherung importieren</a></p><?php endif; ?>
+    <?php if ($istAdmin): ?><p class="klein"><a href="<?= e(url('import-turnier')) ?>"><?= te('Turnier aus Sicherung importieren') ?></a></p><?php endif; ?>
 <?php endif; ?>

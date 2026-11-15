@@ -43,7 +43,7 @@ final class DojoKonten
     {
         $passwort = (string) ($daten['konto_passwort'] ?? '');
         if ($passwort !== (string) ($daten['konto_passwort2'] ?? '')) {
-            throw new FachFehler('Die beiden Passwörter stimmen nicht überein.');
+            throw new FachFehler(t('Die beiden Passwörter stimmen nicht überein.'));
         }
         Konten::passwortPruefen($passwort);
         $email = Konten::email($email);
@@ -52,11 +52,9 @@ final class DojoKonten
 
         if ($vorhanden !== null && !(int) $vorhanden['bestaetigung_offen']) {
             if ((int) $vorhanden['aktiv']) {
-                $post->einreihen($email, 'Ihr Konto – ' . $turnierName, "Guten Tag,\n\n"
-                    . "bei der Online-Anmeldung zu „{$turnierName}“ wurde ein Konto für diese E-Mail-Adresse gewünscht. "
-                    . "Für diese Adresse gibt es bereits ein Konto, deshalb wurde kein neues angelegt. Ihre Anmeldung ist trotzdem eingegangen – "
-                    . "den Bearbeitungsstand sehen Sie jederzeit über den Bearbeitungslink aus der Eingangsbestätigung.\n\n"
-                    . 'Zum bestehenden Konto: ' . $post->link('login') . ' (Passwort vergessen? ' . $post->link('passwort-vergessen') . ")\n" . self::fuss(), 'konto_vorhanden');
+                $post->einreihen($email, t('Ihr Konto – {turnier}', ['turnier' => $turnierName]), t('Guten Tag,') . "\n\n"
+                    . t('bei der Online-Anmeldung zu „{turnier}“ wurde ein Konto für diese E-Mail-Adresse gewünscht. Für diese Adresse gibt es bereits ein Konto, deshalb wurde kein neues angelegt. Ihre Anmeldung ist trotzdem eingegangen – den Bearbeitungsstand sehen Sie jederzeit über den Bearbeitungslink aus der Eingangsbestätigung.', ['turnier' => $turnierName]) . "\n\n"
+                    . t('Zum bestehenden Konto: {link} (Passwort vergessen? {link_vergessen})', ['link' => $post->link('login'), 'link_vergessen' => $post->link('passwort-vergessen')]) . "\n" . self::fuss(), 'konto_vorhanden');
             }
             return;
         }
@@ -76,16 +74,12 @@ final class DojoKonten
         });
         $this->verknuepfen($id, $anmeldungUuid);
         $token = $this->token($id, self::ZWECK_BESTAETIGEN, self::BESTAETIGEN_STUNDEN * 60);
-        $post->einreihen($email, 'Bitte E-Mail-Adresse bestätigen – ' . $turnierName, "Guten Tag,\n\n"
-            . "bei der Online-Anmeldung zu „{$turnierName}“ wurde ein Konto für diese E-Mail-Adresse angelegt. "
-            . "Bitte bestätigen Sie die Adresse innerhalb von " . self::BESTAETIGEN_STUNDEN . " Stunden mit diesem Link:\n\n"
+        $post->einreihen($email, t('Bitte E-Mail-Adresse bestätigen – {turnier}', ['turnier' => $turnierName]), t('Guten Tag,') . "\n\n"
+            . t('bei der Online-Anmeldung zu „{turnier}“ wurde ein Konto für diese E-Mail-Adresse angelegt. Bitte bestätigen Sie die Adresse innerhalb von {stunden} Stunden mit diesem Link:', ['turnier' => $turnierName, 'stunden' => self::BESTAETIGEN_STUNDEN]) . "\n\n"
             . $post->link('konto/bestaetigen/' . $token) . "\n\n"
-            . "Danach können Sie sich mit Ihrer E-Mail-Adresse und Ihrem Passwort anmelden und sehen unter „Meine Meldungen“ "
-            . "jederzeit den Bearbeitungsstand Ihrer Anmeldung.\n\n"
-            . 'Das Konto gilt bis ' . date('d.m.Y', (int) strtotime($ablauf)) . " und wird danach automatisch gelöscht. "
-            . "Für jedes weitere Turnier ist eine neue Anmeldung nötig (angemeldet verlängert sie das Konto).\n\n"
-            . "Sie haben kein Konto angelegt? Dann ignorieren Sie diese E-Mail – ohne Bestätigung wird es nach "
-            . self::UNBESTAETIGT_TAGE . " Tagen gelöscht.\n" . self::fuss(), 'konto_bestaetigen');
+            . t('Danach können Sie sich mit Ihrer E-Mail-Adresse und Ihrem Passwort anmelden und sehen unter „Meine Meldungen“ jederzeit den Bearbeitungsstand Ihrer Anmeldung.') . "\n\n"
+            . t('Das Konto gilt bis {datum} und wird danach automatisch gelöscht. Für jedes weitere Turnier ist eine neue Anmeldung nötig (angemeldet verlängert sie das Konto).', ['datum' => datum_de(date('Y-m-d', (int) strtotime($ablauf)))]) . "\n\n"
+            . t('Sie haben kein Konto angelegt? Dann ignorieren Sie diese E-Mail – ohne Bestätigung wird es nach {tage} Tagen gelöscht.', ['tage' => self::UNBESTAETIGT_TAGE]) . "\n" . self::fuss(), 'konto_bestaetigen');
     }
 
     /** Anmeldung einem Konto zuordnen (angemeldet abgeschickt bzw. bei der Kontoanlage). */
@@ -113,7 +107,7 @@ final class DojoKonten
     public function bestaetigen(string $token): int
     {
         $t = $this->tokenPruefen($token, self::ZWECK_BESTAETIGEN)
-            ?? throw new FachFehler('Der Bestätigungslink ist ungültig oder abgelaufen. Einen neuen Link gibt es über „Passwort vergessen“.');
+            ?? throw new FachFehler(t('Der Bestätigungslink ist ungültig oder abgelaufen. Einen neuen Link gibt es über „Passwort vergessen“.'));
         $this->db->update('benutzer', ['bestaetigung_offen' => 0], ['id' => $t['benutzer_id']]);
         $this->db->delete('konto_token', ['id' => $t['id']]);
         (new Protokoll($this->db))->eintragen(null, 'benutzer', (int) $t['benutzer_id'], 'email_bestaetigt');
@@ -133,15 +127,15 @@ final class DojoKonten
         }
         if ((int) $konto['bestaetigung_offen']) {
             $token = $this->token((int) $konto['id'], self::ZWECK_BESTAETIGEN, self::BESTAETIGEN_STUNDEN * 60);
-            $post->einreihen(Konten::email($email), 'Bitte E-Mail-Adresse bestätigen', "Guten Tag,\n\nIhr Konto ist noch nicht bestätigt. Bitte bestätigen Sie die Adresse mit diesem Link:\n\n"
+            $post->einreihen(Konten::email($email), t('Bitte E-Mail-Adresse bestätigen'), t('Guten Tag,') . "\n\n" . t('Ihr Konto ist noch nicht bestätigt. Bitte bestätigen Sie die Adresse mit diesem Link:') . "\n\n"
                 . $post->link('konto/bestaetigen/' . $token) . "\n" . self::fuss(), 'konto_bestaetigen');
             return;
         }
         $token = $this->token((int) $konto['id'], self::ZWECK_PASSWORT, self::PASSWORT_MINUTEN);
-        $post->einreihen(Konten::email($email), 'Passwort neu setzen', "Guten Tag,\n\n"
-            . "für Ihr Konto wurde ein neues Passwort angefordert. Mit diesem Link (gültig " . self::PASSWORT_MINUTEN . " Minuten, nur einmal) setzen Sie es:\n\n"
+        $post->einreihen(Konten::email($email), t('Passwort neu setzen'), t('Guten Tag,') . "\n\n"
+            . t('für Ihr Konto wurde ein neues Passwort angefordert. Mit diesem Link (gültig {minuten} Minuten, nur einmal) setzen Sie es:', ['minuten' => self::PASSWORT_MINUTEN]) . "\n\n"
             . $post->link('passwort-neu/' . $token) . "\n\n"
-            . "Sie haben nichts angefordert? Dann ignorieren Sie diese E-Mail – Ihr Passwort bleibt unverändert.\n" . self::fuss(), 'passwort_vergessen');
+            . t('Sie haben nichts angefordert? Dann ignorieren Sie diese E-Mail – Ihr Passwort bleibt unverändert.') . "\n" . self::fuss(), 'passwort_vergessen');
     }
 
     /** Gehört das Token zu einem gültigen Passwort-Link? */
@@ -153,9 +147,9 @@ final class DojoKonten
     public function passwortNeu(string $token, string $passwort, string $wiederholung): void
     {
         $t = $this->tokenPruefen($token, self::ZWECK_PASSWORT)
-            ?? throw new FachFehler('Der Link ist ungültig oder abgelaufen – bitte unter „Passwort vergessen“ einen neuen anfordern.');
+            ?? throw new FachFehler(t('Der Link ist ungültig oder abgelaufen – bitte unter „Passwort vergessen“ einen neuen anfordern.'));
         if ($passwort !== $wiederholung) {
-            throw new FachFehler('Die beiden Passwörter stimmen nicht überein.');
+            throw new FachFehler(t('Die beiden Passwörter stimmen nicht überein.'));
         }
         (new Konten($this->db))->passwortSetzen((int) $t['benutzer_id'], $passwort);
         // alle offenen Passwort-Links dieses Kontos verfallen
@@ -208,6 +202,6 @@ final class DojoKonten
 
     private static function fuss(): string
     {
-        return "\n-- \nDiese Nachricht wurde automatisch von Taikai – Karate verschickt.";
+        return "\n-- \n" . t('Diese Nachricht wurde automatisch von Taikai – Karate verschickt.');
     }
 }

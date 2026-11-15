@@ -67,7 +67,7 @@ final class ApiController extends Controller
     public function einblendung(Request $request, int $id, string $nummer): Response
     {
         $t = $this->oeffentlichesTurnier($id);
-        $tatamiId = $this->db->wert('SELECT id FROM tatami WHERE turnier_id = ? AND nummer = ?', [$id, (int) $nummer]) ?? throw new NichtGefunden('Tatami nicht gefunden.');
+        $tatamiId = $this->db->wert('SELECT id FROM tatami WHERE turnier_id = ? AND nummer = ?', [$id, (int) $nummer]) ?? throw new NichtGefunden(t('Tatami nicht gefunden.'));
         if (!TurnierPhase::gestartet($t)) {
             return Response::json(['tatami' => null, 'jetzt' => null, 'ergebnis' => null]);
         }
@@ -96,7 +96,7 @@ final class ApiController extends Controller
         $this->oeffentlichesTurnier($id);
         $a = (new KlassenAnsicht($this->db))->laden($klasseid);
         if ((int) $a['klasse']['turnier_id'] !== $id) {
-            throw new NichtGefunden('Klasse nicht gefunden.');
+            throw new NichtGefunden(t('Klasse nicht gefunden.'));
         }
         return Response::json(self::klasseOeffentlich($a));
     }
@@ -175,7 +175,7 @@ final class ApiController extends Controller
     {
         $t = $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$id]);
         if ($t === null || (!(int) $t['oeffentlich'] && !Session::leitet($id))) {
-            throw new NichtGefunden('Turnier nicht gefunden oder nicht öffentlich.');
+            throw new NichtGefunden(t('Turnier nicht gefunden oder nicht öffentlich.'));
         }
         return $t;
     }

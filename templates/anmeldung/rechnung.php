@@ -8,20 +8,21 @@
 $empfaenger = $blatt['empfaenger'];
 $nummer = $blatt['nummer'];
 ?><!doctype html>
-<html lang="de">
+<html lang="<?= e(sprache()) ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Rechnung <?= e($nummer) ?> · <?= e($empfaenger['verein']) ?></title>
+    <title><?= te('Rechnung {nummer}', ['nummer' => $nummer]) ?> · <?= e($empfaenger['verein']) ?></title>
     <link rel="stylesheet" href="<?= e(asset('druck.css')) ?>">
     <script src="<?= e(asset('verhalten.js')) ?>" defer></script>
 </head>
 <body>
 <div class="werkzeug">
-    <strong>Rechnung · <?= e($empfaenger['verein']) ?></strong>
-    <button type="button" data-drucken>Drucken / als PDF speichern</button>
-    <a href="<?= e($zurueck) ?>">Zurück</a>
-    <span style="margin-left:auto;font-size:9pt">Tipp: Im Druckdialog „Kopf- und Fußzeilen“ ausschalten.</span>
+    <strong><?= te('Rechnung') ?> · <?= e($empfaenger['verein']) ?></strong>
+    <button type="button" data-drucken><?= te('Drucken / als PDF speichern') ?></button>
+    <a href="<?= e($zurueck) ?>"><?= te('Zurück') ?></a>
+    <span style="margin-left:auto;font-size:9pt"><?= te('Tipp: Im Druckdialog „Kopf- und Fußzeilen“ ausschalten.') ?></span>
+    <?= $this->teil('teile/sprache_umschalter') ?>
 </div>
 <?= $this->teil('rechnung/blatt', $blatt) ?>
 </body>

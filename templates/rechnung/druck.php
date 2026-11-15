@@ -6,9 +6,9 @@
  * @var list<array<string, mixed>> $rechnungen
  */
 $this->layout('druck/layout', [
-    'titel' => count($rechnungen) === 1 ? 'Rechnung ' . $rechnungen[0]['verein'] : 'Rechnungen',
+    'titel' => count($rechnungen) === 1 ? t('Rechnung {verein}', ['verein' => $rechnungen[0]['verein']]) : t('Rechnungen'),
     'turnier' => $turnier,
-    'zusatz' => '<a href="' . e(url("turnier/{$turnier['id']}/rechnungen")) . '">Zu den Rechnungen</a>',
+    'zusatz' => '<a href="' . e(url("turnier/{$turnier['id']}/rechnungen")) . '">' . te('Zu den Rechnungen') . '</a>',
 ]);
 foreach ($rechnungen as $r) {
     echo $this->teil('rechnung/blatt', [

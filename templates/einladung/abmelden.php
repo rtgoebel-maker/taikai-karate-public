@@ -5,17 +5,17 @@
  * @var bool $erledigt
  * @var string $ziel
  */
-$this->layout('layout_einfach', ['titel' => 'Einladungen abbestellen']);
+$this->layout('layout_einfach', ['titel' => t('Einladungen abbestellen')]);
 ?>
-<h1>Einladungen abbestellen</h1>
+<h1><?= te('Einladungen abbestellen') ?></h1>
 <?php if ($erledigt): ?>
-    <div class="meldung meldung-erfolg">Erledigt – Ihre Adresse ist gelöscht, Sie erhalten keine Einladungen mehr.</div>
+    <div class="meldung meldung-erfolg"><?= te('Erledigt – Ihre Adresse ist gelöscht, Sie erhalten keine Einladungen mehr.') ?></div>
 <?php elseif ($eintrag === null): ?>
-    <p>Dieser Link ist ungültig oder die Adresse ist bereits abgemeldet. Es werden keine Einladungen mehr an sie verschickt.</p>
+    <p><?= te('Dieser Link ist ungültig oder die Adresse ist bereits abgemeldet. Es werden keine Einladungen mehr an sie verschickt.') ?></p>
 <?php else: ?>
-    <p>Keine Einladungen zu künftigen Turnieren mehr an <strong><?= e($eintrag['email']) ?></strong>? Die Adresse wird dann gelöscht.</p>
+    <p><?= th('Keine Einladungen zu künftigen Turnieren mehr an <strong>{email}</strong>? Die Adresse wird dann gelöscht.', ['email' => $eintrag['email']]) ?></p>
     <form method="post" action="<?= e($ziel) ?>">
         <?= csrf_feld() ?>
-        <button class="knopf primaer" type="submit">Abbestellen</button>
+        <button class="knopf primaer" type="submit"><?= te('Abbestellen') ?></button>
     </form>
 <?php endif; ?>

@@ -74,7 +74,7 @@ final class TischApiController extends Controller
         [$turnierId, $tatamiId] = $this->tischKontext($request);
         $tatami = $this->db->wert('SELECT tatami_id FROM phase WHERE klasse_id = ? ORDER BY id DESC LIMIT 1', [$klasseid]);
         if ((int) $tatami !== $tatamiId) {
-            throw new FachFehler('Diese Gruppe gehört nicht zu dieser Tatami.');
+            throw new FachFehler(t('Diese Gruppe gehört nicht zu dieser Tatami.'));
         }
         (new TurnierPhaseService($this->db))->ergebnisseErlaubt($turnierId);
         (new ErgebnisService($this->db))->tischAbschliessen($turnierId, $klasseid);
@@ -94,7 +94,7 @@ final class TischApiController extends Controller
         [, $tatamiId] = $this->tischKontext($request);
         $typ = $typ === 'auftritt' ? 'auftritt' : 'begegnung';
         $this->tatamiPruefen($typ, $eintragid, $tatamiId);
-        $eintrag = (new TatamiAnsicht($this->db))->eintrag($typ, $eintragid) ?? throw new NichtGefunden('Nicht gefunden.');
+        $eintrag = (new TatamiAnsicht($this->db))->eintrag($typ, $eintragid) ?? throw new NichtGefunden(t('Nicht gefunden.'));
         return Response::json($eintrag);
     }
 
@@ -138,7 +138,7 @@ final class TischApiController extends Controller
         $this->tatamiPruefen('begegnung', $begegnungid, $tatamiId);
         (new TurnierPhaseService($this->db))->ergebnisseErlaubt($turnierId);
         if (!$this->darfKorrigieren($turnierId, $request->json(), $request)) {
-            throw new FachFehler('Zurücksetzen nur mit Leitungs-PIN.');
+            throw new FachFehler(t('Zurücksetzen nur mit Leitungs-PIN.'));
         }
         $ergebnis = new ErgebnisService($this->db);
         $ergebnis->begegnungZuruecksetzen($turnierId, $begegnungid);
@@ -228,7 +228,7 @@ final class TischApiController extends Controller
     {
         [$turnierId, $tatamiId] = $this->tischKontext($request);
         if ($this->db->wert('SELECT id FROM phase WHERE klasse_id = ? AND tatami_id = ? LIMIT 1', [$klasseId, $tatamiId]) === null) {
-            throw new FachFehler('Diese Gruppe ist nicht auf dieser Tatami.');
+            throw new FachFehler(t('Diese Gruppe ist nicht auf dieser Tatami.'));
         }
         (new TurnierPhaseService($this->db))->ergebnisseErlaubt($turnierId);
         return $turnierId;
@@ -298,7 +298,7 @@ final class TischApiController extends Controller
     {
         [$turnierId, $tatamiId] = $this->tischKontext($request);
         if (Session::tisch() === null) {
-            throw new FachFehler('Nachrichten bestätigt die Tischbesatzung am Tablet.');
+            throw new FachFehler(t('Nachrichten bestätigt die Tischbesatzung am Tablet.'));
         }
         (new NachrichtService($this->db))->bestaetigen($turnierId, $tatamiId, $nachrichtid, Session::akteur());
         return Response::json(['ok' => true]);
@@ -313,7 +313,7 @@ final class TischApiController extends Controller
         // Leitung kann jede Tatami ihrer Turniere bedienen (?tatami=ID)
         $tatami = $this->db->eine('SELECT * FROM tatami WHERE id = ?', [(int) $request->get('tatami')]);
         if ($tatami === null || !Session::leitet((int) $tatami['turnier_id'])) {
-            throw new NichtGefunden('Tatami nicht gefunden.');
+            throw new NichtGefunden(t('Tatami nicht gefunden.'));
         }
         return [(int) $tatami['turnier_id'], (int) $tatami['id']];
     }
@@ -328,7 +328,7 @@ final class TischApiController extends Controller
         // Tischbesatzung nur eigene Tatami; die Leitung (ohne Tablet-Anmeldung) jede Tatami ihrer Turniere
         $leitungDarf = $ort !== null && Session::tisch() === null && Session::leitet((int) $ort['turnier_id']);
         if ((int) ($ort['tatami_id'] ?? 0) !== $tatamiId && !$leitungDarf) {
-            throw new FachFehler('Diese Begegnung gehört nicht zu dieser Tatami.');
+            throw new FachFehler(t('Diese Begegnung gehört nicht zu dieser Tatami.'));
         }
     }
 
@@ -357,7 +357,7 @@ final class TischApiController extends Controller
         $schutz->pruefen($ziel, $ip);
         if (!password_verify($pin, (string) $hash)) {
             $schutz->fehlschlag($ziel, $ip, $turnierId);
-            throw new FachFehler('Leitungs-PIN ist falsch.');
+            throw new FachFehler(t('Leitungs-PIN ist falsch.'));
         }
         $schutz->erfolg($ziel, $ip);
         return true;

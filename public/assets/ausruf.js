@@ -31,13 +31,13 @@
         const aka = (zustand && zustand.aka_seite) || 'rechts';
         const links = seite === 'aka' ? aka === 'links' : aka !== 'links';
         // geschütztes Leerzeichen: Pfeil und Wort bleiben auf schmalen Handys zusammen
-        return links ? '◀ links' : 'rechts ▶';
+        return links ? '◀ ' + Wettkampf.t('links') : Wettkampf.t('rechts') + ' ▶';
     };
 
     /** Seiten eines Eintrags: AKA immer oben, dann SHIRO – bzw. der Starter eines Vortrags. */
     function seiten(e) {
         return e.typ === 'auftritt'
-            ? [['starter', 'Starter', e.starter]]
+            ? [['starter', Wettkampf.t('Starter'), e.starter]]
             : [['aka', 'AKA', e.aka], ['shiro', 'SHIRO', e.shiro]];
     }
 
@@ -53,36 +53,36 @@
         const vollstaendig = seiten(e).every(([s]) => a[s]);
         const zeilen = seiten(e).map(([s, kennung, p]) => `
             <div class="seite ${s}">
-                <div class="person">${s === 'starter' ? `<span class="kennung">${kennung}</span>` : `<span class="kennung-zeile">${seitenMarke(s)}</span>`}
+                <div class="person">${s === 'starter' ? `<span class="kennung">${esc(kennung)}</span>` : `<span class="kennung-zeile">${seitenMarke(s)}</span>`}
                     <span class="name">${esc(p.name)}</span><span class="verein">${esc(p.verein)}</span></div>
-                ${nurAnzeige || a.fertig ? `<span class="stand ${a[s] || ''}">${a[s] === 'da' ? '✓ da' : a[s] === 'fehlt' ? '✗ fehlt' : '–'}</span>` : `
+                ${nurAnzeige || a.fertig ? `<span class="stand ${a[s] || ''}">${esc(a[s] === 'da' ? Wettkampf.t('✓ da') : a[s] === 'fehlt' ? Wettkampf.t('✗ fehlt') : '–')}</span>` : `
                 <div class="knoepfe">
-                    <button class="da${a[s] === 'da' ? ' aktiv' : ''}" data-aktion="markieren" data-seite="${s}" data-status="${a[s] === 'da' ? '' : 'da'}">✓ da</button>
-                    <button class="fehlt${a[s] === 'fehlt' ? ' aktiv' : ''}" data-aktion="markieren" data-seite="${s}" data-status="${a[s] === 'fehlt' ? '' : 'fehlt'}">✗ fehlt</button>
+                    <button class="da${a[s] === 'da' ? ' aktiv' : ''}" data-aktion="markieren" data-seite="${s}" data-status="${a[s] === 'da' ? '' : 'da'}">${esc(Wettkampf.t('✓ da'))}</button>
+                    <button class="fehlt${a[s] === 'fehlt' ? ' aktiv' : ''}" data-aktion="markieren" data-seite="${s}" data-status="${a[s] === 'fehlt' ? '' : 'fehlt'}">${esc(Wettkampf.t('✗ fehlt'))}</button>
                 </div>`}
             </div>`).join('');
         let fuss = '';
         if (istLaufend) {
             fuss = e.unterbrochen
-                ? '<div class="hinweis laeuft">⏸ Kampf unterbrochen</div>'
-                : '<div class="hinweis laeuft">läuft gerade auf der Tatami</div>';
+                ? `<div class="hinweis laeuft">⏸ ${esc(Wettkampf.t('Kampf unterbrochen'))}</div>`
+                : `<div class="hinweis laeuft">${esc(Wettkampf.t('läuft gerade auf der Tatami'))}</div>`;
         } else if (modus === 'bereit') {
-            fuss = `<div class="hinweis bereit">${zustand && zustand.laufend ? 'kommt direkt danach – bitte bereit machen' : 'als Nächstes auf der Tatami'}${e.klasse ? ` · ${esc(e.klasse)}` : ''}</div>`;
+            fuss = `<div class="hinweis bereit">${esc(zustand && zustand.laufend ? Wettkampf.t('kommt direkt danach – bitte bereit machen') : Wettkampf.t('als Nächstes auf der Tatami'))}${e.klasse ? ` · ${esc(e.klasse)}` : ''}</div>`;
         } else if (a.fertig) {
-            fuss = `<div class="fuss"><span class="bereit">✓ aufgerufen${fehlt.length ? ` – ${fehlt.join(', ')} fehlt` : ' – bereit'}</span>
-                <button class="leise" data-aktion="oeffnen">wieder öffnen</button></div>`;
+            fuss = `<div class="fuss"><span class="bereit">✓ ${esc(fehlt.length ? Wettkampf.t('aufgerufen – {wer} fehlt', { wer: fehlt.join(', ') }) : Wettkampf.t('aufgerufen – bereit'))}</span>
+                <button class="leise" data-aktion="oeffnen">${esc(Wettkampf.t('wieder öffnen'))}</button></div>`;
         } else {
-            fuss = `<button class="abschliessen" data-aktion="abschliessen"${vollstaendig ? '' : ' disabled'}>Ausruf abschließen</button>`;
+            fuss = `<button class="abschliessen" data-aktion="abschliessen"${vollstaendig ? '' : ' disabled'}>${esc(Wettkampf.t('Ausruf abschließen'))}</button>`;
         }
         return `<article class="kampf${a.fertig && !nurAnzeige ? ' fertig' : ''}${istLaufend ? ' laufend' : ''}${modus === 'bereit' ? ' bereit-machen' : ''}" data-typ="${e.typ}" data-id="${e.id}">
-            <div class="kampf-kopf"><strong>${e.typ === 'auftritt' ? 'Vortrag' : 'Kampf'} ${esc(e.nr)}</strong> <span>${esc(e.runde)}</span></div>
+            <div class="kampf-kopf"><strong>${esc(e.typ === 'auftritt' ? Wettkampf.t('Vortrag {nr}', { nr: e.nr }) : Wettkampf.t('Kampf {nr}', { nr: e.nr }))}</strong> <span>${esc(Wettkampf.runde(e.runde))}</span></div>
             ${zeilen}${fuss}</article>`;
     }
 
     function darstellen() {
         const z = zustand;
         if (z.phase && z.phase !== 'laeuft') {
-            $('inhalt').innerHTML = `<p class="leer">${z.phase === 'abgeschlossen' ? 'Das Turnier ist abgeschlossen.' : 'Das Turnier ist noch nicht gestartet. Der Ausruf beginnt, sobald die Wettkampfleitung das Turnier startet.'}</p>`;
+            $('inhalt').innerHTML = `<p class="leer">${esc(z.phase === 'abgeschlossen' ? Wettkampf.t('Das Turnier ist abgeschlossen.') : Wettkampf.t('Das Turnier ist noch nicht gestartet. Der Ausruf beginnt, sobald die Wettkampfleitung das Turnier startet.'))}</p>`;
             return;
         }
         const offen = z.naechste.filter((e) => !(e.aufruf && e.aufruf.fertig));
@@ -93,12 +93,12 @@
         const naechste = z.laufend || z.naechste[0];
         let hinweis = '';
         if (z.abschluss) {
-            hinweis = `<div class="gruppen-hinweis">Gruppe <strong>${esc(z.abschluss.klasse)}</strong> ist fertig – die Tischbesatzung schließt sie gerade ab. Danach folgt <strong>${esc(naechste ? naechste.klasse : '–')}</strong>.</div>`;
+            hinweis = `<div class="gruppen-hinweis">${Wettkampf.t('Gruppe <strong>{klasse}</strong> ist fertig – die Tischbesatzung schließt sie gerade ab. Danach folgt <strong>{naechste}</strong>.', { klasse: esc(z.abschluss.klasse), naechste: esc(naechste ? naechste.klasse : '–') })}</div>`;
         } else if (z.letzter_abschluss && naechste && !echtLaufend && !naechste.gruppe_aufgerufen && naechste.klasse !== z.letzter_abschluss.klasse
             // bis nach dem Abschluss ein Kampf der neuen Gruppe ausgerufen wurde, höchstens 30 Minuten
             && Date.now() - new Date(z.letzter_abschluss.am.replace(' ', 'T')).getTime() < 30 * 60 * 1000
             && !z.naechste.some((e) => e.klasse === naechste.klasse && e.aufruf && e.aufruf.am && e.aufruf.am > z.letzter_abschluss.am)) {
-            hinweis = `<div class="gruppen-hinweis neu">📣 Neue Gruppe <strong>${esc(naechste.klasse)}</strong> – ${esc(naechste.klasse_name)}: bitte jetzt die Starter aufrufen.</div>`;
+            hinweis = `<div class="gruppen-hinweis neu">📣 ${Wettkampf.t('Neue Gruppe <strong>{klasse}</strong> – {name}: bitte jetzt die Starter aufrufen.', { klasse: esc(naechste.klasse), name: esc(naechste.klasse_name) })}</div>`;
         }
         // Gruppen (Klassen) in Reihenfolge des Plans: offene zum Abhaken, abgeschlossene als Zusammenfassung
         const gruppen = [];
@@ -126,29 +126,29 @@
             hinweis = ''; // Namen der neuen Gruppe erst nach dem Start durch die Tischbesatzung
         }
         if (!hinweis && gestartet) {
-            hinweis = `<div class="gruppen-hinweis neu">📣 Die Tischbesatzung hat den Ausruf für Gruppe <strong>${esc(gestartet.klasse)}</strong> gestartet – bitte jetzt die Starter aufrufen.</div>`;
+            hinweis = `<div class="gruppen-hinweis neu">📣 ${Wettkampf.t('Die Tischbesatzung hat den Ausruf für Gruppe <strong>{klasse}</strong> gestartet – bitte jetzt die Starter aufrufen.', { klasse: esc(gestartet.klasse) })}</div>`;
         }
         // Solange der Ausruf der aktuellen Gruppe läuft, steht die Abhakliste oben; „Jetzt auf der Tatami“ und
         // „Bereit machen“ erst, wenn der Ausruf der Gruppe abgeschlossen ist (auch wenn jemand fehlt)
         const aktuell = z.laufend || bereit;
         const ausrufLaeuft = !!aktuell && offeneGruppen.some((g) => g.klasse_id === aktuell.klasse_id);
         const kampfKarten = ausrufLaeuft
-            ? `<p class="karten-folgen">„Jetzt auf der Tatami“ und „Bereit machen“ erscheinen, sobald der Ausruf der Gruppe <strong>${esc(aktuell.klasse)}</strong> abgeschlossen ist.</p>`
-            : `${z.laufend && sichtbarGruppe(z.laufend.klasse_id) ? `<h2>Jetzt auf der Tatami</h2>${karte(z.laufend, 'laufend')}` : ''}
-               ${bereit && sichtbarGruppe(bereit.klasse_id) ? `<h2>${z.laufend ? 'Bereit machen' : 'Als Nächstes'}</h2>${karte(bereit, 'bereit')}` : ''}`;
+            ? `<p class="karten-folgen">${Wettkampf.t('„Jetzt auf der Tatami“ und „Bereit machen“ erscheinen, sobald der Ausruf der Gruppe <strong>{klasse}</strong> abgeschlossen ist.', { klasse: esc(aktuell.klasse) })}</p>`
+            : `${z.laufend && sichtbarGruppe(z.laufend.klasse_id) ? `<h2>${esc(Wettkampf.t('Jetzt auf der Tatami'))}</h2>${karte(z.laufend, 'laufend')}` : ''}
+               ${bereit && sichtbarGruppe(bereit.klasse_id) ? `<h2>${esc(z.laufend ? Wettkampf.t('Bereit machen') : Wettkampf.t('Als Nächstes'))}</h2>${karte(bereit, 'bereit')}` : ''}`;
         $('inhalt').innerHTML = `${hinweis}
             ${kampfKarten}
-            <h2>Aufrufen <span class="zahl">${offeneGruppen.length}</span></h2>
-            ${sichtbar.length ? sichtbar.map((g) => gruppeHtml(g, z)).join('') : `<p class="leer">${wartend.length ? 'Gerade nichts aufzurufen.' : 'Nichts mehr aufzurufen.'}</p>`}
-            ${wartend.length ? `<div class="gruppe-wartet">⏳ Nächste Gruppe <strong>${esc(wartend[0].klasse)}</strong> ${esc(wartend[0].name)} – die Namen erscheinen, sobald die Tischbesatzung den Ausruf startet.${wartend.length > 1 ? ` <span class="leise">(danach ${wartend.length - 1} weitere)</span>` : ''}</div>` : ''}
-            ${offeneGruppen.length > 3 ? `<button class="mehr" data-aktion="alle">${alleZeigen ? 'weniger anzeigen' : `alle ${offeneGruppen.length} Gruppen anzeigen`}</button>` : ''}
-            ${fertigeGruppen.length ? `<h2>Aufgerufen – bereit <span class="zahl">${fertigeGruppen.length}</span></h2>
+            <h2>${esc(Wettkampf.t('Aufrufen'))} <span class="zahl">${offeneGruppen.length}</span></h2>
+            ${sichtbar.length ? sichtbar.map((g) => gruppeHtml(g, z)).join('') : `<p class="leer">${esc(wartend.length ? Wettkampf.t('Gerade nichts aufzurufen.') : Wettkampf.t('Nichts mehr aufzurufen.'))}</p>`}
+            ${wartend.length ? `<div class="gruppe-wartet">⏳ ${Wettkampf.t('Nächste Gruppe <strong>{klasse}</strong> {name} – die Namen erscheinen, sobald die Tischbesatzung den Ausruf startet.', { klasse: esc(wartend[0].klasse), name: esc(wartend[0].name) })}${wartend.length > 1 ? ` <span class="leise">${esc(Wettkampf.t('(danach {n} weitere)', { n: wartend.length - 1 }))}</span>` : ''}</div>` : ''}
+            ${offeneGruppen.length > 3 ? `<button class="mehr" data-aktion="alle">${esc(alleZeigen ? Wettkampf.t('weniger anzeigen') : Wettkampf.t('alle {n} Gruppen anzeigen', { n: offeneGruppen.length }))}</button>` : ''}
+            ${fertigeGruppen.length ? `<h2>${esc(Wettkampf.t('Aufgerufen – bereit'))} <span class="zahl">${fertigeGruppen.length}</span></h2>
                 ${fertigeGruppen.map((g) => {
                     const starter = starterDerGruppe(g.fertig);
                     const fehlt = starter.filter((x) => x.stand === 'fehlt');
                     return `<div class="gruppe-fertig" data-klasse="${g.klasse_id}"><span class="code">${esc(g.klasse)}</span>
-                        <span>✓ ${starter.length - fehlt.length} da${fehlt.length ? ` · <span class="fehlt-text">fehlt: ${fehlt.map((x) => esc(x.name)).join(', ')}</span>` : ''}</span>
-                        <button class="leise" data-aktion="gruppe-oeffnen">wieder öffnen</button></div>`;
+                        <span>✓ ${esc(Wettkampf.t('{n} da', { n: starter.length - fehlt.length }))}${fehlt.length ? ` · <span class="fehlt-text">${esc(Wettkampf.t('fehlt:'))} ${fehlt.map((x) => esc(x.name)).join(', ')}</span>` : ''}</span>
+                        <button class="leise" data-aktion="gruppe-oeffnen">${esc(Wettkampf.t('wieder öffnen'))}</button></div>`;
                 }).join('')}` : ''}`;
     }
 
@@ -162,7 +162,7 @@
                 if (!id || liste.has(id)) { continue; }
                 liste.set(id, {
                     id, name: p.name, verein: p.verein, stand: (e.aufruf || {})[s] || null,
-                    wo: e.typ === 'auftritt' ? esc(`Vortrag ${e.nr}`) : `${esc(`Kampf ${e.nr}`)} · ${seitenMarke(s)}`,
+                    wo: e.typ === 'auftritt' ? esc(Wettkampf.t('Vortrag {nr}', { nr: e.nr })) : `${esc(Wettkampf.t('Kampf {nr}', { nr: e.nr }))} · ${seitenMarke(s)}`,
                 });
             }
         }
@@ -174,11 +174,11 @@
         const starter = starterDerGruppe(g.offen);
         const abgehakt = starter.filter((x) => x.stand).length;
         const aufruf = g.aufgerufen
-            ? `<div class="gruppen-aufruf an">📣 Gruppe wird aufgerufen – Starter stehen auf der Tatami-Übersicht, bis sie „da“ sind <button class="leise" data-aktion="gruppe" data-an="0">beenden</button></div>`
+            ? `<div class="gruppen-aufruf an">📣 ${esc(Wettkampf.t('Gruppe wird aufgerufen – Starter stehen auf der Tatami-Übersicht, bis sie „da“ sind'))} <button class="leise" data-aktion="gruppe" data-an="0">${esc(Wettkampf.t('beenden'))}</button></div>`
             : (z.konflikte || {})[g.klasse_id]
-                ? `<div class="gruppen-aufruf gesperrt">⏳ Gruppe ${esc(g.klasse)} kann noch nicht aufgerufen werden – noch im Wettkampf auf einer anderen Tatami:
+                ? `<div class="gruppen-aufruf gesperrt">⏳ ${esc(Wettkampf.t('Gruppe {klasse} kann noch nicht aufgerufen werden – noch im Wettkampf auf einer anderen Tatami:', { klasse: g.klasse }))}
                     <ul>${z.konflikte[g.klasse_id].map((c) => `<li><strong>${esc(c.name)}</strong> – ${esc(c.klasse)}, ${esc(c.tatami)}</li>`).join('')}</ul></div>`
-                : `<button class="gruppen-aufruf" data-aktion="gruppe" data-an="1">📣 Gruppe ${esc(g.klasse)} aufrufen</button>`;
+                : `<button class="gruppen-aufruf" data-aktion="gruppe" data-an="1">📣 ${esc(Wettkampf.t('Gruppe {klasse} aufrufen', { klasse: g.klasse }))}</button>`;
         return `<section class="gruppe" data-klasse="${g.klasse_id}">
             <h3><span class="code">${esc(g.klasse)}</span> ${esc(g.name)}</h3>
             ${aufruf}
@@ -186,12 +186,12 @@
                 <li class="starter-zeile${x.stand ? ' ' + x.stand : ''}">
                     <div class="person"><span class="name">${esc(x.name)}</span><span class="verein">${esc(x.verein)}</span><span class="wo">${x.wo}</span></div>
                     <div class="knoepfe">
-                        <button class="da${x.stand === 'da' ? ' aktiv' : ''}" data-aktion="starter" data-start="${x.id}" data-status="${x.stand === 'da' ? '' : 'da'}">✓ da</button>
-                        <button class="fehlt${x.stand === 'fehlt' ? ' aktiv' : ''}" data-aktion="starter" data-start="${x.id}" data-status="${x.stand === 'fehlt' ? '' : 'fehlt'}">✗ fehlt</button>
+                        <button class="da${x.stand === 'da' ? ' aktiv' : ''}" data-aktion="starter" data-start="${x.id}" data-status="${x.stand === 'da' ? '' : 'da'}">${esc(Wettkampf.t('✓ da'))}</button>
+                        <button class="fehlt${x.stand === 'fehlt' ? ' aktiv' : ''}" data-aktion="starter" data-start="${x.id}" data-status="${x.stand === 'fehlt' ? '' : 'fehlt'}">${esc(Wettkampf.t('✗ fehlt'))}</button>
                     </div>
                 </li>`).join('')}</ul>
-            <button class="abschliessen" data-aktion="gruppe-abschliessen"${abgehakt === starter.length ? '' : ' disabled'}>Ausruf Gruppe ${esc(g.klasse)} abschließen</button>
-            <div class="fortschritt">${abgehakt} von ${starter.length} abgehakt</div>
+            <button class="abschliessen" data-aktion="gruppe-abschliessen"${abgehakt === starter.length ? '' : ' disabled'}>${esc(Wettkampf.t('Ausruf Gruppe {klasse} abschließen', { klasse: g.klasse }))}</button>
+            <div class="fortschritt">${esc(Wettkampf.t('{n} von {gesamt} abgehakt', { n: abgehakt, gesamt: starter.length }))}</div>
         </section>`;
     }
 
@@ -203,7 +203,7 @@
             await laden();
         } catch (fehler) {
             const m = $('meldung');
-            m.textContent = fehler.unklar || navigator.onLine === false ? 'Keine Verbindung – bitte erneut versuchen (doppelt zählt nichts).' : fehler.message;
+            m.textContent = fehler.unklar || navigator.onLine === false ? Wettkampf.t('Keine Verbindung – bitte erneut versuchen (doppelt zählt nichts).') : fehler.message;
             m.hidden = false;
             setTimeout(() => { m.hidden = true; }, 5000);
         }
@@ -228,10 +228,10 @@
     });
 
     new MutationObserver(() => {
-        $('verbindung').textContent = body.classList.contains('offline') ? 'offline' : 'online';
+        $('verbindung').textContent = body.classList.contains('offline') ? Wettkampf.t('offline') : Wettkampf.t('online');
         $('verbindung').className = 'verbindung ' + (body.classList.contains('offline') ? 'weg' : 'ok');
     }).observe(body, { attributes: true, attributeFilter: ['class'] });
 
-    laden().catch((f) => { $('inhalt').innerHTML = `<p class="leer">Laden fehlgeschlagen: ${esc(f.message)}</p>`; });
+    laden().catch((f) => { $('inhalt').innerHTML = `<p class="leer">${esc(Wettkampf.t('Laden fehlgeschlagen: {grund}', { grund: f.message }))}</p>`; });
     Wettkampf.beobachten(url('/revision'), laden, 4000);
 })();

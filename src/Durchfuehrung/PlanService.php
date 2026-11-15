@@ -58,7 +58,7 @@ final class PlanService
         $this->db->transaktion(function () use ($turnierId, $phaseId, $tatamiId, $position) {
             $phase = $this->phase($turnierId, $phaseId);
             if ($tatamiId !== null && $this->db->wert('SELECT id FROM tatami WHERE id = ? AND turnier_id = ?', [$tatamiId, $turnierId]) === null) {
-                throw new FachFehler('Tatami nicht gefunden.');
+                throw new FachFehler(t('Tatami nicht gefunden.'));
             }
             // „Bis zum Finale auf derselben Fläche“: alle Phasen der Klasse wandern mit
             $phasen = (int) $phase['gleiche_flaeche'] === 1
@@ -104,7 +104,7 @@ final class PlanService
         return $this->db->transaktion(function () use ($turnierId, $kataKumiteGetrennt) {
             $tatamis = array_map('intval', $this->db->spalte('SELECT id FROM tatami WHERE turnier_id = ? AND gesperrt_am IS NULL ORDER BY nummer', [$turnierId]));
             if ($tatamis === []) {
-                throw new FachFehler('Das Turnier hat keine (freie) Tatami.');
+                throw new FachFehler(t('Das Turnier hat keine (freie) Tatami.'));
             }
             $minuten = $this->minutenJeEinheit($turnierId);
             $last = array_fill_keys($tatamis, 0.0);
@@ -173,7 +173,7 @@ final class PlanService
     public function verteilungSpeichern(int $turnierId, string $modus, bool $getrennt): void
     {
         if (!isset(self::MODI[$modus])) {
-            throw new FachFehler('Unbekannte Verteilung.');
+            throw new FachFehler(t('Unbekannte Verteilung.'));
         }
         $e = json_decode((string) $this->db->wert('SELECT einstellungen FROM turnier WHERE id = ?', [$turnierId]), true) ?: [];
         $e['verteilung'] = ['modus' => $modus, 'getrennt' => $getrennt];
@@ -269,7 +269,7 @@ final class PlanService
     public function tatamiSperren(int $turnierId, int $tatamiId, bool $sperren, string $grund = ''): int
     {
         if ($this->db->wert('SELECT id FROM tatami WHERE id = ? AND turnier_id = ?', [$tatamiId, $turnierId]) === null) {
-            throw new FachFehler('Tatami nicht gefunden.');
+            throw new FachFehler(t('Tatami nicht gefunden.'));
         }
         $zurueck = $this->db->transaktion(function () use ($turnierId, $tatamiId, $sperren, $grund) {
             $this->db->update('tatami', [
@@ -510,7 +510,7 @@ final class PlanService
             [$phaseId],
         );
         if ($p === null || (int) $p['turnier_id'] !== $turnierId) {
-            throw new FachFehler('Phase nicht gefunden.');
+            throw new FachFehler(t('Phase nicht gefunden.'));
         }
         return $p;
     }

@@ -72,7 +72,7 @@ final class FeedbackController extends Controller
     public function demoTurnier(Request $request): Response
     {
         if (!(new SystemEinstellungen($this->db))->demoModus()) {
-            throw new FachFehler('Der Demo-Modus ist ausgeschaltet.');
+            throw new FachFehler(t('Der Demo-Modus ist ausgeschaltet.'));
         }
         $logosVon = (int) $request->zahl('logos_von');
         $demo = (new DemoTurnier($this->db))->anlegen(
@@ -82,9 +82,9 @@ final class FeedbackController extends Controller
             $logosVon > 0 ? $logosVon : null,
             $request->text('phase', 'vorbereitung'),
         );
-        $this->erfolg("Demo-Turnier „{$demo['name']}“ angelegt: {$demo['teilnehmer']} Teilnehmer"
-            . ($demo['teams'] ? ", {$demo['teams']} Teams" : '') . ", {$demo['ausgelost']} Klassen ausgelost"
-            . ($demo['ergebnisse'] ? ", {$demo['ergebnisse']} Ergebnisse eingetragen" : ' – noch nicht gestartet') . '. PINs: ' . DemoTurnier::PINS . '.');
+        $this->erfolg(t('Demo-Turnier „{name}“ angelegt: {n} Teilnehmer', ['name' => $demo['name'], 'n' => $demo['teilnehmer']])
+            . ($demo['teams'] ? ', ' . t('{n} Teams', ['n' => $demo['teams']]) : '') . ', ' . t('{n} Klassen ausgelost', ['n' => $demo['ausgelost']])
+            . ($demo['ergebnisse'] ? ', ' . t('{n} Ergebnisse eingetragen', ['n' => $demo['ergebnisse']]) : ' – ' . t('noch nicht gestartet')) . '. ' . t('PINs: {pins}.', ['pins' => t(DemoTurnier::PINS)]));
         return $this->weiter("turnier/{$demo['turnier']}");
     }
 
@@ -92,7 +92,7 @@ final class FeedbackController extends Controller
     public function demoModus(Request $request): Response
     {
         (new SystemEinstellungen($this->db))->setzen(SystemEinstellungen::DEMO, $request->post('demo_modus') ? '1' : '0');
-        $this->erfolg($request->post('demo_modus') ? 'Demo-Modus eingeschaltet – unten lassen sich jetzt Demo-Turniere anlegen.' : 'Demo-Modus ausgeschaltet.');
+        $this->erfolg($request->post('demo_modus') ? t('Demo-Modus eingeschaltet – unten lassen sich jetzt Demo-Turniere anlegen.') : t('Demo-Modus ausgeschaltet.'));
         return $this->weiter('system');
     }
 
@@ -115,8 +115,8 @@ final class FeedbackController extends Controller
         foreach (SystemEinstellungen::STATUS_BEREICHE as $bereich => $schluessel) {
             $system->setzen($schluessel, in_array($bereich, (array) $request->post('status_bereiche', []), true) ? '1' : '0');
         }
-        $this->erfolg('Systemeinstellungen gespeichert.' . ($feedbackGewuenscht && $this->app->postausgang() === null
-            ? ' Der Feedback-Knopf bleibt aus, bis der E-Mail-Versand eingerichtet ist – die Meldungen gehen per Mail an das Taikai-Team.' : ''));
+        $this->erfolg(t('Systemeinstellungen gespeichert.') . ($feedbackGewuenscht && $this->app->postausgang() === null
+            ? ' ' . t('Der Feedback-Knopf bleibt aus, bis der E-Mail-Versand eingerichtet ist – die Meldungen gehen per Mail an das Taikai-Team.') : ''));
         return $this->weiter('system');
     }
 
@@ -137,7 +137,7 @@ final class FeedbackController extends Controller
     public function einreichen(Request $request): Response
     {
         if (!$this->app->feedbackAktiv()) {
-            throw new FachFehler('Die Feedback-Funktion ist ausgeschaltet bzw. der E-Mail-Versand ist nicht eingerichtet.');
+            throw new FachFehler(t('Die Feedback-Funktion ist ausgeschaltet bzw. der E-Mail-Versand ist nicht eingerichtet.'));
         }
         $daten = $request->json();
         $tisch = Session::tisch();
@@ -182,13 +182,13 @@ final class FeedbackController extends Controller
     public function loeschen(Request $request, int $id): Response
     {
         (new FeedbackService($this->db))->loeschen($id);
-        $this->erfolg('Feedback gelöscht.');
+        $this->erfolg(t('Feedback gelöscht.'));
         return $this->weiter('feedback', array_filter(['status' => $request->text('status'), 'art' => $request->text('art')]));
     }
 
     public function screenshot(Request $request, int $id): Response
     {
-        $bild = (new FeedbackService($this->db))->screenshot($id) ?? throw new NichtGefunden('Kein Screenshot vorhanden.');
+        $bild = (new FeedbackService($this->db))->screenshot($id) ?? throw new NichtGefunden(t('Kein Screenshot vorhanden.'));
         return new Response($bild['inhalt'], 200, ['Content-Type' => $bild['mime'], 'Cache-Control' => 'private, max-age=86400', 'X-Content-Type-Options' => 'nosniff']);
     }
 

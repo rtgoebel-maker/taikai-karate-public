@@ -8,18 +8,18 @@ $kopf = static fn (string $seite) => '<div class="ho-kopf"><div><div class="ho-a
 ?>
 <div class="blatt">
     <?= $kopf('Seite 1 von 4') ?>
-    <p>Je Tatami ein Tablet. Die <strong>Tatami-PIN</strong> bekommt ihr von der Wettkampfleitung. Alles, was ihr eintragt, erscheint sofort auf der Statusseite und in den Listen der Leitung.</p>
+    <p>Je Tatami ein Tablet. Den <strong>QR-Code</strong> eurer Tatami bekommt ihr von der Wettkampfleitung. Alles, was ihr eintragt, erscheint sofort auf der Statusseite und in den Listen der Leitung.</p>
 
     <h2><span class="ho-nr">1</span>Anmelden</h2>
     <div class="ho-schritt hoch">
         <?= $bild('tablet-anmeldung.jpg', 'Tatami wählen, Ansicht „Eingabe“, PIN eingeben') ?>
         <div>
             <ol>
-                <li>Im Browser die Adresse der Wettkampfsoftware mit <strong>/tisch</strong> öffnen.</li>
-                <li><strong>Tatami</strong> wählen, Ansicht <strong>„Eingabe“</strong>.</li>
-                <li><strong>PIN</strong> eingeben, <span class="ho-knopf">Anmelden</span>.</li>
+                <li>Den <strong>QR-Code „Eingabe“</strong> eurer Tatami mit dem Tablet scannen, Gerätenamen eingeben.</li>
+                <li>Das angezeigte <strong>Prüfwort</strong> der Wettkampfleitung nennen – sie gibt das Tablet frei, es meldet sich selbst an.</li>
+                <li>Notlösung, falls erlaubt: Adresse mit <strong>/tisch</strong> öffnen, Tatami, Ansicht „Eingabe“, <strong>PIN</strong>.</li>
             </ol>
-            <p>Das Tablet bleibt angemeldet. Nach einem Update der Software lädt es sich selbst neu.</p>
+            <p>Das Tablet bleibt angemeldet und lädt sich nach einem Update selbst neu. <strong>Mehr Platz:</strong> oben <span class="ho-knopf">⛶ Vollbild</span> oder die Seite als App zum Startbildschirm hinzufügen. Sprache: unten bzw. oben <strong>English</strong>.</p>
         </div>
     </div>
 
@@ -32,7 +32,7 @@ $kopf = static fn (string $seite) => '<div class="ho-kopf"><div><div class="ho-a
                 <li><span class="ho-knopf">📣 Ausruf Gruppe … starten</span> tippen – erst dann sieht der Ausrufer die Namen.</li>
                 <li>Hat der Ausrufer alle abgehakt, erscheint <strong>„Ausruf abgeschlossen“</strong> – dann <span class="ho-knopf">Weiter</span> bzw. <span class="ho-knopf">▶ Kampf beginnen</span>.</li>
             </ol>
-            <p>Den Stand des Ausrufs seht ihr rechts in der Leiste.</p>
+            <p>Den Stand des Ausrufs seht ihr rechts in der Leiste. Versehentlich <span class="ho-knopf">Weiter</span> getippt? Dort steht dann <span class="ho-knopf">📣 Ausruf starten</span> – einfach nachholen.</p>
         </div>
     </div>
     <h2><span class="ho-nr">3</span>Kata mit Punkten</h2>
@@ -128,6 +128,7 @@ $kopf = static fn (string $seite) => '<div class="ho-kopf"><div><div class="ho-a
         <ul>
             <li>Oben steht <strong>„offline“</strong>: WLAN prüfen. Eingetragenes bleibt stehen – erneut <span class="ho-knopf">Ergebnis senden</span>, sobald „online“ erscheint.</li>
             <li>Tablet reagiert nicht oder zeigt Altes: Seite <strong>neu laden</strong>. Die Anmeldung bleibt erhalten.</li>
+            <li>Tablet getauscht: neues Gerät per QR-Code koppeln und von der Leitung freigeben lassen.</li>
             <li>Geht gar nichts: auf dem <strong>Notfall-Satz</strong> (Papier, von der Leitung) weiterschreiben – ◯ = Ippon, △ = Wazaari – und die Leitung informieren.</li>
         </ul>
     </div>

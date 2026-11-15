@@ -25,10 +25,10 @@ final class TeamService
     {
         $name = trim($name);
         if ($name === '') {
-            throw new FachFehler('Bitte einen Teamnamen angeben.');
+            throw new FachFehler(t('Bitte einen Teamnamen angeben.'));
         }
         if (!in_array($disziplin, ['kata_team', 'kumite_team'], true)) {
-            throw new FachFehler('Ungültige Team-Disziplin.');
+            throw new FachFehler(t('Ungültige Team-Disziplin.'));
         }
         $felder = ['name' => $name, 'disziplin' => $disziplin, 'verein_id' => $vereinId];
         if ($teamId === null) {
@@ -57,13 +57,13 @@ final class TeamService
         $teilnahme = $this->db->eine(
             'SELECT t.id, a.verein_id FROM teilnahme t JOIN athlet a ON a.id = t.athlet_id WHERE t.id = ? AND t.turnier_id = ?',
             [$teilnahmeId, $turnierId],
-        ) ?? throw new FachFehler('Teilnehmer nicht gefunden.');
+        ) ?? throw new FachFehler(t('Teilnehmer nicht gefunden.'));
         $schonImTeam = $this->db->eine(
             'SELECT tm.name FROM team_mitglied m JOIN team tm ON tm.id = m.team_id WHERE m.teilnahme_id = ? AND tm.disziplin = ?',
             [$teilnahmeId, $team['disziplin']],
         );
         if ($schonImTeam !== null) {
-            throw new FachFehler("Der Teilnehmer ist bereits im Team „{$schonImTeam['name']}“ dieser Disziplin.");
+            throw new FachFehler(t('Der Teilnehmer ist bereits im Team „{team}“ dieser Disziplin.', ['team' => $schonImTeam['name']]));
         }
         $this->db->insert('team_mitglied', [
             'team_id' => $teamId,
@@ -89,7 +89,7 @@ final class TeamService
             [$teamId],
         );
         if ($ausgelost > 0) {
-            throw new FachFehler('Das Team ist bereits in einer ausgelosten Klasse und kann nicht gelöscht werden.');
+            throw new FachFehler(t('Das Team ist bereits in einer ausgelosten Klasse und kann nicht gelöscht werden.'));
         }
         $this->db->delete('team', ['id' => $teamId]);
         $this->protokoll->eintragen($turnierId, 'team', $teamId, 'geloescht');
@@ -99,6 +99,6 @@ final class TeamService
     private function team(int $turnierId, int $teamId): array
     {
         return $this->db->eine('SELECT * FROM team WHERE id = ? AND turnier_id = ?', [$teamId, $turnierId])
-            ?? throw new FachFehler('Team nicht gefunden.');
+            ?? throw new FachFehler(t('Team nicht gefunden.'));
     }
 }

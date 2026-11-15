@@ -108,14 +108,14 @@ final class SystemEinstellungen
     public function farbenSetzen(string $schema, string $eigene): void
     {
         if ($schema !== 'eigene' && !isset(self::FARBSCHEMATA[$schema])) {
-            throw new FachFehler('Unbekanntes Farbschema.');
+            throw new FachFehler(t('Unbekanntes Farbschema.'));
         }
         $eigene = strtolower(trim($eigene));
         if (!preg_match('/^#[0-9a-f]{6}$/', $eigene)) {
-            throw new FachFehler('Bitte die eigene Farbe als Hexwert angeben, z. B. #1d2b45.');
+            throw new FachFehler(t('Bitte die eigene Farbe als Hexwert angeben, z. B. #1d2b45.'));
         }
         if ($schema === 'eigene' && self::kontrastZuWeiss($eigene) < 4.5) {
-            throw new FachFehler('Die eigene Farbe ist zu hell – weiße Schrift in Kopfzeile und Knöpfen wäre schlecht lesbar. Bitte eine dunklere Farbe wählen.');
+            throw new FachFehler(t('Die eigene Farbe ist zu hell – weiße Schrift in Kopfzeile und Knöpfen wäre schlecht lesbar. Bitte eine dunklere Farbe wählen.'));
         }
         $this->setzen(self::FARBSCHEMA, $schema);
         $this->setzen(self::FARBE_EIGENE, $eigene);

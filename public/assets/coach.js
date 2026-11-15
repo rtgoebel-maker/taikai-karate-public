@@ -4,7 +4,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     const live = document.getElementById('coach-live');
-    if (live && window.Wettkampf) {
+    if (live && typeof Wettkampf !== 'undefined') { // const aus app.js ist keine Eigenschaft von window
         Wettkampf.beobachten(live.dataset.revisionUrl, () => {
             sessionStorage.setItem('coach-scroll', String(window.scrollY));
             location.reload();

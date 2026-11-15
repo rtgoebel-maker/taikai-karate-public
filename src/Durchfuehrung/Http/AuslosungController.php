@@ -17,7 +17,7 @@ final class AuslosungController extends Controller
         $this->turnier($id);
         $seed = $request->text('seed');
         (new AuslosungService($this->db))->auslosen($id, $klasseid, $seed !== '' ? $seed : null);
-        $this->erfolg('Klasse ausgelost.');
+        $this->erfolg(t('Klasse ausgelost.'));
         return $this->weiter("turnier/$id/klasse/$klasseid");
     }
 
@@ -25,7 +25,7 @@ final class AuslosungController extends Controller
     {
         $this->turnier($id);
         (new AuslosungService($this->db))->zuruecknehmen($id, $klasseid);
-        $this->erfolg('Auslosung zurückgenommen. Die Klasse ist wieder offen.');
+        $this->erfolg(t('Auslosung zurückgenommen. Die Klasse ist wieder offen.'));
         return $this->weiter("turnier/$id/klasse/$klasseid");
     }
 
@@ -33,7 +33,7 @@ final class AuslosungController extends Controller
     {
         $this->turnier($id);
         $anzahl = (new AuslosungService($this->db))->alleAuslosen($id);
-        $this->erfolg("$anzahl Klassen ausgelost.");
+        $this->erfolg(t('{n} Klassen ausgelost.', ['n' => $anzahl]));
         return $this->weiter("turnier/$id/klassen");
     }
 
@@ -42,7 +42,7 @@ final class AuslosungController extends Controller
     {
         $turnier = $this->turnier($id);
         $klasse = $this->db->eine('SELECT * FROM klasse WHERE id = ? AND turnier_id = ?', [$klasseid, $id])
-            ?? throw new NichtGefunden('Klasse nicht gefunden.');
+            ?? throw new NichtGefunden(t('Klasse nicht gefunden.'));
         $auslosungen = $this->db->alle('SELECT * FROM auslosung WHERE klasse_id = ? ORDER BY id DESC', [$klasseid]);
         return $this->seite('klasse/protokoll', compact('turnier', 'klasse', 'auslosungen') + ['aktiv' => 'klassen']);
     }

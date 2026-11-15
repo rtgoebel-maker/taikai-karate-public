@@ -51,7 +51,7 @@ final class AnmeldungController extends Controller
         if (Session::leitet($id) && $this->db->wert('SELECT 1 FROM turnier WHERE id = ?', [$id]) !== null) {
             return $this->weiter('melden/' . $this->service()->anmeldeSchluessel($id));
         }
-        throw new NichtGefunden('Diese Anmeldeadresse gibt es nicht (mehr). Bitte den Anmeldelink des Ausrichters verwenden.');
+        throw new NichtGefunden(t('Diese Anmeldeadresse gibt es nicht (mehr). Bitte den Anmeldelink des Ausrichters verwenden.'));
     }
 
     public function absenden(Request $request, string $schluessel): Response
@@ -76,8 +76,8 @@ final class AnmeldungController extends Controller
         $anmeldung = $this->perCode($id, $code);
         $hinweis = $this->konto($turnier, $anmeldung, $kontoAnlegen, $request);
         $this->mails()?->eingegangen($turnier, $anmeldung);
-        $this->erfolg('Vielen Dank – die Anmeldung ist eingegangen. Wie es weitergeht, zeigt der Bearbeitungsstand unten; die Zahlungsdaten stehen bei „Zahlungsaufforderung“.'
-            . ($this->mails() !== null ? ' Eine Bestätigung mit dem Bearbeitungslink ist per E-Mail unterwegs.' : ' Bitte diese Übersicht speichern und den Bearbeitungslink aufbewahren – darüber ist der Stand jederzeit abrufbar.')
+        $this->erfolg(t('Vielen Dank – die Anmeldung ist eingegangen. Wie es weitergeht, zeigt der Bearbeitungsstand unten; die Zahlungsdaten stehen bei „Zahlungsaufforderung“.')
+            . ($this->mails() !== null ? t(' Eine Bestätigung mit dem Bearbeitungslink ist per E-Mail unterwegs.') : t(' Bitte diese Übersicht speichern und den Bearbeitungslink aufbewahren – darüber ist der Stand jederzeit abrufbar.'))
             . $hinweis);
         return $this->weiter("anmeldung/$id/$code/uebersicht");
     }
@@ -106,7 +106,7 @@ final class AnmeldungController extends Controller
         if ((int) $neu['aufforderung_version'] !== (int) $anmeldung['aufforderung_version']) {
             $this->mails()?->neueAufforderung($turnier, $neu);
         }
-        $this->erfolg('Änderungen gespeichert – hier die aktuelle Übersicht. Hat sich das Startgeld geändert, gilt die neue Version der Zahlungsaufforderung.');
+        $this->erfolg(t('Änderungen gespeichert – hier die aktuelle Übersicht. Hat sich das Startgeld geändert, gilt die neue Version der Zahlungsaufforderung.'));
         return $this->weiter("anmeldung/$id/$code/uebersicht");
     }
 
@@ -134,7 +134,7 @@ final class AnmeldungController extends Controller
         $turnier = $this->turnier($id);
         $anmeldung = $this->perCode($id, $code);
         if (!$this->service()->einstellungen($turnier)['rechnung_fuer_dojos'] || !$this->service()->stand($anmeldung, $turnier)['bezahlt_voll']) {
-            throw new NichtGefunden('Eine Rechnung gibt es für diese Anmeldung (noch) nicht – bei Bedarf bitte bei der Wettkampfleitung anfragen.');
+            throw new NichtGefunden(t('Eine Rechnung gibt es für diese Anmeldung (noch) nicht – bei Bedarf bitte bei der Wettkampfleitung anfragen.'));
         }
         return $this->rechnungSeite($turnier, $anmeldung, url("anmeldung/$id/$code/uebersicht"));
     }
@@ -154,7 +154,9 @@ final class AnmeldungController extends Controller
         $this->service()->zahlungErfassen($id, $anmeldungid, $request->text('betrag'), $request->text('datum'), $request->text('notiz'));
         $mails = $this->mails();
         $mails?->zahlungEingegangen($this->turnier($id), $this->service()->anmeldung($id, $anmeldungid));
-        $this->erfolg('Zahlungseingang erfasst – das Dojo sieht ihn auf seiner Anmeldeübersicht' . ($mails !== null ? ' und erhält eine E-Mail.' : '.'));
+        $this->erfolg($mails !== null
+            ? t('Zahlungseingang erfasst – das Dojo sieht ihn auf seiner Anmeldeübersicht und erhält eine E-Mail.')
+            : t('Zahlungseingang erfasst – das Dojo sieht ihn auf seiner Anmeldeübersicht.'));
         return $this->weiter("turnier/$id/anmeldung/$anmeldungid");
     }
 
@@ -162,7 +164,7 @@ final class AnmeldungController extends Controller
     {
         $this->turnier($id);
         $this->service()->zahlungZuruecknehmen($id, $anmeldungid);
-        $this->erfolg('Zahlungseingang zurückgenommen.');
+        $this->erfolg(t('Zahlungseingang zurückgenommen.'));
         return $this->weiter("turnier/$id/anmeldung/$anmeldungid");
     }
 
@@ -195,7 +197,7 @@ final class AnmeldungController extends Controller
     {
         $this->turnier($id);
         $this->service()->schluesselErneuern($id);
-        $this->erfolg('Neuer Anmeldelink erzeugt – der bisherige gilt nicht mehr. Bereits abgeschickte Anmeldungen und ihre Bearbeitungslinks bleiben gültig.');
+        $this->erfolg(t('Neuer Anmeldelink erzeugt – der bisherige gilt nicht mehr. Bereits abgeschickte Anmeldungen und ihre Bearbeitungslinks bleiben gültig.'));
         return $this->weiter("turnier/$id/anmeldungen");
     }
 
@@ -203,7 +205,7 @@ final class AnmeldungController extends Controller
     {
         $this->turnier($id);
         $this->service()->einstellungenSpeichern($id, $request->post);
-        $this->erfolg('Einstellungen der Anmeldung gespeichert.');
+        $this->erfolg(t('Einstellungen der Anmeldung gespeichert.'));
         return $this->weiterNach($request, "turnier/$id/anmeldungen");
     }
 
@@ -224,8 +226,8 @@ final class AnmeldungController extends Controller
         $turnier = $this->turnier($id);
         $hinweise = $this->service()->freigeben($id, $anmeldungid, $request->post('konto_zuordnen') !== null);
         $this->mails()?->freigegeben($turnier, $this->service()->anmeldung($id, $anmeldungid));
-        $this->erfolg('Anmeldung freigegeben – Teilnehmer und Teams wurden übernommen und den Klassen zugeordnet.'
-            . ($hinweise ? ' Hinweise: ' . implode(' · ', $hinweise) : ''));
+        $this->erfolg(t('Anmeldung freigegeben – Teilnehmer und Teams wurden übernommen und den Klassen zugeordnet.')
+            . ($hinweise ? t(' Hinweise: {hinweise}', ['hinweise' => implode(' · ', $hinweise)]) : ''));
         return $this->weiter("turnier/$id/anmeldung/$anmeldungid");
     }
 
@@ -234,7 +236,7 @@ final class AnmeldungController extends Controller
         $this->turnier($id);
         $this->service()->ablehnen($id, $anmeldungid, $request->text('grund'));
         $this->mails()?->abgelehnt($this->turnier($id), $this->service()->anmeldung($id, $anmeldungid));
-        $this->erfolg('Anmeldung abgelehnt.');
+        $this->erfolg(t('Anmeldung abgelehnt.'));
         return $this->weiter("turnier/$id/anmeldung/$anmeldungid");
     }
 
@@ -242,7 +244,7 @@ final class AnmeldungController extends Controller
     {
         $this->turnier($id);
         $this->service()->wiederOeffnen($id, $anmeldungid);
-        $this->erfolg('Anmeldung wieder geöffnet – das Dojo kann sie ändern.');
+        $this->erfolg(t('Anmeldung wieder geöffnet – das Dojo kann sie ändern.'));
         return $this->weiter("turnier/$id/anmeldung/$anmeldungid");
     }
 
@@ -294,8 +296,7 @@ final class AnmeldungController extends Controller
         if ($konto === null || $bindung->erlaubt((int) $konto, $turnierId)) {
             return null;
         }
-        return 'Sie sind mit einem Dojo-Zugang angemeldet, der nur für „' . $bindung->namen((int) $konto) . '“ gilt. '
-            . 'Für dieses Turnier bitte abmelden und ohne Anmeldung melden (auf Wunsch mit neuem Zugang über eine andere E-Mail-Adresse).';
+        return t('Sie sind mit einem Dojo-Zugang angemeldet, der nur für „{turniere}“ gilt. Für dieses Turnier bitte abmelden und ohne Anmeldung melden (auf Wunsch mit neuem Zugang über eine andere E-Mail-Adresse).', ['turniere' => $bindung->namen((int) $konto)]);
     }
 
     /** E-Mails zum Bearbeitungsstand; null ohne eingerichteten Versand. */
@@ -335,16 +336,16 @@ final class AnmeldungController extends Controller
     {
         $fehler = [];
         if ($request->text('konto_vorname') === '' || $request->text('konto_nachname') === '') {
-            $fehler[] = 'Zugang: bitte Vor- und Nachname angeben.';
+            $fehler[] = t('Zugang: bitte Vor- und Nachname angeben.');
         }
         $passwort = (string) $request->post('konto_passwort', '');
         try {
             Konten::passwortPruefen($passwort);
         } catch (FachFehler $f) {
-            $fehler[] = 'Zugang: ' . $f->getMessage();
+            $fehler[] = t('Zugang: {fehler}', ['fehler' => $f->getMessage()]);
         }
         if ($passwort !== (string) $request->post('konto_passwort2', '')) {
-            $fehler[] = 'Zugang: Die beiden Passwörter stimmen nicht überein.';
+            $fehler[] = t('Zugang: Die beiden Passwörter stimmen nicht überein.');
         }
         if ($fehler !== []) {
             throw new AnmeldungUngueltig($fehler);
@@ -375,9 +376,9 @@ final class AnmeldungController extends Controller
         try {
             $konten->anlegenFuerAnmeldung($request->post, (string) $anmeldung['email'], (string) $anmeldung['uuid'], $ablauf, (string) $turnier['name'], $post);
         } catch (FachFehler $f) {
-            return ' Der Zugang konnte nicht angelegt werden: ' . $f->getMessage();
+            return t(' Der Zugang konnte nicht angelegt werden: {fehler}', ['fehler' => $f->getMessage()]);
         }
-        return ' Für den Zugang kommt eine E-Mail mit einem Bestätigungslink – erst danach ist er nutzbar.';
+        return t(' Für den Zugang kommt eine E-Mail mit einem Bestätigungslink – erst danach ist er nutzbar.');
     }
 
     private function service(): AnmeldungService
@@ -400,13 +401,13 @@ final class AnmeldungController extends Controller
     /** @return array<string, mixed> */
     private function perCode(int $id, string $code): array
     {
-        return $this->service()->perCode($id, $code) ?? throw new NichtGefunden('Anmeldung nicht gefunden – bitte den Link prüfen.');
+        return $this->service()->perCode($id, $code) ?? throw new NichtGefunden(t('Anmeldung nicht gefunden – bitte den Link prüfen.'));
     }
 
     private function perSchluessel(string $schluessel): int
     {
         return $this->service()->turnierPerSchluessel($schluessel)
-            ?? throw new NichtGefunden('Diesen Anmeldelink gibt es nicht (mehr). Bitte den aktuellen Link beim Ausrichter erfragen.');
+            ?? throw new NichtGefunden(t('Diesen Anmeldelink gibt es nicht (mehr). Bitte den aktuellen Link beim Ausrichter erfragen.'));
     }
 
     /**
@@ -424,10 +425,10 @@ final class AnmeldungController extends Controller
     private function einwilligungPruefen(Request $request): void
     {
         if ($request->text('webseite') !== '') {
-            throw new FachFehler('Anmeldung konnte nicht gespeichert werden.'); // Spam-Falle
+            throw new FachFehler(t('Anmeldung konnte nicht gespeichert werden.')); // Spam-Falle
         }
         if ($request->post('einwilligung') === null) {
-            throw new AnmeldungUngueltig(['Bitte bestätigen, dass die Starter bzw. Erziehungsberechtigten über die Datenschutzhinweise informiert wurden.']);
+            throw new AnmeldungUngueltig([t('Bitte bestätigen, dass die Starter bzw. Erziehungsberechtigten über die Datenschutzhinweise informiert wurden.')]);
         }
     }
 

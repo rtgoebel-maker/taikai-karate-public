@@ -72,20 +72,21 @@ final class KoBaum
     }
 
     /**
-     * Bezeichnung einer Runde anhand der Teilnehmerzahl in dieser Runde.
+     * Bezeichnung einer Runde anhand der Teilnehmerzahl in dieser Runde – in der aktuellen Sprache, mit $deutsch = true
+     * immer Deutsch (die Tisch-API liefert Deutsch: tisch.js erkennt die Runde am deutschen Text).
      */
-    public static function rundenName(int $baumGroesse, int $runde, string $art = 'ko'): string
+    public static function rundenName(int $baumGroesse, int $runde, string $art = 'ko', bool $deutsch = false): string
     {
         if ($art === 'platz3') {
-            return 'Kampf um Platz 3';
+            return $deutsch ? 'Kampf um Platz 3' : t('Kampf um Platz 3');
         }
         $teilnehmer = intdiv($baumGroesse, 2 ** ($runde - 1));
         return match ($teilnehmer) {
-            2 => 'Finale',
-            4 => 'Halbfinale',
-            8 => 'Viertelfinale',
-            16 => 'Achtelfinale',
-            default => "Runde $runde",
+            2 => $deutsch ? 'Finale' : t('Finale'),
+            4 => $deutsch ? 'Halbfinale' : t('Halbfinale'),
+            8 => $deutsch ? 'Viertelfinale' : t('Viertelfinale'),
+            16 => $deutsch ? 'Achtelfinale' : t('Achtelfinale'),
+            default => $deutsch ? "Runde $runde" : t('Runde {n}', ['n' => $runde]),
         };
     }
 }

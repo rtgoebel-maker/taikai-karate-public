@@ -39,7 +39,7 @@ final class AuthenticatorApp
     {
         $schritt = Totp::pruefen($geheimnis, $code, 0, $jetzt);
         if ($schritt === null) {
-            throw new FachFehler('Der Code aus der App stimmt nicht. Bitte prüfen, ob die Uhrzeit des Handys stimmt, und den aktuellen Code eingeben.');
+            throw new FachFehler(t('Der Code aus der App stimmt nicht. Bitte prüfen, ob die Uhrzeit des Handys stimmt, und den aktuellen Code eingeben.'));
         }
         return $this->db->transaktion(function () use ($benutzerId, $geheimnis, $schritt) {
             $this->db->update('benutzer', [
@@ -64,7 +64,7 @@ final class AuthenticatorApp
         }
         $geheimnis = $this->tresor->entschluesseln((string) $konto['totp_geheimnis']);
         if ($geheimnis === null) {
-            throw new FachFehler('Die Authenticator-App dieses Kontos lässt sich nicht prüfen (Schlüssel der Installation geändert). Bitte einen Wiederherstellungscode verwenden oder die Administration bitten, die App zurückzusetzen.');
+            throw new FachFehler(t('Die Authenticator-App dieses Kontos lässt sich nicht prüfen (Schlüssel der Installation geändert). Bitte einen Wiederherstellungscode verwenden oder die Administration bitten, die App zurückzusetzen.'));
         }
         $schritt = Totp::pruefen($geheimnis, $eingabe, (int) $konto['totp_schritt'], $jetzt);
         if ($schritt === null) {

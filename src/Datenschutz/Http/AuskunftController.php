@@ -34,7 +34,7 @@ final class AuskunftController extends Controller
         $ids = $this->ids($request->get('ids'));
         $bericht = (new Auskunft($this->db))->starter($ids);
         if ($bericht['personen'] === []) {
-            throw new FachFehler('Bitte mindestens einen Treffer auswählen.');
+            throw new FachFehler(t('Bitte mindestens einen Treffer auswählen.'));
         }
         if ($request->get('format') === 'json') {
             return $this->json($bericht, 'auskunft-starter-' . date('Ymd') . '.json');
@@ -46,7 +46,7 @@ final class AuskunftController extends Controller
     {
         $email = mb_substr($request->text('email'), 0, 190);
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new FachFehler('Bitte eine gültige E-Mail-Adresse eingeben.');
+            throw new FachFehler(t('Bitte eine gültige E-Mail-Adresse eingeben.'));
         }
         $bericht = (new Auskunft($this->db))->kontakt($email);
         if ($request->get('format') === 'json') {
@@ -60,10 +60,12 @@ final class AuskunftController extends Controller
     {
         $ids = $this->ids($request->post('ids'));
         if ($ids === [] || $request->text('bestaetigung') !== 'LÖSCHEN') {
-            throw new FachFehler('Zur Bestätigung bitte LÖSCHEN eingeben.');
+            throw new FachFehler(t('Zur Bestätigung bitte LÖSCHEN eingeben.'));
         }
         $anzahl = (new Pseudonymisierung($this->db))->person($ids);
-        $this->erfolg("Die Person wurde gelöscht (pseudonymisiert) – {$anzahl} " . ($anzahl === 1 ? 'Teilnahme' : 'Teilnahmen') . ' betroffen. Abrechnungsunterlagen im Archiv bleiben davon unberührt.');
+        $this->erfolg($anzahl === 1
+            ? t('Die Person wurde gelöscht (pseudonymisiert) – {anzahl} Teilnahme betroffen. Abrechnungsunterlagen im Archiv bleiben davon unberührt.', ['anzahl' => $anzahl])
+            : t('Die Person wurde gelöscht (pseudonymisiert) – {anzahl} Teilnahmen betroffen. Abrechnungsunterlagen im Archiv bleiben davon unberührt.', ['anzahl' => $anzahl]));
         return $this->weiter('datenschutz/auskunft');
     }
 

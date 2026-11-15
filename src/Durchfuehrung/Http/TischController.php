@@ -50,13 +50,13 @@ final class TischController extends Controller
             [(int) $request->zahl('tatami_id')],
         );
         if ($tatami === null) {
-            throw new FachFehler('Bitte eine Tatami wählen.');
+            throw new FachFehler(t('Bitte eine Tatami wählen.'));
         }
         if (!(int) $tatami['tisch_pin_erlaubt']) {
-            throw new FachFehler('Die Anmeldung per PIN ist für dieses Turnier abgeschaltet – bitte den QR-Code der Wettkampfleitung scannen.');
+            throw new FachFehler(t('Die Anmeldung per PIN ist für dieses Turnier abgeschaltet – bitte den QR-Code der Wettkampfleitung scannen.'));
         }
         if (!$tatami['pin_hash']) {
-            throw new FachFehler('Für diese Tatami ist noch keine PIN gesetzt (Turnier → Einstellungen).');
+            throw new FachFehler(t('Für diese Tatami ist noch keine PIN gesetzt (Turnier → Einstellungen).'));
         }
         // Fehlversuche je Tatami und IP in der Datenbank (ein neues Cookie hilft nicht)
         $schutz = new AnmeldeSchutz($this->db);
@@ -65,7 +65,7 @@ final class TischController extends Controller
         $schutz->pruefen($ziel, $ip);
         if (!password_verify($request->text('pin'), $tatami['pin_hash'])) {
             $schutz->fehlschlag($ziel, $ip, (int) $tatami['turnier_id']);
-            throw new FachFehler('PIN ist falsch.');
+            throw new FachFehler(t('PIN ist falsch.'));
         }
         $schutz->erfolg($ziel, $ip);
         $_SESSION['tisch_ansicht'] = $request->text('ansicht') === 'ausruf' ? 'ausruf' : 'app';
@@ -104,8 +104,8 @@ final class TischController extends Controller
         $geraet = $this->app->geraeteKopplung()->diesesGeraet();
         if ($geraet === null || $geraet['status'] === 'gesperrt') {
             Session::flash('hinweis', $geraet === null
-                ? 'Die Anfrage ist abgelaufen oder wurde abgelehnt – bitte den QR-Code erneut scannen.'
-                : 'Dieses Gerät wurde gesperrt – bitte den QR-Code erneut scannen und neu freigeben lassen.');
+                ? t('Die Anfrage ist abgelaufen oder wurde abgelehnt – bitte den QR-Code erneut scannen.')
+                : t('Dieses Gerät wurde gesperrt – bitte den QR-Code erneut scannen und neu freigeben lassen.'));
             return $this->weiter('tisch');
         }
         return $this->seite('tisch/warten', ['geraet' => $geraet, 'rollen' => GeraeteKopplung::ROLLEN]);
@@ -142,8 +142,8 @@ final class TischController extends Controller
         $ausruf = $request->text('ansicht') !== 'app';
         return new Response(json_encode([
             'id' => $ausruf ? url('tisch/ausruf') : url('tisch/app'),
-            'name' => $ausruf ? 'Taikai – Ausruf' : 'Taikai – Tisch',
-            'short_name' => $ausruf ? 'Ausruf' : 'Tisch',
+            'name' => $ausruf ? t('Taikai – Ausruf') : t('Taikai – Tisch'),
+            'short_name' => $ausruf ? t('Ausruf') : t('Tisch'),
             'start_url' => $ausruf ? url('tisch/ausruf') : url('tisch/app'),
             'scope' => url('tisch'),
             'display' => 'fullscreen',
@@ -186,7 +186,7 @@ final class TischController extends Controller
         );
         // Leitung: nur Tatamis der eigenen Turniere
         if ($tatami === null || ($tisch === null && !Session::leitet((int) $tatami['turnier_id']))) {
-            throw new NichtGefunden('Tatami nicht gefunden – als Leitung bitte über den Tatami-Plan öffnen.');
+            throw new NichtGefunden(t('Tatami nicht gefunden – als Leitung bitte über den Tatami-Plan öffnen.'));
         }
         return [$tatami, $tisch === null];
     }

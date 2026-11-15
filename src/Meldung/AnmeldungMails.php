@@ -26,12 +26,13 @@ final class AnmeldungMails
         $this->senden(
             $turnier,
             $a,
-            'Anmeldung eingegangen',
+            t('Anmeldung eingegangen'),
             'anmeldung_eingegangen',
-            "vielen Dank – Ihre Anmeldung ist eingegangen.\n\n" . $this->zusammenfassung($a) . $this->zahlung($turnier, $a)
-            . "Über Ihren persönlichen Bearbeitungslink sehen Sie jederzeit den Bearbeitungsstand und können die Anmeldung bis zur Freigabe"
-            . (!empty($turnier['meldeschluss']) ? ' bzw. bis zum Meldeschluss am ' . date('d.m.Y', (int) strtotime($turnier['meldeschluss'])) : '')
-            . " ändern. Bitte nicht weitergeben:\n" . $this->post->link("anmeldung/{$turnier['id']}/{$a['code']}") . "\n",
+            t('vielen Dank – Ihre Anmeldung ist eingegangen.') . "\n\n" . $this->zusammenfassung($a) . $this->zahlung($turnier, $a)
+            . (!empty($turnier['meldeschluss'])
+                ? t('Über Ihren persönlichen Bearbeitungslink sehen Sie jederzeit den Bearbeitungsstand und können die Anmeldung bis zur Freigabe bzw. bis zum Meldeschluss am {datum} ändern. Bitte nicht weitergeben:', ['datum' => self::datum((string) $turnier['meldeschluss'])])
+                : t('Über Ihren persönlichen Bearbeitungslink sehen Sie jederzeit den Bearbeitungsstand und können die Anmeldung bis zur Freigabe ändern. Bitte nicht weitergeben:'))
+            . "\n" . $this->post->link("anmeldung/{$turnier['id']}/{$a['code']}") . "\n",
         );
     }
 
@@ -44,11 +45,11 @@ final class AnmeldungMails
         $this->senden(
             $turnier,
             $a,
-            'Neue Zahlungsaufforderung (Version ' . (int) $a['aufforderung_version'] . ')',
+            t('Neue Zahlungsaufforderung (Version {version})', ['version' => (int) $a['aufforderung_version']]),
             'anmeldung_aufforderung',
-            "Ihre Anmeldung wurde geändert, dadurch hat sich das Startgeld geändert. Maßgeblich ist ab jetzt diese Zahlungsaufforderung "
-            . "(Version " . (int) $a['aufforderung_version'] . "); bereits Gezahltes ist verrechnet.\n\n" . $this->zusammenfassung($a) . $this->zahlung($turnier, $a)
-            . "Bearbeitungsstand und Übersicht: " . $this->post->link("anmeldung/{$turnier['id']}/{$a['code']}/uebersicht") . "\n",
+            t('Ihre Anmeldung wurde geändert, dadurch hat sich das Startgeld geändert. Maßgeblich ist ab jetzt diese Zahlungsaufforderung (Version {version}); bereits Gezahltes ist verrechnet.', ['version' => (int) $a['aufforderung_version']])
+            . "\n\n" . $this->zusammenfassung($a) . $this->zahlung($turnier, $a)
+            . t('Bearbeitungsstand und Übersicht:') . ' ' . $this->post->link("anmeldung/{$turnier['id']}/{$a['code']}/uebersicht") . "\n",
         );
     }
 
@@ -60,16 +61,16 @@ final class AnmeldungMails
     {
         $stand = (new AnmeldungService($this->db))->stand($a, $turnier);
         $text = $stand['bezahlt_voll']
-            ? 'Ihre Zahlung von ' . AnmeldungService::euro($stand['bezahlt']) . " ist eingegangen – vielen Dank.\n"
-                . ($stand['bezahlt'] > $stand['betrag'] ? 'Das Guthaben von ' . AnmeldungService::euro($stand['bezahlt'] - $stand['betrag']) . " wird erstattet bzw. verrechnet.\n" : '')
-                . "Die Übersicht gilt als Anmelde- und Zahlungsbestätigung.\n"
-            : 'Wir haben ' . AnmeldungService::euro($stand['bezahlt']) . ' erhalten. Noch offen: ' . AnmeldungService::euro($stand['offen']) . ".\n" . $this->zahlung($turnier, $a);
+            ? t('Ihre Zahlung von {betrag} ist eingegangen – vielen Dank.', ['betrag' => AnmeldungService::euro($stand['bezahlt'])]) . "\n"
+                . ($stand['bezahlt'] > $stand['betrag'] ? t('Das Guthaben von {betrag} wird erstattet bzw. verrechnet.', ['betrag' => AnmeldungService::euro($stand['bezahlt'] - $stand['betrag'])]) . "\n" : '')
+                . t('Die Übersicht gilt als Anmelde- und Zahlungsbestätigung.') . "\n"
+            : t('Wir haben {bezahlt} erhalten. Noch offen: {offen}.', ['bezahlt' => AnmeldungService::euro($stand['bezahlt']), 'offen' => AnmeldungService::euro($stand['offen'])]) . "\n" . $this->zahlung($turnier, $a);
         $this->senden(
             $turnier,
             $a,
-            $stand['bezahlt_voll'] ? 'Zahlung eingegangen' : 'Teilzahlung eingegangen',
+            $stand['bezahlt_voll'] ? t('Zahlung eingegangen') : t('Teilzahlung eingegangen'),
             'anmeldung_zahlung',
-            $text . "\nBearbeitungsstand und Übersicht: " . $this->post->link("anmeldung/{$turnier['id']}/{$a['code']}/uebersicht") . "\n",
+            $text . "\n" . t('Bearbeitungsstand und Übersicht:') . ' ' . $this->post->link("anmeldung/{$turnier['id']}/{$a['code']}/uebersicht") . "\n",
         );
     }
 
@@ -82,11 +83,11 @@ final class AnmeldungMails
         $this->senden(
             $turnier,
             $a,
-            'Anmeldung freigegeben',
+            t('Anmeldung freigegeben'),
             'anmeldung_freigegeben',
-            "Ihre Anmeldung wurde von der Wettkampfleitung freigegeben: Die Teilnehmer und Teams sind für das Turnier gemeldet und den Klassen zugeordnet.\n\n"
-            . "Übersicht: " . $this->post->link("anmeldung/{$turnier['id']}/{$a['code']}/uebersicht") . "\n"
-            . "Änderungen ab jetzt bitte direkt bei der Wettkampfleitung.\n",
+            t('Ihre Anmeldung wurde von der Wettkampfleitung freigegeben: Die Teilnehmer und Teams sind für das Turnier gemeldet und den Klassen zugeordnet.') . "\n\n"
+            . t('Übersicht:') . ' ' . $this->post->link("anmeldung/{$turnier['id']}/{$a['code']}/uebersicht") . "\n"
+            . t('Änderungen ab jetzt bitte direkt bei der Wettkampfleitung.') . "\n",
         );
     }
 
@@ -99,10 +100,10 @@ final class AnmeldungMails
         $this->senden(
             $turnier,
             $a,
-            'Anmeldung abgelehnt',
+            t('Anmeldung abgelehnt'),
             'anmeldung_abgelehnt',
-            "Ihre Anmeldung wurde von der Wettkampfleitung abgelehnt."
-            . ($a['grund'] ? "\nGrund: " . $a['grund'] : '') . "\n\nBei Fragen wenden Sie sich bitte an die Wettkampfleitung.\n",
+            t('Ihre Anmeldung wurde von der Wettkampfleitung abgelehnt.')
+            . ($a['grund'] ? "\n" . t('Grund: {grund}', ['grund' => $a['grund']]) : '') . "\n\n" . t('Bei Fragen wenden Sie sich bitte an die Wettkampfleitung.') . "\n",
         );
     }
 
@@ -112,21 +113,30 @@ final class AnmeldungMails
      */
     private function senden(array $turnier, array $a, string $anlass, string $art, string $inhalt): void
     {
-        $datum = date('d.m.Y', (int) strtotime((string) $turnier['datum']));
-        $text = 'Guten Tag ' . $a['ansprechpartner'] . ",\n\n" . $inhalt
-            . "\nTurnier: {$turnier['name']} am $datum" . ($turnier['ort'] ? " in {$turnier['ort']}" : '') . "\n"
-            . "Dojo: {$a['dojo']} · Anmelde-Nr. {$a['id']}\n"
-            . "\n-- \nDiese Nachricht wurde automatisch von Taikai – Karate (Turniersoftware) verschickt. "
-            . "Sie erhalten sie, weil diese Adresse bei der Online-Anmeldung angegeben wurde.";
+        $datum = self::datum((string) $turnier['datum']);
+        $text = t('Guten Tag {name},', ['name' => $a['ansprechpartner']]) . "\n\n" . $inhalt
+            . "\n" . ($turnier['ort']
+                ? t('Turnier: {name} am {datum} in {ort}', ['name' => $turnier['name'], 'datum' => $datum, 'ort' => $turnier['ort']])
+                : t('Turnier: {name} am {datum}', ['name' => $turnier['name'], 'datum' => $datum])) . "\n"
+            . t('Dojo: {dojo} · Anmelde-Nr. {nr}', ['dojo' => $a['dojo'], 'nr' => $a['id']]) . "\n"
+            . "\n-- \n" . t('Diese Nachricht wurde automatisch von Taikai – Karate (Turniersoftware) verschickt. Sie erhalten sie, weil diese Adresse bei der Online-Anmeldung angegeben wurde.');
         $this->post->einreihen((string) $a['email'], "$anlass – {$turnier['name']}", $text, $art, (int) $turnier['id']);
+    }
+
+    /** Datum in der Sprache der Mail (14.03.2026 bzw. 14 Mar 2026). */
+    private static function datum(string $zeit): string
+    {
+        return \Wettkampf\Kern\Sprache::datum(date('Y-m-d', (int) strtotime($zeit)));
     }
 
     /** @param array<string, mixed> $a */
     private function zusammenfassung(array $a): string
     {
         $daten = json_decode((string) $a['daten'], true) ?: ['teilnehmer' => [], 'teams' => []];
-        return 'Gemeldet: ' . count($daten['teilnehmer']) . ' Teilnehmer, ' . count($daten['teams']) . ' ' . (count($daten['teams']) === 1 ? 'Team' : 'Teams')
-            . ' · Startgeld ' . AnmeldungService::euro((int) $a['aufforderung_cent']) . "\n\n";
+        $werte = ['n' => count($daten['teilnehmer']), 'teams' => count($daten['teams']), 'betrag' => AnmeldungService::euro((int) $a['aufforderung_cent'])];
+        return (count($daten['teams']) === 1
+            ? t('Gemeldet: {n} Teilnehmer, {teams} Team · Startgeld {betrag}', $werte)
+            : t('Gemeldet: {n} Teilnehmer, {teams} Teams · Startgeld {betrag}', $werte)) . "\n\n";
     }
 
     /**
@@ -148,20 +158,20 @@ final class AnmeldungMails
             $frist = (string) $turnier['meldeschluss'];
         }
         $zeilen = [
-            'ZAHLUNGSAUFFORDERUNG' . ((int) $a['aufforderung_version'] > 1 ? ' (Version ' . (int) $a['aufforderung_version'] . ')' : ''),
-            'Zu überweisen:     ' . AnmeldungService::euro($stand['offen']) . ($stand['bezahlt'] > 0 ? ' (bereits erhalten: ' . AnmeldungService::euro($stand['bezahlt']) . ')' : ''),
-            'Zahlbar bis:       ' . date('d.m.Y', (int) strtotime($frist)),
-            'Verwendungszweck:  ' . $rechnung->nummerAnmeldung($turnier, (int) $a['id']) . ' ' . $a['dojo'],
+            (int) $a['aufforderung_version'] > 1 ? t('ZAHLUNGSAUFFORDERUNG (Version {version})', ['version' => (int) $a['aufforderung_version']]) : t('ZAHLUNGSAUFFORDERUNG'),
+            t('Zu überweisen:     {betrag}', ['betrag' => AnmeldungService::euro($stand['offen'])]) . ($stand['bezahlt'] > 0 ? t(' (bereits erhalten: {betrag})', ['betrag' => AnmeldungService::euro($stand['bezahlt'])]) : ''),
+            t('Zahlbar bis:       {datum}', ['datum' => self::datum($frist)]),
+            t('Verwendungszweck:  {zweck}', ['zweck' => $rechnung->nummerAnmeldung($turnier, (int) $a['id']) . ' ' . $a['dojo']]),
         ];
         if ($z['absender'] !== '') {
-            $zeilen[] = 'Empfänger:         ' . implode(', ', array_filter(array_map('trim', explode("\n", $z['absender']))));
+            $zeilen[] = t('Empfänger:         {empfaenger}', ['empfaenger' => implode(', ', array_filter(array_map('trim', explode("\n", $z['absender']))))]);
         }
         if ($z['bank'] !== '') {
-            $zeilen[] = 'Bankverbindung:    ' . implode(' · ', array_filter(array_map('trim', explode("\n", $z['bank']))));
+            $zeilen[] = t('Bankverbindung:    {bank}', ['bank' => implode(' · ', array_filter(array_map('trim', explode("\n", $z['bank']))))]);
         }
         if (Girocode::nutzdaten($z['absender'], $z['bank'], $stand['offen'], '') !== null) {
             $zeilen[] = '';
-            $zeilen[] = 'Bequem per Banking-App: Die Übersicht zur Anmeldung (Bearbeitungslink) zeigt einen QR-Code zum Scannen (GiroCode).';
+            $zeilen[] = t('Bequem per Banking-App: Die Übersicht zur Anmeldung (Bearbeitungslink) zeigt einen QR-Code zum Scannen (GiroCode).');
         }
         $hinweis = (new AnmeldungService($this->db))->einstellungen($turnier)['hinweis'];
         return implode("\n", $zeilen) . "\n" . ($hinweis !== '' ? "\n$hinweis\n" : '') . "\n";

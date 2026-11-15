@@ -39,7 +39,7 @@ final class Zugang implements MiddlewareInterface
         if (!$erlaubt) {
             if (Session::benutzer() !== null) {
                 // angemeldet, aber ohne Recht für diese Seite bzw. dieses Turnier (OWASP A01)
-                return PsrBruecke::antwort($this->app->fehlerAntwort($istApi, 403, 'Kein Zugriff: Diese Seite gehört zu einem Turnier oder Bereich, für den dieses Konto keine Rechte hat.'));
+                return PsrBruecke::antwort($this->app->fehlerAntwort($istApi, 403, t('Kein Zugriff: Diese Seite gehört zu einem Turnier oder Bereich, für den dieses Konto keine Rechte hat.')));
             }
             if ($istApi) {
                 return PsrBruecke::antwort(Response::json(['fehler' => 'Nicht angemeldet.'], 401));
@@ -55,11 +55,10 @@ final class Zugang implements MiddlewareInterface
             $laenge = (int) ($request->getServerParams()['CONTENT_LENGTH'] ?? 0);
             if ($token === null && $laenge > 0 && str_contains($request->getHeaderLine('content-type'), 'multipart/form-data')) {
                 // post_max_size überschritten: PHP verwirft das ganze Formular (auch das Token)
-                return PsrBruecke::antwort($this->app->fehlerAntwort($istApi, 413, 'Die hochgeladene Datei ist größer, als der Server annimmt (post_max_size = '
-                    . ini_get('post_max_size') . '). Bitte in der PHP-Konfiguration upload_max_filesize und post_max_size erhöhen.'));
+                return PsrBruecke::antwort($this->app->fehlerAntwort($istApi, 413, t('Die hochgeladene Datei ist größer, als der Server annimmt (post_max_size = {groesse}). Bitte in der PHP-Konfiguration upload_max_filesize und post_max_size erhöhen.', ['groesse' => (string) ini_get('post_max_size')])));
             }
             if (!Session::csrfPruefen(is_string($token) ? $token : null)) {
-                return PsrBruecke::antwort($this->app->fehlerAntwort($istApi, 419, 'Sitzung abgelaufen. Bitte Seite neu laden.'));
+                return PsrBruecke::antwort($this->app->fehlerAntwort($istApi, 419, t('Sitzung abgelaufen. Bitte Seite neu laden.')));
             }
         }
         return $handler->handle($request);

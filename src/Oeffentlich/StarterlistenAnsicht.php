@@ -7,6 +7,7 @@ namespace Wettkampf\Oeffentlich;
 use Wettkampf\Domain\Graduierung;
 use Wettkampf\Kern\Db\Database;
 use Wettkampf\Durchfuehrung\KlassenAnsicht;
+use Wettkampf\Kern\Sprache;
 
 /**
  * Lesemodell für den öffentlichen Aushang „Starterlisten & Wettkampfbäume“:
@@ -106,20 +107,20 @@ final class StarterlistenAnsicht
      */
     private function regeln(array $k, ?string $finaleKata): string
     {
-        $geschlecht = ['w' => 'weiblich', 'm' => 'männlich', 'mixed' => 'gemischt'][$k['geschlecht']] ?? $k['geschlecht'];
+        $geschlecht = ['w' => Sprache::t('weiblich'), 'm' => Sprache::t('männlich'), 'mixed' => Sprache::t('gemischt')][$k['geschlecht']] ?? $k['geschlecht'];
         $alter = match (true) {
-            $k['alter_min'] === null && $k['alter_max'] === null => 'alle Alter',
-            $k['alter_max'] === null => "ab {$k['alter_min']} Jahre",
-            $k['alter_min'] === null => "bis {$k['alter_max']} Jahre",
-            default => "{$k['alter_min']}–{$k['alter_max']} Jahre",
+            $k['alter_min'] === null && $k['alter_max'] === null => Sprache::t('alle Alter'),
+            $k['alter_max'] === null => Sprache::t('ab {alter} Jahre', ['alter' => $k['alter_min']]),
+            $k['alter_min'] === null => Sprache::t('bis {alter} Jahre', ['alter' => $k['alter_max']]),
+            default => Sprache::t('{von}–{bis} Jahre', ['von' => $k['alter_min'], 'bis' => $k['alter_max']]),
         };
         $teile = ["$geschlecht · {$k['code']}: "
             . Graduierung::bereichText($k['grad_min'] === null ? null : (int) $k['grad_min'], $k['grad_max'] === null ? null : (int) $k['grad_max'])
             . ", $alter"];
         if (str_starts_with($k['disziplin'], 'kata')) {
-            $teile[] = 'Vorrunde: ' . ($k['erlaubte_kata'] ?: 'frei');
+            $teile[] = Sprache::t('Vorrunde: {kata}', ['kata' => $k['erlaubte_kata'] ?: Sprache::t('frei')]);
             if ($finaleKata !== null) {
-                $teile[] = 'Finale: ' . ($finaleKata === '' ? 'frei (Tokui)' : $finaleKata);
+                $teile[] = Sprache::t('Finale: {kata}', ['kata' => $finaleKata === '' ? Sprache::t('frei (Tokui)') : $finaleKata]);
             }
         } elseif ($k['kumite_form']) {
             $teile[] = ['kihon_ippon' => 'Kihon-Ippon-Kumite', 'jiyu_ippon' => 'Jiyu-Ippon-Kumite', 'jiyu' => 'Jiyu-Kumite'][$k['kumite_form']] ?? '';

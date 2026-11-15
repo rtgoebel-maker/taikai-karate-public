@@ -6,10 +6,10 @@
  * @var string $vermerk Zeile am Seitenende (z. B. „Archivkopie, erstellt am …“)
  */
 ?><!doctype html>
-<html lang="de">
+<html lang="<?= e(sprache()) ?>">
 <head>
 <meta charset="utf-8">
-<title>Beleg <?= e((string) $blatt['nummer']) ?></title>
+<title><?= te('Beleg {nummer}', ['nummer' => (string) $blatt['nummer']]) ?></title>
 <style>
 @page { size: A4 portrait; margin: 14mm 14mm 18mm; }
 body { font-family: "DejaVu Sans", sans-serif; font-size: 9pt; color: #000; margin: 0; }

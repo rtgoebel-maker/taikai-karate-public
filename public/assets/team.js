@@ -12,7 +12,7 @@
             k.hidden = !passt;
             treffer += passt ? 1 : 0;
         });
-        document.getElementById('team-treffer').textContent = treffer === karten.length ? `${karten.length} Teams` : `${treffer} von ${karten.length} Teams`;
+        document.getElementById('team-treffer').textContent = treffer === karten.length ? Wettkampf.t('{n} Teams', { n: karten.length }) : Wettkampf.t('{n} von {gesamt} Teams', { n: treffer, gesamt: karten.length });
         document.getElementById('team-keine').hidden = treffer > 0;
         history.replaceState(null, '', suche.value ? `?q=${encodeURIComponent(suche.value)}` : location.pathname);
     };

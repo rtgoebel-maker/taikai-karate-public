@@ -15,6 +15,6 @@ final class StichentscheidNoetig extends FachFehler
     /** @param list<int> $startIds */
     public function __construct(public readonly array $startIds)
     {
-        parent::__construct('Gleichstand – Stichentscheid durch die Wettkampfleitung erforderlich.');
+        parent::__construct(t('Gleichstand – Stichentscheid durch die Wettkampfleitung erforderlich.'));
     }
 }

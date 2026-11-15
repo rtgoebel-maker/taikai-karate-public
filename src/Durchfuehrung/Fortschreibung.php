@@ -33,7 +33,7 @@ final class Fortschreibung
         $this->db->transaktion(function () use ($begegnungId, $siegerStartId, $felder) {
             $b = $this->begegnung($begegnungId);
             if (!in_array($siegerStartId, [(int) $b['aka_start_id'], (int) $b['shiro_start_id']], true)) {
-                throw new \Wettkampf\Domain\FachFehler('Der Sieger muss einer der beiden Starter sein.');
+                throw new \Wettkampf\Domain\FachFehler(t('Der Sieger muss einer der beiden Starter sein.'));
             }
             $this->db->query(
                 'UPDATE begegnung SET version = version + 1 WHERE id = ?',
@@ -342,6 +342,6 @@ final class Fortschreibung
     private function begegnung(int $id): array
     {
         return $this->db->eine('SELECT * FROM begegnung WHERE id = ?', [$id])
-            ?? throw new \Wettkampf\Domain\FachFehler('Begegnung nicht gefunden.');
+            ?? throw new \Wettkampf\Domain\FachFehler(t('Begegnung nicht gefunden.'));
     }
 }

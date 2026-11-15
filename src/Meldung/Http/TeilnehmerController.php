@@ -101,7 +101,7 @@ final class TeilnehmerController extends Controller
                 $ergebnis[] = "$kampflos offene Kämpfe/Vorträge wurden kampflos (Kiken) gewertet.";
             }
         }
-        $this->erfolg('Teilnehmer gespeichert.' . ($ergebnis ? ' ' . implode(' ', $ergebnis) : ''));
+        $this->erfolg(t('Teilnehmer gespeichert.') . ($ergebnis ? ' ' . implode(' ', $ergebnis) : ''));
         if ($request->post('weiter') === 'neu') {
             return $this->weiter("turnier/$id/teilnehmer/neu", ['verein' => $daten['verein_id'] ?? null]);
         }
@@ -111,7 +111,7 @@ final class TeilnehmerController extends Controller
     public function loeschen(Request $request, int $id, int $teilnahmeid): Response
     {
         (new StammdatenService($this->db))->teilnehmerLoeschen($id, $teilnahmeid);
-        $this->erfolg('Teilnehmer gelöscht.');
+        $this->erfolg(t('Teilnehmer gelöscht.'));
         return $this->weiter("turnier/$id/teilnehmer");
     }
 
@@ -129,7 +129,7 @@ final class TeilnehmerController extends Controller
                 'SELECT t.*, a.vorname, a.nachname, a.geschlecht, a.geburtsdatum, a.graduierung, a.verein_id
                    FROM teilnahme t JOIN athlet a ON a.id = t.athlet_id WHERE t.id = ? AND t.turnier_id = ?',
                 [$teilnahmeId, $turnierId],
-            ) ?? throw new \Wettkampf\Kern\Http\NichtGefunden('Teilnehmer nicht gefunden.');
+            ) ?? throw new \Wettkampf\Kern\Http\NichtGefunden(t('Teilnehmer nicht gefunden.'));
             $starts = $this->db->alle(
                 'SELECT s.*, k.code, k.bezeichnung, k.status AS klasse_status FROM start s JOIN klasse k ON k.id = s.klasse_id WHERE s.teilnahme_id = ? ORDER BY k.code',
                 [$teilnahmeId],

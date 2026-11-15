@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Wettkampf\Betrieb\Http\AssistentController;
 use Wettkampf\Betrieb\Http\HilfeController;
 use Wettkampf\Betrieb\Http\SicherungController;
+use Wettkampf\Betrieb\Http\SpracheController;
 use Wettkampf\Betrieb\Http\UeberController;
 use Wettkampf\Betrieb\Http\VerlaufController;
 use Wettkampf\Kern\Http\Router;
@@ -16,6 +17,8 @@ return static function (Router $r): void {
     $r->get('/hilfe', [HilfeController::class, 'index'], 'leitung');
     $r->get('/handout/{name}', [HilfeController::class, 'handout'], 'leitung');
     // Über diese Software, Changelog, Lizenz – öffentlich (AGPL: Hinweise und Quellcode-Angebot für alle Nutzer)
+    $r->get('/sprache/texte.js', [SpracheController::class, 'texte'], 'oeffentlich');
+    $r->get('/sprache/wechseln/{code}', [SpracheController::class, 'wechseln'], 'oeffentlich');
     $r->get('/ueber', [UeberController::class, 'index'], 'oeffentlich');
     $r->get('/ueber/changelog', [UeberController::class, 'changelog'], 'oeffentlich');
     $r->get('/ueber/lizenz', [UeberController::class, 'lizenz'], 'oeffentlich');

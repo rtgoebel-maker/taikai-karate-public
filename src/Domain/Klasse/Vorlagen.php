@@ -19,8 +19,8 @@ final class Vorlagen
     public static function liste(): array
     {
         return [
-            'gruppen_ap' => 'Gruppenschema A–P (Einzel A1–G4, Teams H–P; Kata im Punktesystem)',
-            'djkb' => 'DJKB-Standard (Sportordnung, Deutsche Meisterschaft)',
+            'gruppen_ap' => t('Gruppenschema A–P (Einzel A1–G4, Teams H–P; Kata im Punktesystem)'),
+            'djkb' => t('DJKB-Standard (Sportordnung, Deutsche Meisterschaft)'),
         ];
     }
 
@@ -45,8 +45,7 @@ final class Vorlagen
     {
         $kata = static fn(string $code, string $g, int $von, ?int $bis, ?int $gradMin, ?int $gradMax, string $katas) => [
             'code' => $code,
-            'bezeichnung' => 'Kata ' . ($g === 'w' ? ($von >= 18 ? 'Frauen' : 'Mädchen') : ($von >= 18 ? 'Männer' : 'Jungen'))
-                . ' ' . self::alterText($von, $bis) . ' · ' . G::bereichText($gradMin, $gradMax),
+            'bezeichnung' => 'Kata ' . self::gruppe($g, $von) . ' ' . self::alterText($von, $bis) . ' · ' . G::bereichText($gradMin, $gradMax),
             'disziplin' => 'kata', 'kumite_form' => null, 'geschlecht' => $g,
             'alter_min' => $von, 'alter_max' => $bis, 'grad_min' => $gradMin, 'grad_max' => $gradMax,
             'erlaubte_kata' => $katas,
@@ -55,8 +54,7 @@ final class Vorlagen
         ];
         $kumite = static fn(string $code, string $g, int $von, ?int $bis, ?int $gradMin, ?int $gradMax, string $form, ?string $exklusiv = null) => [
             'code' => $code,
-            'bezeichnung' => self::kumiteName($form) . ' ' . ($g === 'w' ? ($von >= 18 ? 'Frauen' : 'Mädchen') : ($von >= 18 ? 'Männer' : 'Jungen'))
-                . ' ' . self::alterText($von, $bis) . ' · ' . G::bereichText($gradMin, $gradMax),
+            'bezeichnung' => self::kumiteName($form) . ' ' . self::gruppe($g, $von) . ' ' . self::alterText($von, $bis) . ' · ' . G::bereichText($gradMin, $gradMax),
             'disziplin' => 'kumite', 'kumite_form' => $form, 'geschlecht' => $g,
             'alter_min' => $von, 'alter_max' => $bis, 'grad_min' => $gradMin, 'grad_max' => $gradMax,
             'exklusiv_gruppe' => $exklusiv,
@@ -100,7 +98,7 @@ final class Vorlagen
         foreach ([['H', 8, 9, $k7], ['I', 10, 11, $k7], ['J', 12, 14, $k7], ['K', 15, 17, G::kyu(6)], ['L', 18, null, G::kyu(6)]] as [$code, $von, $bis, $grad]) {
             $klassen[] = [
                 'code' => $code,
-                'bezeichnung' => 'Kata-Team gemischt ' . self::alterText($von, $bis) . ' · ' . G::bereichText($grad, null),
+                'bezeichnung' => t('Kata-Team gemischt {alter} · {grad}', ['alter' => self::alterText($von, $bis), 'grad' => G::bereichText($grad, null)]),
                 'disziplin' => 'kata_team', 'geschlecht' => 'mixed',
                 'alter_min' => $von, 'alter_max' => $bis, 'grad_min' => $grad, 'grad_max' => null,
                 'erlaubte_kata' => '', 'modus' => 'punkte', 'wertung' => 'punkte', 'wertung_finale' => 'punkte', 'finalisten' => 4,
@@ -109,8 +107,7 @@ final class Vorlagen
         foreach ([['M', 'w', 15, 17], ['N', 'm', 15, 17], ['O', 'w', 18, null], ['P', 'm', 18, null]] as [$code, $g, $von, $bis]) {
             $klassen[] = [
                 'code' => $code,
-                'bezeichnung' => 'Kumite-Team ' . ($g === 'w' ? ($von >= 18 ? 'Frauen' : 'Mädchen') : ($von >= 18 ? 'Männer' : 'Jungen'))
-                    . ' ' . self::alterText($von, $bis) . ' · ab 3. Kyu',
+                'bezeichnung' => t('Kumite-Team {gruppe} {alter} · {grad}', ['gruppe' => self::gruppe($g, $von), 'alter' => self::alterText($von, $bis), 'grad' => G::bereichText($k3, null)]),
                 'disziplin' => 'kumite_team', 'kumite_form' => 'jiyu', 'geschlecht' => $g,
                 'alter_min' => $von, 'alter_max' => $bis, 'grad_min' => $k3, 'grad_max' => null,
                 'modus' => 'auto', 'wertung' => 'kumite',
@@ -135,16 +132,16 @@ final class Vorlagen
         ));
         // [Kürzel, Name, von, bis, gradMin, gradMax, Kumite-Form, Heian bis, Regel „letzte 8 Jiyu-Kumite“]
         $gruppen = [
-            ['S1', 'Schüler 1', 8, 10, null, G::kyu(6), 'kihon_ippon', 2, false],
-            ['S1', 'Schüler 1', 8, 10, G::kyu(5), null, 'jiyu_ippon', 3, false],
-            ['S2', 'Schüler 2', 11, 12, null, G::kyu(5), 'kihon_ippon', 3, false],
-            ['S2', 'Schüler 2', 11, 12, G::kyu(4), null, 'jiyu_ippon', 4, true],
-            ['S3', 'Schüler 3', 13, 14, G::kyu(6), G::kyu(5), 'jiyu_ippon', 4, false],
-            ['S3', 'Schüler 3', 13, 14, G::kyu(4), null, 'jiyu', 5, false],
-            ['J1', 'Jugend 1', 15, 16, G::kyu(4), null, 'jiyu', 5, false],
-            ['J2', 'Jugend 2', 17, 18, G::kyu(4), null, 'jiyu', 5, false],
-            ['JUN', 'Junioren', 19, 20, G::kyu(4), null, 'jiyu', 5, false],
-            ['AKT', 'Aktive', 21, null, G::kyu(4), null, 'jiyu', 5, false],
+            ['S1', t('Schüler {n}', ['n' => 1]), 8, 10, null, G::kyu(6), 'kihon_ippon', 2, false],
+            ['S1', t('Schüler {n}', ['n' => 1]), 8, 10, G::kyu(5), null, 'jiyu_ippon', 3, false],
+            ['S2', t('Schüler {n}', ['n' => 2]), 11, 12, null, G::kyu(5), 'kihon_ippon', 3, false],
+            ['S2', t('Schüler {n}', ['n' => 2]), 11, 12, G::kyu(4), null, 'jiyu_ippon', 4, true],
+            ['S3', t('Schüler {n}', ['n' => 3]), 13, 14, G::kyu(6), G::kyu(5), 'jiyu_ippon', 4, false],
+            ['S3', t('Schüler {n}', ['n' => 3]), 13, 14, G::kyu(4), null, 'jiyu', 5, false],
+            ['J1', t('Jugend {n}', ['n' => 1]), 15, 16, G::kyu(4), null, 'jiyu', 5, false],
+            ['J2', t('Jugend {n}', ['n' => 2]), 17, 18, G::kyu(4), null, 'jiyu', 5, false],
+            ['JUN', t('Junioren'), 19, 20, G::kyu(4), null, 'jiyu', 5, false],
+            ['AKT', t('Aktive'), 21, null, G::kyu(4), null, 'jiyu', 5, false],
         ];
         $klassen = [];
         $nr = [];
@@ -185,9 +182,18 @@ final class Vorlagen
         };
     }
 
+    /** Frauen/Mädchen bzw. Männer/Jungen (in der aktuellen Sprache; die Bezeichnung wird beim Anlegen gespeichert). */
+    private static function gruppe(string $g, int $von): string
+    {
+        if ($g === 'w') {
+            return $von >= 18 ? t('Frauen') : t('Mädchen');
+        }
+        return $von >= 18 ? t('Männer') : t('Jungen');
+    }
+
     private static function alterText(int $von, ?int $bis): string
     {
-        return $bis === null ? "ab $von Jahre" : "{$von}–{$bis} Jahre";
+        return $bis === null ? t('ab {von} Jahre', ['von' => $von]) : t('{von}–{bis} Jahre', ['von' => $von, 'bis' => $bis]);
     }
 
     /**

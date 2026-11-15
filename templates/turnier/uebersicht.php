@@ -18,26 +18,24 @@ $fortschritt = $zahlen['begegnungen'] > 0 ? round(100 * $zahlen['beendet'] / $za
 <p class="obertitel"><?= e(datum_de($turnier['datum'])) ?><?= $turnier['ort'] ? ' · ' . e($turnier['ort']) : '' ?></p>
 <h1><?= e($turnier['name']) ?></h1>
 <?php if (!$gestartet): ?>
-    <p class="knopfleiste"><a class="knopf" href="<?= e(url("turnier/{$turnier['id']}/assistent")) ?>">🧭 Einrichtungs-Assistent</a>
-        <span class="klein leise">führt durch Klassen, Tatamis und PINs, Online-Anmeldung, Zahlungsangaben und Coaching-Portal</span></p>
+    <p class="knopfleiste"><a class="knopf" href="<?= e(url("turnier/{$turnier['id']}/assistent")) ?>">🧭 <?= te('Einrichtungs-Assistent') ?></a>
+        <span class="klein leise"><?= te('führt durch Klassen, Tatamis und PINs, Online-Anmeldung, Zahlungsangaben und Coaching-Portal') ?></span></p>
 <?php endif; ?>
 
 <?php if ($zweiterFaktor !== null): ?>
     <div class="meldung meldung-hinweis">
         <?php if ($zweiterFaktor['ohneMail']): ?>
-            <strong>Authenticator-App vor dem Turnier einrichten.</strong>
-            Diese Installation (z. B. der Hallen-Laptop) verschickt keine E-Mails – für die Anmeldung ist ein Code aus der Authenticator-App nötig.
-            Ohne App muss sie bei der nächsten Anmeldung eingerichtet werden – besser jetzt in Ruhe als am Turniertag.
+            <strong><?= te('Authenticator-App vor dem Turnier einrichten.') ?></strong>
+            <?= te('Diese Installation (z. B. der Hallen-Laptop) verschickt keine E-Mails – für die Anmeldung ist ein Code aus der Authenticator-App nötig.') ?>
+            <?= te('Ohne App muss sie bei der nächsten Anmeldung eingerichtet werden – besser jetzt in Ruhe als am Turniertag.') ?>
             <?php if ($zweiterFaktor['ich']): ?>
-                <br>Ihr Konto hat noch keine App: <a href="<?= e(url('konto/sicherheit')) ?>">Jetzt unter „Konto &amp; Sicherheit“ einrichten</a>.
+                <br><?= th('Ihr Konto hat noch keine App: <a href="{url}">Jetzt unter „Konto &amp; Sicherheit“ einrichten</a>.', ['url' => url('konto/sicherheit')]) ?>
             <?php endif; ?>
             <?php if ($zweiterFaktor['andere']): ?>
-                <br>Ohne App in der Turnierleitung: <?= e(implode(', ', $zweiterFaktor['andere'])) ?> – bitte Bescheid geben (jeder richtet sie selbst ein).
+                <br><?= te('Ohne App in der Turnierleitung: {namen} – bitte Bescheid geben (jeder richtet sie selbst ein).', ['namen' => implode(', ', $zweiterFaktor['andere'])]) ?>
             <?php endif; ?>
         <?php else: ?>
-            <strong>Für den Hallen-Laptop:</strong> Dort gibt es in der Regel keinen E-Mail-Versand, und Konten werden nicht übertragen – jedes Konto
-            auf dem Laptop braucht eine Authenticator-App (zweiter Faktor ist Pflicht). Am besten beim Einrichten bzw. bei der Übergabe an die Halle
-            auf dem Laptop unter „Konto &amp; Sicherheit“ einrichten, nicht erst am Turniertag.
+            <strong><?= te('Für den Hallen-Laptop:') ?></strong> <?= te('Dort gibt es in der Regel keinen E-Mail-Versand, und Konten werden nicht übertragen – jedes Konto auf dem Laptop braucht eine Authenticator-App (zweiter Faktor ist Pflicht). Am besten beim Einrichten bzw. bei der Übergabe an die Halle auf dem Laptop unter „Konto & Sicherheit“ einrichten, nicht erst am Turniertag.') ?>
         <?php endif; ?>
     </div>
 <?php endif; ?>
@@ -47,12 +45,12 @@ $fortschritt = $zahlen['begegnungen'] > 0 ? round(100 * $zahlen['beendet'] / $za
 <?php endif; ?>
 <?php if (!empty($kataBeendet)): ?>
 <section class="karte kata-beendet" id="kata-beendet">
-    <h2>☕ Alle Kata-Wettkämpfe sind gelaufen</h2>
-    <p>Seit <?= $kataBeendet['seit'] ? e(substr($kataBeendet['seit'], 11, 5)) . ' Uhr' : 'eben' ?> ist keine Kata-Gruppe mehr offen; Kumite: noch <?= (int) $kataBeendet['kumite_offen'] ?> <?= $kataBeendet['kumite_offen'] === 1 ? 'Klasse' : 'Klassen' ?>.
-        Meist die Gelegenheit für eine <strong>allgemeine Pause</strong> – z. B. alle Tatamis im <a href="<?= e(url("turnier/{$turnier['id']}/plan")) ?>">Tatami-Plan</a> sperren und eine Nachricht an die Tische senden.</p>
+    <h2>☕ <?= te('Alle Kata-Wettkämpfe sind gelaufen') ?></h2>
+    <p><?= $kataBeendet['seit'] ? te('Seit {zeit} Uhr ist keine Kata-Gruppe mehr offen;', ['zeit' => substr($kataBeendet['seit'], 11, 5)]) : te('Seit eben ist keine Kata-Gruppe mehr offen;') ?> <?= $kataBeendet['kumite_offen'] === 1 ? te('Kumite: noch {n} Klasse.', ['n' => (int) $kataBeendet['kumite_offen']]) : te('Kumite: noch {n} Klassen.', ['n' => (int) $kataBeendet['kumite_offen']]) ?>
+        <?= th('Meist die Gelegenheit für eine <strong>allgemeine Pause</strong> – z. B. alle Tatamis im <a href="{url}">Tatami-Plan</a> sperren und eine Nachricht an die Tische senden.', ['url' => url("turnier/{$turnier['id']}/plan")]) ?></p>
     <form method="post" action="<?= e(url("turnier/{$turnier['id']}/kata-beendet")) ?>" class="inline">
         <?= csrf_feld() ?>
-        <button class="knopf" type="submit">Verstanden – Meldung ausblenden</button>
+        <button class="knopf" type="submit"><?= te('Verstanden – Meldung ausblenden') ?></button>
     </form>
 </section>
 <?php endif; ?>
@@ -63,35 +61,35 @@ $fortschritt = $zahlen['begegnungen'] > 0 ? round(100 * $zahlen['beendet'] / $za
 <?php endif; ?>
 
 <div class="raster">
-    <div class="karte"><div class="klein">Teilnehmer</div><div class="zahl" style="font-size:2rem;font-weight:800"><?= $zahlen['teilnehmer'] ?></div><div class="klein"><?= $zahlen['vereine'] ?> Vereine · <?= $zahlen['teams'] ?> Teams</div></div>
-    <div class="karte"><div class="klein">Klassen</div><div class="zahl" style="font-size:2rem;font-weight:800"><?= $zahlen['klassen'] ?></div><div class="klein"><?= $zahlen['starts'] ?> Starts</div></div>
-    <div class="karte"><div class="klein">Kämpfe &amp; Vorträge</div><div class="zahl" style="font-size:2rem;font-weight:800"><?= $zahlen['beendet'] ?> / <?= $zahlen['begegnungen'] ?></div><div class="klein"><?= $fortschritt ?> % beendet</div></div>
+    <div class="karte"><div class="klein"><?= te('Teilnehmer') ?></div><div class="zahl" style="font-size:2rem;font-weight:800"><?= $zahlen['teilnehmer'] ?></div><div class="klein"><?= te('{vereine} Vereine · {teams} Teams', ['vereine' => $zahlen['vereine'], 'teams' => $zahlen['teams']]) ?></div></div>
+    <div class="karte"><div class="klein"><?= te('Klassen') ?></div><div class="zahl" style="font-size:2rem;font-weight:800"><?= $zahlen['klassen'] ?></div><div class="klein"><?= te('{n} Starts', ['n' => $zahlen['starts']]) ?></div></div>
+    <div class="karte"><div class="klein"><?= te('Kämpfe & Vorträge') ?></div><div class="zahl" style="font-size:2rem;font-weight:800"><?= $zahlen['beendet'] ?> / <?= $zahlen['begegnungen'] ?></div><div class="klein"><?= te('{n} % beendet', ['n' => $fortschritt]) ?></div></div>
 </div>
 
 <?php if ($gestartet): // nach dem Start: Vorbereitungshinweise nur noch aufklappbar ?>
 <details class="vorbereitung-rueckblick">
-    <summary>Ablauf und Hinweise aus der Vorbereitung<?= $hinweise ? ' (' . count($hinweise) . ' Hinweise)' : '' ?></summary>
+    <summary><?= te('Ablauf und Hinweise aus der Vorbereitung') ?><?= $hinweise ? ' (' . te('{n} Hinweise', ['n' => count($hinweise)]) . ')' : '' ?></summary>
 <?php endif; ?>
 <div class="zwei-spalten">
     <div class="karte">
-        <h2>Ablauf <?= info('ablauf') ?></h2>
+        <h2><?= te('Ablauf') ?> <?= info('ablauf') ?></h2>
         <ol>
-            <li><a href="<?= e(url("turnier/{$turnier['id']}/klassen")) ?>">Klassen</a> aus Vorlage laden oder anlegen</li>
-            <li><a href="<?= e(url("turnier/{$turnier['id']}/teilnehmer")) ?>">Teilnehmer</a> erfassen oder <a href="<?= e(url("turnier/{$turnier['id']}/import")) ?>">importieren</a>, <a href="<?= e(url("turnier/{$turnier['id']}/teams")) ?>">Teams</a> bilden</li>
-            <li>Kleine Klassen prüfen und ggf. zusammenlegen</li>
-            <li>Auslosen (je Klasse oder alle)</li>
-            <li><a href="<?= e(url("turnier/{$turnier['id']}/plan")) ?>">Tatami-Plan</a> erstellen, Listen <a href="<?= e(url("turnier/{$turnier['id']}/druck")) ?>">drucken</a></li>
-            <li>Ergebnisse erfassen (Tablet oder PC), Platzierungen bestätigen</li>
+            <li><?= th('<a href="{url}">Klassen</a> aus Vorlage laden oder anlegen', ['url' => url("turnier/{$turnier['id']}/klassen")]) ?></li>
+            <li><?= th('<a href="{teilnehmer}">Teilnehmer</a> erfassen oder <a href="{import}">importieren</a>, <a href="{teams}">Teams</a> bilden', ['teilnehmer' => url("turnier/{$turnier['id']}/teilnehmer"), 'import' => url("turnier/{$turnier['id']}/import"), 'teams' => url("turnier/{$turnier['id']}/teams")]) ?></li>
+            <li><?= te('Kleine Klassen prüfen und ggf. zusammenlegen') ?></li>
+            <li><?= te('Auslosen (je Klasse oder alle)') ?></li>
+            <li><?= th('<a href="{plan}">Tatami-Plan</a> erstellen, Listen <a href="{druck}">drucken</a>', ['plan' => url("turnier/{$turnier['id']}/plan"), 'druck' => url("turnier/{$turnier['id']}/druck")]) ?></li>
+            <li><?= te('Ergebnisse erfassen (Tablet oder PC), Platzierungen bestätigen') ?></li>
         </ol>
     </div>
     <div class="karte">
-        <h2>Hinweise <?= info('hinweise') ?></h2>
+        <h2><?= te('Hinweise') ?> <?= info('hinweise') ?></h2>
         <?php if (!$hinweise): ?>
-            <p class="leise">Keine offenen Hinweise.</p>
+            <p class="leise"><?= te('Keine offenen Hinweise.') ?></p>
         <?php else: ?>
             <ul class="hinweisliste">
                 <?php foreach (array_slice($hinweise, 0, 25) as $h): ?>
-                    <li><span class="tag <?= $h['typ'] === 'fehler' ? 'fehler' : 'warn' ?>"><?= $h['typ'] === 'fehler' ? 'Fehler' : 'Hinweis' ?></span>
+                    <li><span class="tag <?= $h['typ'] === 'fehler' ? 'fehler' : 'warn' ?>"><?= $h['typ'] === 'fehler' ? te('Fehler') : te('Hinweis') ?></span>
                         <?php if (isset($h['klasse_id'])): ?>
                             <a href="<?= e(url("turnier/{$turnier['id']}/klasse/{$h['klasse_id']}")) ?>"><?= e($h['text']) ?></a>
                         <?php elseif (isset($h['teilnahme_id'])): ?>
@@ -102,7 +100,7 @@ $fortschritt = $zahlen['begegnungen'] > 0 ? round(100 * $zahlen['beendet'] / $za
                     </li>
                 <?php endforeach; ?>
             </ul>
-            <?php if (count($hinweise) > 25): ?><p class="klein">… und <?= count($hinweise) - 25 ?> weitere</p><?php endif; ?>
+            <?php if (count($hinweise) > 25): ?><p class="klein"><?= te('… und {n} weitere', ['n' => count($hinweise) - 25]) ?></p><?php endif; ?>
         <?php endif; ?>
     </div>
 </div>

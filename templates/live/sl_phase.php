@@ -11,22 +11,22 @@
  */
 $druck ??= false;
 $istFinale = in_array($phase['typ'], ['finalrunde', 'punkte_finale'], true);
-$standZeile = 'Stand ' . datum_de(substr($stand, 0, 10)) . ' ' . substr($stand, 11, 5) . ' · Revision ' . (int) $revision;
-$zielText = $phase['typ'] === 'pool' ? (($gruppe['finale_art'] ?? 'ko') === 'punkte' ? 'Punktefinale' : 'Finalrunde') : null;
+$standZeile = t('Stand {datum} {zeit} · Revision {revision}', ['datum' => datum_de(substr($stand, 0, 10)), 'zeit' => substr($stand, 11, 5), 'revision' => (int) $revision]);
+$zielText = $phase['typ'] === 'pool' ? (($gruppe['finale_art'] ?? 'ko') === 'punkte' ? t('Punktefinale') : t('Finalrunde')) : null;
 ?>
 <?php if ($mehrerePhasen || $istFinale): ?>
-    <h3 class="sl-phase"><?= e($phase['bezeichnung']) ?><?= $phase['art'] === 'jgj' ? ' · Jeder gegen jeden' : '' ?></h3>
+    <h3 class="sl-phase"><?= e(\Wettkampf\Durchfuehrung\PhasenErzeugung::bezeichnungText((string) $phase['bezeichnung'])) ?><?= $phase['art'] === 'jgj' ? ' · ' . te('Jeder gegen jeden') : '' ?></h3>
 <?php endif; ?>
 
 <?php if ($phase['status'] === 'wartet'): ?>
     <p class="leise"><?= $phase['typ'] === 'punkte_finale' || ($gruppe['finale_art'] ?? 'ko') === 'punkte'
-        ? 'Die Final-Starterliste erscheint, sobald die Qualifizierten feststehen.'
-        : 'Der Baum der Finalrunde erscheint, sobald die Qualifizierten feststehen.' ?></p>
+        ? te('Die Final-Starterliste erscheint, sobald die Qualifizierten feststehen.')
+        : te('Der Baum der Finalrunde erscheint, sobald die Qualifizierten feststehen.') ?></p>
 
 <?php elseif ($phase['art'] === 'auftritte'): ?>
-    <h4 class="sl-unter"><?= $istFinale ? 'Final-Starterliste' : 'Starterliste' ?></h4>
+    <h4 class="sl-unter"><?= $istFinale ? te('Final-Starterliste') : te('Starterliste') ?></h4>
     <table class="tabelle sl-liste">
-        <thead><tr><th class="sl-nr">Nr.</th><th>Starter / Team</th><th>Dojo</th><th class="rechts">Wertung</th></tr></thead>
+        <thead><tr><th class="sl-nr"><?= te('Nr.') ?></th><th><?= te('Starter / Team') ?></th><th><?= te('Dojo') ?></th><th class="rechts"><?= te('Wertung') ?></th></tr></thead>
         <tbody>
         <?php foreach ($phase['auftritte'] as $a): ?>
             <tr>
@@ -38,11 +38,11 @@ $zielText = $phase['typ'] === 'pool' ? (($gruppe['finale_art'] ?? 'ko') === 'pun
         <?php endforeach; ?>
         </tbody>
     </table>
-    <p class="klein"><?= e($gruppe['code']) ?> · <?= $istFinale ? 'Final-Starterliste' : 'Starterliste' ?> · <?= e($standZeile) ?></p>
+    <p class="klein"><?= e($gruppe['code']) ?> · <?= $istFinale ? te('Final-Starterliste') : te('Starterliste') ?> · <?= e($standZeile) ?></p>
 
 <?php elseif ($phase['art'] === 'jgj'): ?>
     <table class="sb-jgj">
-        <thead><tr><th style="width:4rem">Nr.</th><th>Shiro</th><th>Aka</th></tr></thead>
+        <thead><tr><th style="width:4rem"><?= te('Nr.') ?></th><th>Shiro</th><th>Aka</th></tr></thead>
         <tbody>
         <?php foreach ($phase['begegnungen'] as $b):
             $sieger = $b['sieger_start_id'] === null ? null : ((int) $b['sieger_start_id'] === (int) $b['aka_start_id'] ? 'aka' : 'shiro');
@@ -58,7 +58,7 @@ $zielText = $phase['typ'] === 'pool' ? (($gruppe['finale_art'] ?? 'ko') === 'pun
     </table>
     <?php if (array_filter($phase['tabelle'] ?? [], static fn ($z) => $z['kaempfe'] > 0)): ?>
         <table class="tabelle sl-liste" style="margin-top:.8rem">
-            <thead><tr><th class="sl-nr">Platz</th><th>Starter / Team</th><th>Dojo</th><th class="rechts">Siege</th><th class="rechts">Ippon</th><th class="rechts">Wazaari</th></tr></thead>
+            <thead><tr><th class="sl-nr"><?= te('Platz') ?></th><th><?= te('Starter / Team') ?></th><th><?= te('Dojo') ?></th><th class="rechts"><?= te('Siege') ?></th><th class="rechts">Ippon</th><th class="rechts">Wazaari</th></tr></thead>
             <tbody>
             <?php foreach ($phase['tabelle'] as $z): ?>
                 <tr><td class="sl-nr zahl"><?= $z['platz'] ?></td><td><strong><?= e($z['name']) ?></strong></td><td><?= e($z['verein']) ?></td>
@@ -67,14 +67,14 @@ $zielText = $phase['typ'] === 'pool' ? (($gruppe['finale_art'] ?? 'ko') === 'pun
             </tbody>
         </table>
     <?php endif; ?>
-    <p class="klein"><?= e($gruppe['code']) ?><?= $mehrerePhasen ? ' · ' . e($phase['bezeichnung']) : '' ?> · <?= e($standZeile) ?></p>
+    <p class="klein"><?= e($gruppe['code']) ?><?= $mehrerePhasen ? ' · ' . e(\Wettkampf\Durchfuehrung\PhasenErzeugung::bezeichnungText((string) $phase['bezeichnung'])) : '' ?> · <?= e($standZeile) ?></p>
 
 <?php elseif ($phase['begegnungen']): ?>
-    <h4 class="sl-unter">Wettkampfbaum <?= e($gruppe['code']) ?></h4>
+    <h4 class="sl-unter"><?= te('Wettkampfbaum {code}', ['code' => $gruppe['code']]) ?></h4>
     <?= $this->teil('teile/sdm_baum', [
-        'phase' => $phase, 'code' => $gruppe['code'] . ($mehrerePhasen ? ' · ' . $phase['bezeichnung'] : ''),
+        'phase' => $phase, 'code' => $gruppe['code'] . ($mehrerePhasen ? ' · ' . \Wettkampf\Durchfuehrung\PhasenErzeugung::bezeichnungText((string) $phase['bezeichnung']) : ''),
         'stand' => $stand, 'revision' => $revision, 'zielText' => $zielText, 'druck' => $druck,
     ]) ?>
 <?php else: ?>
-    <p class="leise">Keine Kämpfe – alle Starter kommen direkt weiter.</p>
+    <p class="leise"><?= te('Keine Kämpfe – alle Starter kommen direkt weiter.') ?></p>
 <?php endif; ?>

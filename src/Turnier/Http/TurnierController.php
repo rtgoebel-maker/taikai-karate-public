@@ -29,10 +29,10 @@ final class TurnierController extends Controller
     {
         $id = (new StammdatenService($this->db))->turnierAnlegen($request->post);
         if ($request->post('assistent_starten') !== null) {
-            $this->erfolg('Turnier angelegt. Der Assistent führt jetzt durch die wichtigsten Einstellungen – jeder Schritt lässt sich überspringen und später ändern.');
+            $this->erfolg(t('Turnier angelegt. Der Assistent führt jetzt durch die wichtigsten Einstellungen – jeder Schritt lässt sich überspringen und später ändern.'));
             return $this->weiter("turnier/$id/assistent/klassen");
         }
-        $this->erfolg('Turnier angelegt. Als Nächstes: Klassen aus einer Vorlage laden und Teilnehmer erfassen.');
+        $this->erfolg(t('Turnier angelegt. Als Nächstes: Klassen aus einer Vorlage laden und Teilnehmer erfassen.'));
         return $this->weiter("turnier/$id");
     }
 
@@ -115,8 +115,8 @@ final class TurnierController extends Controller
         $vorbereitet = $ziel === TurnierPhase::LAEUFT && $request->post('vorbereiten') !== null
             ? $phasen->startVorbereiten($id) : null;
         $phasen->setzen($id, $ziel, $request->post('trotzdem') !== null);
-        $this->erfolg('Turnierphase: ' . TurnierPhase::text($ziel) . '.'
-            . ($vorbereitet ? " {$vorbereitet['ausgelost']} Klassen ausgelost, {$vorbereitet['verteilt']} Gruppen auf die Tatamis verteilt." : ''));
+        $this->erfolg(t('Turnierphase: {phase}.', ['phase' => TurnierPhase::text($ziel)])
+            . ($vorbereitet ? ' ' . t('{ausgelost} Klassen ausgelost, {verteilt} Gruppen auf die Tatamis verteilt.', ['ausgelost' => $vorbereitet['ausgelost'], 'verteilt' => $vorbereitet['verteilt']]) : ''));
         return $this->weiterNach($request, "turnier/$id");
     }
 
@@ -131,7 +131,7 @@ final class TurnierController extends Controller
     {
         $this->turnier($id);
         (new StammdatenService($this->db))->turnierAktualisieren($id, $request->post);
-        $this->erfolg('Einstellungen gespeichert.');
+        $this->erfolg(t('Einstellungen gespeichert.'));
         return $this->weiterNach($request, "turnier/$id/einstellungen");
     }
 
@@ -149,7 +149,7 @@ final class TurnierController extends Controller
             $stream = mb_substr(trim((string) ($felder['stream_url'] ?? '')), 0, 500);
             // Link auf der öffentlichen Statusseite: nur http(s), kein javascript:/data: (OWASP A05)
             if ($stream !== '' && preg_match('#^https?://[^\s"<>]+$#i', $stream) !== 1) {
-                throw new FachFehler('Die Stream-Adresse muss mit https:// beginnen, z. B. https://youtube.com/live/…');
+                throw new FachFehler(t('Die Stream-Adresse muss mit https:// beginnen, z. B. https://youtube.com/live/…'));
             }
             $aenderung = [
                 'bezeichnung' => trim((string) ($felder['bezeichnung'] ?? '')) ?: $tatami['bezeichnung'],
@@ -174,7 +174,7 @@ final class TurnierController extends Controller
         $einstellungen['kampfuhr'] = AusrufService::kampfuhr(['einstellungen' => json_encode($einstellungen)]);
         $this->db->update('turnier', ['einstellungen' => json_encode($einstellungen, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR)], ['id' => $id]);
         (new Protokoll($this->db))->eintragen($id, 'turnier', $id, 'zugaenge_geaendert');
-        $this->erfolg('Zugänge gespeichert.');
+        $this->erfolg(t('Zugänge gespeichert.'));
         return $this->weiterNach($request, "turnier/$id/einstellungen");
     }
 
@@ -182,19 +182,20 @@ final class TurnierController extends Controller
     {
         $turnier = $this->turnier($id);
         if ($request->text('bestaetigung') !== $turnier['name']) {
-            throw new FachFehler('Zum Löschen bitte den Turniernamen exakt eingeben.');
+            throw new FachFehler(t('Zum Löschen bitte den Turniernamen exakt eingeben.'));
         }
         $geloescht = (new StammdatenService($this->db))->turnierLoeschen($id);
         (new Protokoll($this->db))->eintragen(null, 'turnier', $id, 'geloescht', ['name' => $turnier['name']] + $geloescht);
-        $this->erfolg("Turnier „{$turnier['name']}“ gelöscht"
-            . ($geloescht['athleten'] || $geloescht['vereine'] ? " – mit {$geloescht['athleten']} Athleten und {$geloescht['vereine']} Vereinen, die zu keinem anderen Turnier gehören." : '.'));
+        $this->erfolg($geloescht['athleten'] || $geloescht['vereine']
+            ? t('Turnier „{name}“ gelöscht – mit {athleten} Athleten und {vereine} Vereinen, die zu keinem anderen Turnier gehören.', ['name' => $turnier['name'], 'athleten' => $geloescht['athleten'], 'vereine' => $geloescht['vereine']])
+            : t('Turnier „{name}“ gelöscht.', ['name' => $turnier['name']]));
         return $this->weiter('/');
     }
 
     private function pinPruefen(string $pin): void
     {
         if (!preg_match('/^\d{4,8}$/', $pin)) {
-            throw new FachFehler('Eine PIN besteht aus 4 bis 8 Ziffern.');
+            throw new FachFehler(t('Eine PIN besteht aus 4 bis 8 Ziffern.'));
         }
     }
 }

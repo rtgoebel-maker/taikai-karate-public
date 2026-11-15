@@ -83,8 +83,8 @@ final class SendeService
                 return self::ENTZOGEN;
             }
             if ($antwort['status'] !== 200 || !is_array($daten) || !is_int($daten['revision'] ?? null)) {
-                $text = is_array($daten) && is_string($daten['fehler'] ?? null) ? $daten['fehler'] : 'Antwort ' . $antwort['status'];
-                throw new FachFehler('Online hat den Stand nicht angenommen: ' . $text);
+                $text = is_array($daten) && is_string($daten['fehler'] ?? null) ? $daten['fehler'] : t('Antwort {status}', ['status' => $antwort['status']]);
+                throw new FachFehler(t('Online hat den Stand nicht angenommen: {fehler}', ['fehler' => $text]));
             }
         } catch (Throwable $e) {
             $this->db->update('sync_auftrag', ['gesendete_revision' => $revision, 'letzter_fehler' => mb_substr($e->getMessage(), 0, 300)], ['id' => (int) $auftrag['id']]);

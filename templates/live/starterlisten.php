@@ -14,61 +14,63 @@
  */
 $this->layout('live/layout', ['turnier' => $turnier, 'aktiv' => 'starterlisten', 'automatisch' => false, 'offline' => $offline, 'css' => $css ?? null]);
 $tid = $turnier['id'];
-$monate = ['', 'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+$monate = sprache() === 'en'
+    ? ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    : ['', 'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
 $d = explode('-', $turnier['datum']);
-$datumLang = (int) $d[2] . '. ' . $monate[(int) $d[1]] . ' ' . $d[0];
+$datumLang = (int) $d[2] . (sprache() === 'en' ? ' ' : '. ') . $monate[(int) $d[1]] . ' ' . $d[0];
 $standText = datum_de(substr($stand, 0, 10)) . ' ' . substr($stand, 11, 5);
 $statusText = [
-    'offen' => ['Auslosung folgt', 'warn'],
-    'ausgelost' => ['Startliste bestätigt', 'ok'],
-    'laeuft' => ['Wettkampf läuft', 'info'],
-    'beendet' => ['Wettkampf beendet', 'info'],
-    'bestaetigt' => ['Ergebnis bestätigt', 'ok'],
+    'offen' => [t('Auslosung folgt'), 'warn'],
+    'ausgelost' => [t('Startliste bestätigt'), 'ok'],
+    'laeuft' => [t('Wettkampf läuft'), 'info'],
+    'beendet' => [t('Wettkampf beendet'), 'info'],
+    'bestaetigt' => [t('Ergebnis bestätigt'), 'ok'],
 ];
 ?>
 <p class="obertitel"><?= e(mb_strtoupper($turnier['name'])) ?> · <?= e(mb_strtoupper($datumLang)) ?></p>
-<h1>Starterlisten &amp; Wettkampfbäume</h1>
-<p>Alle Gruppen direkt als Aushang – für alle Besucher ohne Anmeldung.</p>
+<h1><?= te('Starterlisten & Wettkampfbäume') ?></h1>
+<p><?= te('Alle Gruppen direkt als Aushang – für alle Besucher ohne Anmeldung.') ?></p>
 <p class="sl-stand">
-    <span class="tag ok">Öffentlich freigegeben</span>
-    <span class="klein">Listenstand <?= e($standText) ?> · Revision <?= $revision ?> · Maßgeblich bleibt der Aufruf an der Tatami.</span>
+    <span class="tag ok"><?= te('Öffentlich freigegeben') ?></span>
+    <span class="klein"><?= te('Listenstand {stand} · Revision {revision} · Maßgeblich bleibt der Aufruf an der Tatami.', ['stand' => $standText, 'revision' => (int) $revision]) ?></span>
 </p>
 <?php if ($offline): ?>
-    <div class="meldung meldung-hinweis">Gespeicherte öffentliche Listen · funktionieren auch ohne Liveverbindung · Stand <?= e($standText) ?></div>
+    <div class="meldung meldung-hinweis"><?= te('Gespeicherte öffentliche Listen · funktionieren auch ohne Liveverbindung · Stand {stand}', ['stand' => $standText]) ?></div>
 <?php else: ?>
     <div class="meldung meldung-hinweis sl-neu" id="sl-neu" hidden>
-        Ein neuer Listenstand ist verfügbar. <button type="button" class="knopf klein" data-neu-laden>Jetzt aktualisieren</button>
+        <?= te('Ein neuer Listenstand ist verfügbar.') ?> <button type="button" class="knopf klein" data-neu-laden><?= te('Jetzt aktualisieren') ?></button>
     </div>
 <?php endif; ?>
 
 <div class="sl-reiter" role="tablist">
-    <button type="button" class="aktiv" data-reiter="gruppen" role="tab">Gruppen &amp; Bäume</button>
-    <button type="button" data-reiter="namen" role="tab">Nach Namen suchen</button>
+    <button type="button" class="aktiv" data-reiter="gruppen" role="tab"><?= te('Gruppen & Bäume') ?></button>
+    <button type="button" data-reiter="namen" role="tab"><?= te('Nach Namen suchen') ?></button>
 </div>
 
 <section id="sl-gruppen">
     <div class="karte sl-filter">
-        <input id="sl-suche" type="search" placeholder="Name, Dojo oder Gruppe" aria-label="Name, Dojo oder Gruppe">
-        <select id="sl-gruppe" aria-label="Gruppe">
-            <option value="">Alle Gruppen</option>
+        <input id="sl-suche" type="search" placeholder="<?= te('Name, Dojo oder Gruppe') ?>" aria-label="<?= te('Name, Dojo oder Gruppe') ?>">
+        <select id="sl-gruppe" aria-label="<?= te('Gruppe') ?>">
+            <option value=""><?= te('Alle Gruppen') ?></option>
             <?php foreach ($gruppen as $g): ?>
-                <option value="<?= e($g['anker']) ?>"><?= e($g['code']) ?> · <?= $g['anzahl'] ?> Starts</option>
+                <option value="<?= e($g['anker']) ?>"><?= e($g['code']) ?> · <?= te('{n} Starts', ['n' => (int) $g['anzahl']]) ?></option>
             <?php endforeach; ?>
         </select>
-        <select id="sl-tatami" aria-label="Tatami">
-            <option value="">Alle Tatamis</option>
+        <select id="sl-tatami" aria-label="<?= te('Tatami') ?>">
+            <option value=""><?= te('Alle Tatamis') ?></option>
             <?php foreach ($tatamis as $t): ?><option value="<?= (int) $t['nummer'] ?>"><?= e($t['bezeichnung']) ?></option><?php endforeach; ?>
         </select>
-        <span id="sl-zusammenfassung" class="sl-zusammenfassung"><?= count($gruppen) ?> Gruppen · <?= $starts ?> Starts</span>
+        <span id="sl-zusammenfassung" class="sl-zusammenfassung"><?= te('{gruppen} Gruppen · {starts} Starts', ['gruppen' => count($gruppen), 'starts' => (int) $starts]) ?></span>
         <span class="sl-aktionen">
-            <button type="button" class="knopf" id="sl-auswahl-drucken">Auswahl drucken</button>
+            <button type="button" class="knopf" id="sl-auswahl-drucken"><?= te('Auswahl drucken') ?></button>
             <?php if (!$offline): ?>
-                <a class="knopf" href="<?= e(url("live/$tid/starterlisten/offline")) ?>">Offlinekopie</a>
+                <a class="knopf" href="<?= e(url("live/$tid/starterlisten/offline")) ?>"><?= te('Offlinekopie') ?></a>
             <?php endif; ?>
         </span>
     </div>
 
-    <nav class="sl-index" aria-label="Gruppen">
+    <nav class="sl-index" aria-label="<?= te('Gruppen') ?>">
         <?php foreach ($gruppen as $g): ?>
             <a class="sl-chip" href="#<?= e($g['anker']) ?>" data-anker="<?= e($g['anker']) ?>"><strong><?= e($g['code']) ?></strong><span><?= $g['anzahl'] ?></span></a>
         <?php endforeach; ?>
@@ -88,22 +90,22 @@ $statusText = [
             <div class="titelzeile">
                 <h2><?= e($g['code']) ?></h2>
                 <span class="tag <?= $statusCss ?>"><?= e($status) ?></span>
-                <button type="button" class="knopf klein sl-gruppe-drucken" data-anker="<?= e($g['anker']) ?>">Diese Gruppe drucken</button>
+                <button type="button" class="knopf klein sl-gruppe-drucken" data-anker="<?= e($g['anker']) ?>"><?= te('Diese Gruppe drucken') ?></button>
             </div>
             <p class="sl-regeln"><?= e($g['bezeichnung']) ?> <span class="leise">(<?= e($g['regeln']) ?>)</span></p>
-            <p><strong><?= $g['anzahl'] ?> Starts<?= $g['tatamis'] ? ' · ' . e(implode(', ', $g['tatamis'])) : '' ?></strong></p>
+            <p><strong><?= te('{n} Starts', ['n' => (int) $g['anzahl']]) ?><?= $g['tatamis'] ? ' · ' . e(implode(', ', $g['tatamis'])) : '' ?></strong></p>
 
             <?php if ($g['status'] === 'offen'): ?>
-                <h4 class="sl-unter">Starterliste (vorläufig)</h4>
+                <h4 class="sl-unter"><?= te('Starterliste (vorläufig)') ?></h4>
                 <table class="tabelle sl-liste">
-                    <thead><tr><th class="sl-nr">Nr.</th><th>Starter / Team</th><th>Dojo</th></tr></thead>
+                    <thead><tr><th class="sl-nr"><?= te('Nr.') ?></th><th><?= te('Starter / Team') ?></th><th><?= te('Dojo') ?></th></tr></thead>
                     <tbody>
                     <?php foreach ($g['starter'] as $i => $s): ?>
                         <tr><td class="sl-nr zahl"><?= $i + 1 ?></td><td><strong><?= e($s['name']) ?></strong></td><td><?= e($s['verein']) ?></td></tr>
                     <?php endforeach; ?>
                     </tbody>
                 </table>
-                <p class="klein">Der Wettkampfbaum erscheint nach der Auslosung.</p>
+                <p class="klein"><?= te('Der Wettkampfbaum erscheint nach der Auslosung.') ?></p>
             <?php else: ?>
                 <?php foreach ($g['phasen'] as $phase): ?>
                     <?= $this->teil('live/sl_phase', [
@@ -112,7 +114,7 @@ $statusText = [
                     ]) ?>
                 <?php endforeach; ?>
                 <?php if ($g['platzierungen'] ?? []): ?>
-                    <h4 class="sl-unter">Platzierungen</h4>
+                    <h4 class="sl-unter"><?= te('Platzierungen') ?></h4>
                     <table class="tabelle podest sl-liste">
                         <?php foreach ($g['platzierungen'] as $p): ?>
                             <tr><td class="platz"><?= $p['platz'] ?>.</td><td><strong><?= e($p['name']) ?></strong></td><td><?= e($p['verein']) ?></td></tr>
@@ -122,18 +124,18 @@ $statusText = [
             <?php endif; ?>
         </article>
     <?php endforeach; ?>
-    <?php if (!$gruppen): ?><div class="karte leer">Noch keine Gruppen mit Startern.</div><?php endif; ?>
-    <p class="leise" id="sl-keine" hidden>Keine Gruppe passt zum Filter.</p>
+    <?php if (!$gruppen): ?><div class="karte leer"><?= te('Noch keine Gruppen mit Startern.') ?></div><?php endif; ?>
+    <p class="leise" id="sl-keine" hidden><?= te('Keine Gruppe passt zum Filter.') ?></p>
 </section>
 
 <section id="sl-namen" hidden>
     <div class="karte sl-filter">
-        <input id="sl-namensuche" type="search" placeholder="Name oder Dojo eingeben (mind. 2 Zeichen)" aria-label="Name oder Dojo">
-        <span class="sl-zusammenfassung"><?= count($personen) ?> Starts</span>
+        <input id="sl-namensuche" type="search" placeholder="<?= te('Name oder Dojo eingeben (mind. 2 Zeichen)') ?>" aria-label="<?= te('Name oder Dojo') ?>">
+        <span class="sl-zusammenfassung"><?= te('{n} Starts', ['n' => count($personen)]) ?></span>
     </div>
     <table class="tabelle">
-        <thead><tr><th>Starter / Team</th><th>Dojo</th><th>Gruppe</th><th>Tatami</th></tr></thead>
-        <tbody id="sl-treffer"><tr><td colspan="4" class="leise">Bitte Suchbegriff eingeben.</td></tr></tbody>
+        <thead><tr><th><?= te('Starter / Team') ?></th><th><?= te('Dojo') ?></th><th><?= te('Gruppe') ?></th><th><?= te('Tatami') ?></th></tr></thead>
+        <tbody id="sl-treffer"><tr><td colspan="4" class="leise"><?= te('Bitte Suchbegriff eingeben.') ?></td></tr></tbody>
     </table>
 </section>
 

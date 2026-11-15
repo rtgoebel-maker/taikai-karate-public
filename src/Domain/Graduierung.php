@@ -43,7 +43,7 @@ final class Graduierung
         if (isset($namen[$t])) {
             return self::dan($namen[$t]);
         }
-        if (preg_match('/^(\d{1,2})\s*\.?\s*(kyu|k|dan|d)$/u', $t, $m)) {
+        if (preg_match('/^(\d{1,2})\s*(?:\.|st|nd|rd|th)?\s*(kyu|k|dan|d)$/u', $t, $m)) {
             $zahl = (int) $m[1];
             if ($zahl < 1 || $zahl > 10) {
                 return null;
@@ -56,31 +56,41 @@ final class Graduierung
     public static function text(int $grad): string
     {
         if ($grad >= 11) {
-            return ($grad - 10) . '. Dan';
+            return t('{nr} Dan', ['nr' => self::ordinal($grad - 10)]);
         }
         if ($grad >= 1) {
-            return (11 - $grad) . '. Kyu';
+            return t('{nr} Kyu', ['nr' => self::ordinal(11 - $grad)]);
         }
         return '–';
+    }
+
+    /** Ordnungszahl in der aktuellen Sprache: „5.“ bzw. „5th“ (1st, 2nd, 3rd …). */
+    private static function ordinal(int $n): string
+    {
+        if (sprache() !== 'en') {
+            return $n . '.';
+        }
+        $endung = in_array($n % 100, [11, 12, 13], true) ? 'th' : ([1 => 'st', 2 => 'nd', 3 => 'rd'][$n % 10] ?? 'th');
+        return $n . $endung;
     }
 
     /** Beschreibung eines Bereichs, z. B. „6.–4. Kyu“, „ab 3. Kyu“, „bis 5. Kyu“. */
     public static function bereichText(?int $min, ?int $max): string
     {
         if ($min === null && $max === null) {
-            return 'alle Grade';
+            return t('alle Grade');
         }
         if ($max === null) {
-            return 'ab ' . self::text($min);
+            return t('ab {grad}', ['grad' => self::text($min)]);
         }
         if ($min === null) {
-            return 'bis ' . self::text($max);
+            return t('bis {grad}', ['grad' => self::text($max)]);
         }
         if ($min === $max) {
             return self::text($min);
         }
         if ($min <= 10 && $max <= 10) {
-            return (11 - $min) . '.–' . self::text($max);
+            return self::ordinal(11 - $min) . '–' . self::text($max);
         }
         return self::text($min) . ' – ' . self::text($max);
     }

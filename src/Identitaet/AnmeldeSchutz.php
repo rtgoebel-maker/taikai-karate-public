@@ -46,7 +46,9 @@ final class AnmeldeSchutz
             $bis = $z['gesperrt_bis'] ?? null;
             if ($bis !== null && strtotime((string) $bis) > $jetzt) {
                 $sekunden = max(1, strtotime((string) $bis) - $jetzt);
-                throw new FachFehler('Zu viele Fehlversuche. Bitte ' . ($sekunden >= 120 ? ceil($sekunden / 60) . ' Minuten' : $sekunden . ' Sekunden') . ' warten.');
+                throw new FachFehler($sekunden >= 120
+                    ? t('Zu viele Fehlversuche. Bitte {n} Minuten warten.', ['n' => (int) ceil($sekunden / 60)])
+                    : t('Zu viele Fehlversuche. Bitte {n} Sekunden warten.', ['n' => $sekunden]));
             }
         }
     }
@@ -141,7 +143,7 @@ final class AnmeldeSchutz
     {
         $z = $this->db->eine('SELECT ziel, ip FROM anmelde_schutz WHERE schluessel = ?', [$schluessel]);
         if ($z === null) {
-            throw new FachFehler('Der Eintrag ist nicht mehr vorhanden – die Sperre ist wohl schon abgelaufen.');
+            throw new FachFehler(t('Der Eintrag ist nicht mehr vorhanden – die Sperre ist wohl schon abgelaufen.'));
         }
         $this->db->delete('anmelde_schutz', ['schluessel' => $schluessel]);
         (new Protokoll($this->db))->eintragen(null, 'anmeldung', null, 'entsperrt', ['ziel' => $z['ziel'], 'ip' => $z['ip']]);

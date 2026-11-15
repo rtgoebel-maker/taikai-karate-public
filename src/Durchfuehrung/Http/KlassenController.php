@@ -68,7 +68,7 @@ final class KlassenController extends Controller
         $this->turnier($id);
         $anzahl = (new KlassenService($this->db))->vorlageLaden($id, $request->text('vorlage'));
         $zuordnung = (new ZuordnungService($this->db))->alleZuordnen($id);
-        $this->erfolg("$anzahl Klassen aus der Vorlage angelegt. {$zuordnung['starts']} Starts zugeordnet.");
+        $this->erfolg(t('{n} Klassen aus der Vorlage angelegt. {starts} Starts zugeordnet.', ['n' => $anzahl, 'starts' => $zuordnung['starts']]));
         return $this->weiterNach($request, "turnier/$id/klassen");
     }
 
@@ -76,7 +76,8 @@ final class KlassenController extends Controller
     {
         $this->turnier($id);
         $ergebnis = (new ZuordnungService($this->db))->alleZuordnen($id);
-        $this->erfolg("Zuordnung aktualisiert: {$ergebnis['starts']} Starts." . ($ergebnis['hinweise'] ? ' ' . count($ergebnis['hinweise']) . ' Hinweise – siehe Übersicht.' : ''));
+        $this->erfolg(t('Zuordnung aktualisiert: {starts} Starts.', ['starts' => $ergebnis['starts']])
+            . ($ergebnis['hinweise'] ? ' ' . t('{n} Hinweise – siehe Übersicht.', ['n' => count($ergebnis['hinweise'])]) : ''));
         return $this->weiter("turnier/$id/klassen");
     }
 
@@ -118,7 +119,7 @@ final class KlassenController extends Controller
         $klasseId = $request->zahl('klasse_id');
         $neueId = (new KlassenService($this->db))->klasseSpeichern($id, $daten, $klasseId);
         (new ZuordnungService($this->db))->alleZuordnen($id);
-        $this->erfolg('Klasse gespeichert.');
+        $this->erfolg(t('Klasse gespeichert.'));
         return $this->weiter("turnier/$id/klasse/$neueId");
     }
 
@@ -166,14 +167,14 @@ final class KlassenController extends Controller
         $klasse = $this->klasse($id, $klasseid);
         $istTeam = str_ends_with($klasse['disziplin'], '_team');
         (new KlassenService($this->db))->startSetzen($id, $klasseid, $istTeam ? null : $request->zahl('wer'), $istTeam ? $request->zahl('wer') : null);
-        $this->erfolg('Starter hinzugefügt.');
+        $this->erfolg(t('Starter hinzugefügt.'));
         return $this->weiter("turnier/$id/klasse/$klasseid");
     }
 
     public function starterEntfernen(Request $request, int $id, int $klasseid, int $startid): Response
     {
         (new KlassenService($this->db))->startEntfernen($id, $startid);
-        $this->erfolg('Starter aus der Klasse entfernt. Hinweis: Bei erneuter automatischer Zuordnung wird er wieder eingeteilt, solange die Meldung besteht.');
+        $this->erfolg(t('Starter aus der Klasse entfernt. Hinweis: Bei erneuter automatischer Zuordnung wird er wieder eingeteilt, solange die Meldung besteht.'));
         return $this->weiter("turnier/$id/klasse/$klasseid");
     }
 
@@ -183,7 +184,7 @@ final class KlassenController extends Controller
         $ziel = (int) $request->zahl('ziel');
         $quellen = array_map('intval', (array) $request->post('quellen', []));
         (new KlassenService($this->db))->zusammenlegen($id, $ziel, $quellen, $request->text('grund'), $request->text('zustimmung'));
-        $this->erfolg('Klassen zusammengelegt.');
+        $this->erfolg(t('Klassen zusammengelegt.'));
         return $this->weiter("turnier/$id/klasse/$ziel");
     }
 
@@ -191,14 +192,14 @@ final class KlassenController extends Controller
     {
         $klasse = $this->klasse($id, $klasseid);
         (new KlassenService($this->db))->zusammenlegungAufheben($id, $klasseid);
-        $this->erfolg('Zusammenlegung aufgehoben.');
+        $this->erfolg(t('Zusammenlegung aufgehoben.'));
         return $this->weiter("turnier/$id/klasse/" . ($klasse['zusammengelegt_in'] ?? $klasseid));
     }
 
     public function loeschen(Request $request, int $id, int $klasseid): Response
     {
         (new KlassenService($this->db))->klasseLoeschen($id, $klasseid);
-        $this->erfolg('Klasse gelöscht.');
+        $this->erfolg(t('Klasse gelöscht.'));
         return $this->weiter("turnier/$id/klassen");
     }
 
@@ -206,7 +207,7 @@ final class KlassenController extends Controller
     private function klasse(int $turnierId, int $klasseId): array
     {
         $klasse = $this->db->eine('SELECT * FROM klasse WHERE id = ? AND turnier_id = ?', [$klasseId, $turnierId]);
-        return $klasse ?? throw new NichtGefunden('Klasse nicht gefunden.');
+        return $klasse ?? throw new NichtGefunden(t('Klasse nicht gefunden.'));
     }
 
     /** @return list<array<string, mixed>> */

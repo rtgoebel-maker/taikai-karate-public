@@ -95,7 +95,7 @@ final class TurnierPhaseService
                 [$turnierId],
             );
             if ($offen > 0) {
-                $punkte['auslosung'] = "$offen Klassen mit Startern sind noch nicht ausgelost.";
+                $punkte['auslosung'] = t('{n} Klassen mit Startern sind noch nicht ausgelost.', ['n' => $offen]);
             }
             // Klassen unter der Mindestanzahl finden nicht statt – deren Starter treten sonst gar nicht an
             $ausfall = $this->db->alle(
@@ -106,14 +106,10 @@ final class TurnierPhaseService
             );
             $ausfall = array_filter($ausfall, static fn(array $k) => (int) $k['anzahl'] > 0 && !KlassenService::findetStatt($k, (int) $k['anzahl']));
             if ($ausfall !== []) {
-                $liste = implode(', ', array_map(static fn(array $k) => $k['code'] . ' (' . $k['anzahl'] . ' Starter)', $ausfall));
-                $punkte['ausfall'] = sprintf(
-                    '%d %s unter der Mindestanzahl und %s nicht statt: %s. Zusammenlegen oder Starter umsetzen – sonst treten diese Starter nicht an.',
-                    count($ausfall),
-                    count($ausfall) === 1 ? 'Klasse liegt' : 'Klassen liegen',
-                    count($ausfall) === 1 ? 'findet' : 'finden',
-                    $liste,
-                );
+                $liste = implode(', ', array_map(static fn(array $k) => $k['code'] . ' (' . t('{n} Starter', ['n' => $k['anzahl']]) . ')', $ausfall));
+                $punkte['ausfall'] = count($ausfall) === 1
+                    ? t('1 Klasse liegt unter der Mindestanzahl und findet nicht statt: {liste}. Zusammenlegen oder Starter umsetzen – sonst treten diese Starter nicht an.', ['liste' => $liste])
+                    : t('{n} Klassen liegen unter der Mindestanzahl und finden nicht statt: {liste}. Zusammenlegen oder Starter umsetzen – sonst treten diese Starter nicht an.', ['n' => count($ausfall), 'liste' => $liste]);
             }
             $ohneTatami = (int) $this->db->wert(
                 'SELECT COUNT(DISTINCT p.klasse_id) FROM phase p JOIN klasse k ON k.id = p.klasse_id WHERE k.turnier_id = ? AND p.tatami_id IS NULL',
@@ -121,15 +117,15 @@ final class TurnierPhaseService
             );
             // dynamische Verteilung: die Warteschlange ist gewollt
             if ($ohneTatami > 0 && (new PlanService($this->db))->verteilung($turnierId)['modus'] === 'fest') {
-                $punkte['plan'] = "$ohneTatami Klassen sind im Tatami-Plan noch keiner Tatami zugeordnet.";
+                $punkte['plan'] = t('{n} Klassen sind im Tatami-Plan noch keiner Tatami zugeordnet.', ['n' => $ohneTatami]);
             }
             $ohnePin = (int) $this->db->wert('SELECT COUNT(*) FROM tatami WHERE turnier_id = ? AND pin_hash IS NULL', [$turnierId]);
             if ($ohnePin > 0) {
-                $punkte['pins'] = "$ohnePin Tatamis haben noch keine PIN – die Tablets können sich nicht anmelden.";
+                $punkte['pins'] = t('{n} Tatamis haben noch keine PIN – die Tablets können sich nicht anmelden.', ['n' => $ohnePin]);
             }
             $anmeldungen = (int) $this->db->wert("SELECT COUNT(*) FROM anmeldung WHERE turnier_id = ? AND status = 'eingereicht'", [$turnierId]);
             if ($anmeldungen > 0) {
-                $punkte['anmeldungen'] = "$anmeldungen Online-Anmeldungen sind noch nicht freigegeben.";
+                $punkte['anmeldungen'] = t('{n} Online-Anmeldungen sind noch nicht freigegeben.', ['n' => $anmeldungen]);
             }
         }
         if ($ziel === TurnierPhase::ABGESCHLOSSEN) {
@@ -139,7 +135,7 @@ final class TurnierPhaseService
                 [$turnierId],
             );
             if ($unbestaetigt > 0) {
-                $punkte['bestaetigung'] = "$unbestaetigt Klassen sind noch nicht beendet und bestätigt – sie fehlen in der Siegerliste.";
+                $punkte['bestaetigung'] = t('{n} Klassen sind noch nicht beendet und bestätigt – sie fehlen in der Siegerliste.', ['n' => $unbestaetigt]);
             }
         }
         return $punkte;
@@ -156,9 +152,9 @@ final class TurnierPhaseService
             $this->startVorbereiten($turnierId);
         }
         if (!isset(TurnierPhase::ALLE[$ziel])) {
-            throw new FachFehler('Unbekannte Turnierphase.');
+            throw new FachFehler(t('Unbekannte Turnierphase.'));
         }
-        $turnier = $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler('Turnier nicht gefunden.');
+        $turnier = $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler(t('Turnier nicht gefunden.'));
         $alt = TurnierPhase::von($turnier);
         if ($alt === $ziel) {
             return;
@@ -166,7 +162,7 @@ final class TurnierPhaseService
         // Wiederöffnen eines abgeschlossenen Turniers (für Korrekturen) ist kein neuer Start – keine Startprüfliste
         $punkte = $alt === TurnierPhase::ABGESCHLOSSEN && $ziel === TurnierPhase::LAEUFT ? [] : $this->pruefen($turnierId, $ziel);
         if ($punkte !== [] && !$trotzdem) {
-            throw new FachFehler('Noch nicht bereit für „' . TurnierPhase::text($ziel) . '“: ' . implode(' ', $punkte));
+            throw new FachFehler(t('Noch nicht bereit für „{phase}“: {punkte}', ['phase' => TurnierPhase::text($ziel), 'punkte' => implode(' ', $punkte)]));
         }
         $this->db->update('turnier', ['status' => $ziel], ['id' => $turnierId]);
         $this->protokoll->eintragen($turnierId, 'turnier', $turnierId, 'phase', ['alt' => $alt, 'neu' => $ziel, 'offene_punkte' => $punkte]);
@@ -176,11 +172,11 @@ final class TurnierPhaseService
     /** Wirft einen Fachfehler, wenn das Turnier gerade keine Ergebnisse annimmt. */
     public function ergebnisseErlaubt(int $turnierId): void
     {
-        $turnier = $this->db->eine('SELECT status FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler('Turnier nicht gefunden.');
+        $turnier = $this->db->eine('SELECT status FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler(t('Turnier nicht gefunden.'));
         match (TurnierPhase::von($turnier)) {
             TurnierPhase::LAEUFT => null,
-            TurnierPhase::ABGESCHLOSSEN => throw new FachFehler('Das Turnier ist abgeschlossen – Ergebnisse sind gesperrt.'),
-            default => throw new FachFehler('Das Turnier ist noch nicht gestartet – Ergebnisse können erst eingetragen werden, wenn die Wettkampfleitung das Turnier gestartet hat.'),
+            TurnierPhase::ABGESCHLOSSEN => throw new FachFehler(t('Das Turnier ist abgeschlossen – Ergebnisse sind gesperrt.')),
+            default => throw new FachFehler(t('Das Turnier ist noch nicht gestartet – Ergebnisse können erst eingetragen werden, wenn die Wettkampfleitung das Turnier gestartet hat.')),
         };
     }
 

@@ -11,6 +11,7 @@ $kopf = static fn (string $seite) => '<div class="ho-kopf"><div><div class="ho-a
     <h2><span class="ho-nr">1</span>Vor dem Start</h2>
     <ul>
         <li><strong>Einstellungen → Tatamis &amp; Zugänge</strong>: PIN je Tatami, <strong>Leitungs-PIN</strong> (für Korrekturen am Tablet), Aufstellung AKA links/rechts, Kampfuhr am Tablet.</li>
+        <li><strong>Einstellungen → Geräte koppeln</strong>: QR-Codes je Tatami drucken. Tablets und Handys scannen sie; ihr gebt jedes Gerät nach dem Prüfwort frei (die Seite zeigt neue Anfragen von selbst) und könnt es jederzeit sperren.</li>
         <li><strong>Druck</strong>: Kampflisten je Tatami und den <strong>Notfall-Satz</strong> ausdrucken und bereitlegen.</li>
         <li><strong>Übersicht → Turnierphase → „Turnier starten“</strong>: lost offene Klassen aus und verteilt die ersten Gruppen auf die Tatamis.</li>
     </ul>
@@ -98,7 +99,11 @@ $kopf = static fn (string $seite) => '<div class="ho-kopf"><div><div class="ho-a
         </div>
     </div>
     <div class="ho-hinweis">
+        <h3>Nach dem Turnier: Datenschutz</h3>
+        <p><strong>Einstellungen → Datenschutz</strong>: Buchhaltungsexport (ZIP mit Zahlungsliste und PDF-Belegen) herunterladen und beim Kassenwart archivieren. Danach schaltet die Software die Statusseite nach den eingestellten Tagen ab und pseudonymisiert die Starter nach der Löschfrist – Ergebnisse bleiben als Statistik.</p>
+    </div>
+    <div class="ho-hinweis">
         <h3>Zum Nachlesen</h3>
-        <p>Menü <strong>Hilfe</strong> in der Software (alle Themen), dort auch diese Handouts für Tischbesatzung und Ausruf zum Ausdrucken.</p>
+        <p>Menü <strong>Hilfe</strong> in der Software (alle Themen), dort auch diese Handouts für Tischbesatzung und Ausruf zum Ausdrucken. Oberfläche und Handouts gibt es auch auf Englisch (Umschalter in der Fußzeile).</p>
     </div>
 </div>

@@ -48,7 +48,7 @@ final class SperrenController extends Controller
         $schluessel = $request->text('schluessel');
         if (preg_match('/^[0-9a-f]{64}$/', $schluessel) === 1) {
             (new AnmeldeSchutz($this->db))->aufheben($schluessel);
-            $this->erfolg('Sperre aufgehoben – die Anmeldung ist von dort wieder möglich.');
+            $this->erfolg(t('Sperre aufgehoben – die Anmeldung ist von dort wieder möglich.'));
         }
         return $this->weiter('system/sperren');
     }
@@ -61,18 +61,18 @@ final class SperrenController extends Controller
     private function beschreibung(?string $ziel): array
     {
         if ($ziel === null) {
-            return ['art' => 'unbekannt', 'wer' => 'vor dem Update gesperrt – Ziel nicht gespeichert'];
+            return ['art' => t('unbekannt'), 'wer' => t('vor dem Update gesperrt – Ziel nicht gespeichert')];
         }
         [$art, $wert] = array_pad(explode(':', $ziel, 2), 2, '');
         $id = (int) $wert;
         return match ($art) {
-            'login' => ['art' => 'Anmeldung', 'wer' => $wert],
-            'uebergabe' => ['art' => 'Übergabe an den Hallen-Laptop', 'wer' => $wert],
-            'passwort-bestaetigung' => ['art' => 'Passwort bestätigen', 'wer' => $this->konto($id)],
-            'system-passwort' => ['art' => 'Passwort bestätigen (E-Mail-Versand)', 'wer' => $this->konto($id)],
-            'tisch' => ['art' => 'Tatami-PIN', 'wer' => $this->tatami($id)],
-            'leitung-pin' => ['art' => 'Leitungs-PIN', 'wer' => $this->turnierName($id)],
-            'setup' => ['art' => 'Ersteinrichtung', 'wer' => 'Einrichtungscode'],
+            'login' => ['art' => t('Anmeldung||Login'), 'wer' => $wert],
+            'uebergabe' => ['art' => t('Übergabe an den Hallen-Laptop'), 'wer' => $wert],
+            'passwort-bestaetigung' => ['art' => t('Passwort bestätigen'), 'wer' => $this->konto($id)],
+            'system-passwort' => ['art' => t('Passwort bestätigen (E-Mail-Versand)'), 'wer' => $this->konto($id)],
+            'tisch' => ['art' => t('Tatami-PIN'), 'wer' => $this->tatami($id)],
+            'leitung-pin' => ['art' => t('Leitungs-PIN'), 'wer' => $this->turnierName($id)],
+            'setup' => ['art' => t('Ersteinrichtung'), 'wer' => t('Einrichtungscode')],
             default => ['art' => $art, 'wer' => $wert],
         };
     }
@@ -80,18 +80,18 @@ final class SperrenController extends Controller
     private function konto(int $id): string
     {
         $k = $this->db->eine('SELECT name, email FROM benutzer WHERE id = ?', [$id]);
-        return $k === null ? "Konto #$id (gelöscht)" : trim((string) $k['name'] . ($k['email'] ? ' (' . $k['email'] . ')' : ''));
+        return $k === null ? t('Konto #{id} (gelöscht)', ['id' => $id]) : trim((string) $k['name'] . ($k['email'] ? ' (' . $k['email'] . ')' : ''));
     }
 
     private function tatami(int $id): string
     {
         $t = $this->db->eine('SELECT ta.bezeichnung, tu.name FROM tatami ta JOIN turnier tu ON tu.id = ta.turnier_id WHERE ta.id = ?', [$id]);
-        return $t === null ? "Tatami #$id (gelöscht)" : $t['bezeichnung'] . ' – ' . $t['name'];
+        return $t === null ? t('Tatami #{id} (gelöscht)', ['id' => $id]) : $t['bezeichnung'] . ' – ' . $t['name'];
     }
 
     private function turnierName(int $id): string
     {
         $name = $this->db->wert('SELECT name FROM turnier WHERE id = ?', [$id]);
-        return $name === null ? "Turnier #$id (gelöscht)" : (string) $name;
+        return $name === null ? t('Turnier #{id} (gelöscht)', ['id' => $id]) : (string) $name;
     }
 }

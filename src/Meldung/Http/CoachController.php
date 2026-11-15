@@ -108,7 +108,7 @@ final class CoachController extends Controller
         $vereinId = (int) Session::coachVerein();
         $this->portalTurnier($id, $vereinId, 'antraege');
         $this->coach()->antragStellen($id, $vereinId, $request->post, Session::akteur());
-        $this->erfolg('Korrekturantrag gestellt – die Turnierleitung meldet sich hier mit ihrer Antwort.');
+        $this->erfolg(t('Korrekturantrag gestellt – die Turnierleitung meldet sich hier mit ihrer Antwort.'));
         return $this->weiter("coach/turnier/$id/antraege");
     }
 
@@ -132,7 +132,7 @@ final class CoachController extends Controller
     {
         $this->turnier($id);
         $this->coach()->einstellungenSpeichern($id, $request->post);
-        $this->erfolg('Coaching-Portal gespeichert.');
+        $this->erfolg(t('Coaching-Portal gespeichert.'));
         return $this->weiterNach($request, "turnier/$id/einstellungen");
     }
 
@@ -151,7 +151,7 @@ final class CoachController extends Controller
     {
         $this->turnier($id);
         $this->coach()->antragBearbeiten($id, $antragid, $request->text('status'), $request->text('antwort'), Session::akteur());
-        $this->erfolg('Korrekturantrag gespeichert.');
+        $this->erfolg(t('Korrekturantrag gespeichert.'));
         return $this->weiter("turnier/$id/korrekturen");
     }
 
@@ -173,7 +173,7 @@ final class CoachController extends Controller
     private function portalTurnier(int $turnierId, int $vereinId, ?string $bereich = null): array
     {
         if (!(new DojoZugangBindung($this->db))->erlaubt((int) (Session::benutzer()['id'] ?? 0), $turnierId)) {
-            throw new NichtGefunden('Dieser Zugang gilt nur für das Turnier, für das er angelegt wurde.');
+            throw new NichtGefunden(t('Dieser Zugang gilt nur für das Turnier, für das er angelegt wurde.'));
         }
         return $this->coach()->turnier($turnierId, $vereinId, $bereich);
     }

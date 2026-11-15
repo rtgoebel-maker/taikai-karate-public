@@ -13,6 +13,7 @@ use Wettkampf\Kern\Http\PsrBruecke;
 use Wettkampf\Kern\Http\Response;
 use Wettkampf\Kern\Http\Session;
 use Wettkampf\Kern\Http\Url;
+use Wettkampf\Kern\Sprache;
 
 /**
  * Vor dem Routing: Sitzung starten und prüfen (Leerlauf, Widerruf), Pfad vereinheitlichen,
@@ -24,9 +25,12 @@ final class Anfragekontext implements MiddlewareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+        // Sprache: Wahl der Person (Cookie), sonst Browsersprache
+        $gewaehlt = $request->getCookieParams()[Sprache::COOKIE] ?? ($_COOKIE[Sprache::COOKIE] ?? null);
+        Sprache::setzen(Sprache::erkennen(is_string($gewaehlt) ? $gewaehlt : null, $request->getHeaderLine('Accept-Language')));
         Session::starten(OeffentlicheAbfragen::betrifft($request));
         if (Session::leerlaufPruefen()) {
-            Session::flash('hinweis', 'Nach 12 Stunden ohne Aktivität abgemeldet – bitte neu anmelden.');
+            Session::flash('hinweis', t('Nach 12 Stunden ohne Aktivität abgemeldet – bitte neu anmelden.'));
         }
         $this->app->anmeldungenPruefen();
 

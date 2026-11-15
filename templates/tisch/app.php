@@ -9,16 +9,16 @@ use Wettkampf\Kern\Http\Session;
 
 $query = $alsLeitung ? '?tatami=' . (int) $tatami['id'] : '';
 ?><!doctype html>
-<html lang="de">
+<html lang="<?= e(sprache()) ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Tisch">
+    <meta name="apple-mobile-web-app-title" content="<?= te('Tisch') ?>">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="<?= e(url('tisch/manifest.webmanifest') . '?ansicht=app') ?>">
-    <title><?= e($tatami['bezeichnung']) ?> · Tisch</title>
+    <title><?= e($tatami['bezeichnung']) ?> · <?= te('Tisch') ?></title>
     <?= $this->teil('teile/icons') ?>
     <link rel="stylesheet" href="<?= e(asset('tisch.css')) ?>">
     <link rel="stylesheet" href="<?= e(asset('dialog.css')) ?>">
@@ -35,31 +35,33 @@ $query = $alsLeitung ? '?tatami=' . (int) $tatami['id'] : '';
         <strong class="tatami-name"><?= e($tatami['bezeichnung']) ?></strong>
     </div>
     <div id="fortschritt" class="klein"></div>
-    <div id="verbindung" class="verbindung ok">online</div>
-    <button type="button" class="knopf-leise" data-vollbild hidden title="Vollbild: Adress- und Tableiste ausblenden">⛶ Vollbild</button>
+    <div id="verbindung" class="verbindung ok"><?= te('online') ?></div>
+    <button type="button" class="knopf-leise" data-vollbild hidden title="<?= te('Vollbild: Adress- und Tableiste ausblenden') ?>">⛶ <?= te('Vollbild') ?></button>
     <span data-feedback-platz="knopf-leise"></span>
-    <a class="knopf-leise" href="<?= e(url('tisch/ausruf') . $query) ?>" title="Starter aufrufen und Anwesenheit bestätigen – auch auf dem Handy">📣 Ausruf</a>
+    <a class="knopf-leise" href="<?= e(url('tisch/ausruf') . $query) ?>" title="<?= te('Starter aufrufen und Anwesenheit bestätigen – auch auf dem Handy') ?>">📣 <?= te('Ausruf') ?></a>
     <?php if ($alsLeitung): ?>
-        <span class="knopf-leise" title="Von der Wettkampfleitung geöffnet. Korrekturen erfordern trotzdem die Leitungs-PIN, sobald eine vergeben ist.">Leitungsansicht</span>
+        <span class="knopf-leise" title="<?= te('Von der Wettkampfleitung geöffnet. Korrekturen erfordern trotzdem die Leitungs-PIN, sobald eine vergeben ist.') ?>"><?= te('Leitungsansicht') ?></span>
     <?php endif; ?>
+    <?= $this->teil('teile/sprache_umschalter', ['klasse' => 'knopf-leise sprache-klein']) ?>
     <?php if (!$alsLeitung): ?>
-        <form method="post" action="<?= e(url('tisch/abmelden')) ?>" data-bestaetigen="Tablet von dieser Tatami abmelden?" data-bestaetigen-ja="Abmelden">
+        <form method="post" action="<?= e(url('tisch/abmelden')) ?>" data-bestaetigen="<?= te('Tablet von dieser Tatami abmelden?') ?>" data-bestaetigen-ja="<?= te('Abmelden') ?>">
             <input type="hidden" name="_csrf" value="<?= e(Session::csrfToken()) ?>">
-            <button class="knopf-leise" type="submit">Abmelden</button>
+            <button class="knopf-leise" type="submit"><?= te('Abmelden') ?></button>
         </form>
     <?php endif; ?>
 </header>
 <div id="meldung" class="meldung" hidden></div>
 <main class="haupt">
-    <section id="karte" class="karte-gross"><p class="leer">Lade …</p></section>
+    <section id="karte" class="karte-gross"><p class="leer"><?= te('Lade …') ?></p></section>
     <aside class="seitenleiste">
         <div id="ausruf-stand"></div>
-        <h2>Als Nächstes</h2>
+        <h2><?= te('Als Nächstes') ?></h2>
         <ol id="naechste" class="liste"></ol>
-        <h2>Zuletzt eingetragen</h2>
+        <h2><?= te('Zuletzt eingetragen') ?></h2>
         <ol id="letzte" class="liste"></ol>
     </aside>
 </main>
+<?= $this->teil('teile/sprache_skript') ?>
 <script src="<?= e(asset('app.js')) ?>"></script>
 <script src="<?= e(asset('tisch.js')) ?>"></script>
 <?= $this->teil('teile/feedback', ['kompakt' => true]) ?>

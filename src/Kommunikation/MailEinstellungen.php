@@ -89,34 +89,34 @@ final class MailEinstellungen
             $neu['url'] = '';
         }
         if (!isset(self::TRANSPORTE[$neu['transport']])) {
-            throw new FachFehler('Unbekannte Versandart.');
+            throw new FachFehler(t('Unbekannte Versandart.'));
         }
         if ($neu['url'] !== '') {
             $teile = parse_url($neu['url']);
             $lokal = in_array($teile['host'] ?? '', ['localhost', '127.0.0.1'], true) || preg_match('/^(10|192\.168|172\.(1[6-9]|2\d|3[01]))\./', $teile['host'] ?? '');
             if (!preg_match('#^https?://[^/?\#@\s]+(/[^?\#\s]*)?$#', $neu['url']) || (($teile['scheme'] ?? '') !== 'https' && !$lokal)) {
-                throw new FachFehler('Die öffentliche Adresse muss mit https:// beginnen (z. B. https://turnier.example.de), ohne ? oder #.');
+                throw new FachFehler(t('Die öffentliche Adresse muss mit https:// beginnen (z. B. https://turnier.example.de), ohne ? oder #.'));
             }
         }
         if ($neu['transport'] !== '' && $neu['url'] === '' && !$adresseFest) {
-            throw new FachFehler('Für den Versand bitte die öffentliche Adresse angeben – daraus entstehen die Links in den Mails.');
+            throw new FachFehler(t('Für den Versand bitte die öffentliche Adresse angeben – daraus entstehen die Links in den Mails.'));
         }
         if ($neu['transport'] === 'smtp') {
             if (!preg_match('/^(?=.{1,200}$)[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/', $neu['host'])) {
-                throw new FachFehler('Bitte den SMTP-Server als Namen angeben, z. B. smtp.example.de (ohne https:// und ohne Port).');
+                throw new FachFehler(t('Bitte den SMTP-Server als Namen angeben, z. B. smtp.example.de (ohne https:// und ohne Port).'));
             }
             if (!isset(self::PORTS[(int) $neu['port']])) {
-                throw new FachFehler('Erlaubt sind nur die Mail-Ports ' . implode(', ', array_keys(self::PORTS)) . '.');
+                throw new FachFehler(t('Erlaubt sind nur die Mail-Ports {ports}.', ['ports' => implode(', ', array_keys(self::PORTS))]));
             }
             if (!isset(self::VERSCHLUESSELUNG[$neu['verschluesselung']])) {
-                throw new FachFehler('Unbekannte Verschlüsselung.');
+                throw new FachFehler(t('Unbekannte Verschlüsselung.'));
             }
             if (filter_var($neu['absender'], FILTER_VALIDATE_EMAIL) === false) {
-                throw new FachFehler('Bitte eine gültige Absenderadresse angeben.');
+                throw new FachFehler(t('Bitte eine gültige Absenderadresse angeben.'));
             }
         }
         if ($neu['antwort_an'] !== '' && filter_var($neu['antwort_an'], FILTER_VALIDATE_EMAIL) === false) {
-            throw new FachFehler('Die Antwortadresse ist keine gültige E-Mail-Adresse.');
+            throw new FachFehler(t('Die Antwortadresse ist keine gültige E-Mail-Adresse.'));
         }
         foreach ($neu as $feld => $wert) {
             $this->system->setzen('mail_' . $feld, $wert);
@@ -124,7 +124,7 @@ final class MailEinstellungen
         $passwort = (string) ($daten['passwort'] ?? '');
         if ($passwort !== '') {
             if (strlen($passwort) > 500) {
-                throw new FachFehler('Das Passwort ist zu lang.');
+                throw new FachFehler(t('Das Passwort ist zu lang.'));
             }
             $this->system->setzen('mail_passwort', $this->tresor->verschluesseln($passwort));
         }

@@ -16,7 +16,7 @@ $tid = (int) $portal['id'];
 <nav class="coach-reiter">
     <?php foreach (CoachService::BEREICHE as $b => $text): ?>
         <?php if ($portal['portal']['bereiche'][$b]): ?>
-            <a href="<?= e(url("coach/turnier/$tid/$b")) ?>"<?= $b === $bereich ? ' class="aktiv"' : '' ?>><?= e($text) ?></a>
+            <a href="<?= e(url("coach/turnier/$tid/$b")) ?>"<?= $b === $bereich ? ' class="aktiv"' : '' ?>><?= e(\Wettkampf\Kern\Sprache::t($text)) ?></a>
         <?php endif; ?>
     <?php endforeach; ?>
 </nav>

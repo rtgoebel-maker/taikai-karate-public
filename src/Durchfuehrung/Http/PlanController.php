@@ -42,8 +42,8 @@ final class PlanController extends Controller
         $service = new PlanService($this->db);
         $service->verteilungSpeichern($id, $request->text('modus', 'dynamisch'), $request->post('getrennt') === '1');
         $this->erfolg($service->verteilung($id)['modus'] === 'dynamisch'
-            ? 'Dynamische Verteilung: Jede Tatami bekommt die nächste Gruppe, sobald sie frei wird.'
-            : 'Fester Plan: Gruppen bleiben auf der zugeordneten Tatami.');
+            ? t('Dynamische Verteilung: Jede Tatami bekommt die nächste Gruppe, sobald sie frei wird.')
+            : t('Fester Plan: Gruppen bleiben auf der zugeordneten Tatami.'));
         return $this->weiter("turnier/$id/plan");
     }
 
@@ -52,7 +52,7 @@ final class PlanController extends Controller
     {
         $this->turnier($id);
         $anzahl = (new PlanService($this->db))->nichtBegonneneZurueck($id);
-        $this->erfolg("$anzahl nicht begonnene Gruppen in die Warteschlange gestellt – freie Tatamis haben sofort die nächste bekommen.");
+        $this->erfolg(t('{n} nicht begonnene Gruppen in die Warteschlange gestellt – freie Tatamis haben sofort die nächste bekommen.', ['n' => $anzahl]));
         return $this->weiter("turnier/$id/plan");
     }
 
@@ -63,8 +63,10 @@ final class PlanController extends Controller
         $zurueck = (new PlanService($this->db))->tatamiSperren($id, $tatamiid, $sperren, $request->text('grund'));
         $name = (string) $this->db->wert('SELECT bezeichnung FROM tatami WHERE id = ?', [$tatamiid]);
         $this->erfolg($sperren
-            ? "$name gesperrt – keine neuen Gruppen" . ($zurueck > 0 ? "; $zurueck nicht begonnene Gruppen zurück in die Warteschlange." : '.')
-            : "$name freigegeben.");
+            ? ($zurueck > 0
+                ? t('{name} gesperrt – keine neuen Gruppen; {n} nicht begonnene Gruppen zurück in die Warteschlange.', ['name' => $name, 'n' => $zurueck])
+                : t('{name} gesperrt – keine neuen Gruppen.', ['name' => $name]))
+            : t('{name} freigegeben.', ['name' => $name]));
         return $this->weiter("turnier/$id/plan");
     }
 
@@ -74,7 +76,7 @@ final class PlanController extends Controller
         $this->turnier($id);
         $tatami = $request->text('tatami_id');
         $anzahl = (new NachrichtService($this->db))->senden($id, $tatami === '' ? null : (int) $tatami, $request->text('text'), Session::akteur());
-        $this->erfolg($anzahl === 1 ? 'Nachricht gesendet.' : "Nachricht an $anzahl Tatamis gesendet.");
+        $this->erfolg($anzahl === 1 ? t('Nachricht gesendet.') : t('Nachricht an {n} Tatamis gesendet.', ['n' => $anzahl]));
         return $this->weiter("turnier/$id/plan");
     }
 
@@ -93,7 +95,7 @@ final class PlanController extends Controller
     {
         $this->turnier($id);
         $anzahl = (new PlanService($this->db))->automatischVerteilen($id, $request->post('getrennt') === '1');
-        $this->erfolg("$anzahl Phasen automatisch verteilt.");
+        $this->erfolg(t('{n} Phasen automatisch verteilt.', ['n' => $anzahl]));
         return $this->weiter("turnier/$id/plan");
     }
 
@@ -101,7 +103,7 @@ final class PlanController extends Controller
     {
         $this->turnier($id);
         $anzahl = (new PlanService($this->db))->leeren($id);
-        $this->erfolg("$anzahl nicht begonnene Gruppen von den Tatamis genommen – laufende und beendete bleiben.");
+        $this->erfolg(t('{n} nicht begonnene Gruppen von den Tatamis genommen – laufende und beendete bleiben.', ['n' => $anzahl]));
         return $this->weiter("turnier/$id/plan");
     }
 
@@ -109,7 +111,7 @@ final class PlanController extends Controller
     {
         $this->turnier($id);
         (new PlanService($this->db))->schlangeSortieren($id);
-        $this->erfolg('Warteschlange nach Klassenreihenfolge sortiert: Kata vor Kumite, jüngere bzw. niedrigere Klassen zuerst.');
+        $this->erfolg(t('Warteschlange nach Klassenreihenfolge sortiert: Kata vor Kumite, jüngere bzw. niedrigere Klassen zuerst.'));
         return $this->weiter("turnier/$id/plan");
     }
 
@@ -117,7 +119,7 @@ final class PlanController extends Controller
     {
         $this->turnier($id);
         (new PlanService($this->db))->einstellungenSpeichern($id, $request->post);
-        $this->erfolg('Zeitplan-Einstellungen gespeichert.');
+        $this->erfolg(t('Zeitplan-Einstellungen gespeichert.'));
         return $this->weiter("turnier/$id/plan");
     }
 }

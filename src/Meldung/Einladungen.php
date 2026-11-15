@@ -131,25 +131,25 @@ final class Einladungen
     {
         $e = json_decode((string) ($turnier['einstellungen'] ?? ''), true) ?: [];
         if (!empty($e['einladungen_versendet_am'])) {
-            throw new FachFehler('Die Einladung zu diesem Turnier wurde bereits am ' . date('d.m.Y', (int) strtotime((string) $e['einladungen_versendet_am'])) . ' versendet.');
+            throw new FachFehler(t('Die Einladung zu diesem Turnier wurde bereits am {datum} versendet.', ['datum' => self::datum((string) $e['einladungen_versendet_am'])]));
         }
         if ((string) $turnier['datum'] < date('Y-m-d')) {
-            throw new FachFehler('Das Turnier liegt in der Vergangenheit.');
+            throw new FachFehler(t('Das Turnier liegt in der Vergangenheit.'));
         }
         $anzahl = 0;
         $jetzt = date('Y-m-d H:i:s');
         foreach ($this->liste() as $z) {
             $abmelden = $post->link('einladung/abmelden/' . $z['id'] . '/' . $this->token((int) $z['id'], (string) $z['email']));
-            $text = "Hallo " . ($z['name'] !== '' ? $z['name'] : 'zusammen') . ",\n\n"
-                . "wir laden " . ($z['dojo'] !== '' ? "das Dojo {$z['dojo']}" : 'Sie') . " herzlich ein zu:\n\n"
-                . "{$turnier['name']}\n" . date('d.m.Y', (int) strtotime((string) $turnier['datum'])) . ($turnier['ort'] ? " · {$turnier['ort']}" : '') . "\n\n"
-                . ($turnier['meldeschluss'] ? 'Meldeschluss: ' . date('d.m.Y', (int) strtotime((string) $turnier['meldeschluss'])) . "\n" : '')
-                . "Zur Online-Anmeldung: " . $post->link($anmeldepfad) . "\n"
-                . "Datenschutzhinweise: " . $post->link($hinweispfad) . "\n\n"
-                . "Viele Grüße\n" . ($veranstalter !== '' ? $veranstalter : 'Die Turnierleitung') . "\n\n"
-                . "--\nSie erhalten diese E-Mail, weil Sie bei der " . $z['herkunft'] . " eingewilligt haben, zu künftigen Turnieren eingeladen zu werden.\n"
-                . "Keine Einladungen mehr: $abmelden\n";
-            $post->einreihen((string) $z['email'], 'Einladung: ' . $turnier['name'], $text, 'einladung', null);
+            $text = ($z['name'] !== '' ? t('Hallo {name},', ['name' => $z['name']]) : t('Hallo zusammen,')) . "\n\n"
+                . ($z['dojo'] !== '' ? t('wir laden das Dojo {dojo} herzlich ein zu:', ['dojo' => $z['dojo']]) : t('wir laden Sie herzlich ein zu:')) . "\n\n"
+                . "{$turnier['name']}\n" . self::datum((string) $turnier['datum']) . ($turnier['ort'] ? " · {$turnier['ort']}" : '') . "\n\n"
+                . ($turnier['meldeschluss'] ? t('Meldeschluss: {datum}', ['datum' => self::datum((string) $turnier['meldeschluss'])]) . "\n" : '')
+                . t('Zur Online-Anmeldung:') . ' ' . $post->link($anmeldepfad) . "\n"
+                . t('Datenschutzhinweise:') . ' ' . $post->link($hinweispfad) . "\n\n"
+                . t('Viele Grüße') . "\n" . ($veranstalter !== '' ? $veranstalter : t('Die Turnierleitung')) . "\n\n"
+                . "--\n" . t('Sie erhalten diese E-Mail, weil Sie bei der {herkunft} eingewilligt haben, zu künftigen Turnieren eingeladen zu werden.', ['herkunft' => $z['herkunft']]) . "\n"
+                . t('Keine Einladungen mehr: {link}', ['link' => $abmelden]) . "\n";
+            $post->einreihen((string) $z['email'], t('Einladung: {name}', ['name' => $turnier['name']]), $text, 'einladung', null);
             $this->db->update('einladung', ['zuletzt_eingeladen_am' => $jetzt], ['id' => $z['id']]);
             $anzahl++;
         }
@@ -157,5 +157,11 @@ final class Einladungen
         $this->db->update('turnier', ['einstellungen' => json_encode($e, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR)], ['id' => $turnier['id']]);
         (new Protokoll($this->db))->eintragen((int) $turnier['id'], 'turnier', (int) $turnier['id'], 'einladungen_versendet', ['anzahl' => $anzahl]);
         return $anzahl;
+    }
+
+    /** Datum in der Sprache der auslösenden Person (14.03.2026 bzw. 14 Mar 2026). */
+    private static function datum(string $zeit): string
+    {
+        return \Wettkampf\Kern\Sprache::datum(date('Y-m-d', (int) strtotime($zeit)));
     }
 }

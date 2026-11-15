@@ -23,7 +23,7 @@ $seite = static function (array $b, string $farbe) {
 ?>
 <?php if ($phase['art'] === 'ko'): ?>
     <?php if (!$phase['begegnungen']): ?>
-        <p class="leise">Keine Begegnungen – alle Starter kommen direkt weiter.</p>
+        <p class="leise"><?= te('Keine Begegnungen – alle Starter kommen direkt weiter.') ?></p>
     <?php endif; ?>
     <div class="baum">
         <?php foreach ($phase['runden'] as $runde => $liste): ?>
@@ -32,9 +32,9 @@ $seite = static function (array $b, string $farbe) {
                 <?php foreach ($liste as $b): ?>
                     <div class="paarung <?= $b['status'] === 'freilos' ? 'freilos' : '' ?> <?= $b['status'] === 'laeuft' ? 'laeuft' : '' ?>">
                         <div class="nr">
-                            <span><?= $b['nr'] ? 'Kampf ' . $b['nr'] : 'Freilos' ?><?= $b['art'] === 'platz3' ? ' · Platz 3' : '' ?></span>
+                            <span><?= $b['nr'] ? te('Kampf {nr}', ['nr' => $b['nr']]) : te('Freilos') ?><?= $b['art'] === 'platz3' ? ' · ' . te('Platz 3') : '' ?></span>
                             <?php if ($eingabeUrl && $b['nr'] && in_array($b['status'], ['bereit', 'laeuft', 'beendet'], true)): ?>
-                                <a href="<?= e(url($eingabeUrl . $b['id'])) ?>"><?= $b['status'] === 'beendet' ? 'Korrigieren' : 'Ergebnis' ?></a>
+                                <a href="<?= e(url($eingabeUrl . $b['id'])) ?>"><?= $b['status'] === 'beendet' ? te('Korrigieren') : te('Ergebnis') ?></a>
                             <?php endif; ?>
                         </div>
                         <?= $seite($b, 'aka') ?>
@@ -48,11 +48,11 @@ $seite = static function (array $b, string $farbe) {
 <?php elseif ($phase['art'] === 'jgj'): ?>
     <div class="zwei-spalten">
         <table class="tabelle">
-            <thead><tr><th>Platz</th><th>Name</th><th>Verein</th><th class="rechts">Kämpfe</th><th class="rechts">Siege</th><th class="rechts">Ippon</th><th class="rechts">Wazaari</th></tr></thead>
+            <thead><tr><th><?= te('Platz') ?></th><th><?= te('Name') ?></th><th><?= te('Verein') ?></th><th class="rechts"><?= te('Kämpfe') ?></th><th class="rechts"><?= te('Siege') ?></th><th class="rechts">Ippon</th><th class="rechts">Wazaari</th></tr></thead>
             <tbody>
             <?php foreach ($phase['tabelle'] ?? [] as $z): ?>
                 <tr>
-                    <td class="zahl"><?= $z['platz'] ?><?= $z['gleichstand'] ? ' <span class="tag warn" title="Gleichstand – Stichentscheid nötig">=</span>' : '' ?></td>
+                    <td class="zahl"><?= $z['platz'] ?><?= $z['gleichstand'] ? ' <span class="tag warn" title="' . te('Gleichstand – Stichentscheid nötig') . '">=</span>' : '' ?></td>
                     <td><?= e($z['name']) ?></td>
                     <td><?= e($z['verein']) ?></td>
                     <td class="rechts zahl"><?= $z['kaempfe'] ?></td>
@@ -67,23 +67,23 @@ $seite = static function (array $b, string $farbe) {
             <?php foreach ($phase['begegnungen'] as $b): ?>
                 <div class="paarung" style="margin-bottom:.5rem">
                     <div class="nr">
-                        <span>Kampf <?= $b['nr'] ?></span>
+                        <span><?= te('Kampf {nr}', ['nr' => $b['nr']]) ?></span>
                         <?php if ($eingabeUrl && in_array($b['status'], ['bereit', 'laeuft', 'beendet'], true)): ?>
-                            <a href="<?= e(url($eingabeUrl . $b['id'])) ?>"><?= $b['status'] === 'beendet' ? 'Korrigieren' : 'Ergebnis' ?></a>
+                            <a href="<?= e(url($eingabeUrl . $b['id'])) ?>"><?= $b['status'] === 'beendet' ? te('Korrigieren') : te('Ergebnis') ?></a>
                         <?php endif; ?>
                     </div>
                     <?= $seite($b, 'aka') ?>
                     <?= $seite($b, 'shiro') ?>
                 </div>
             <?php endforeach; ?>
-            <?php if (!$phase['begegnungen']): ?><p class="leise">Keine Begegnungen (kampflos).</p><?php endif; ?>
+            <?php if (!$phase['begegnungen']): ?><p class="leise"><?= te('Keine Begegnungen (kampflos).') ?></p><?php endif; ?>
         </div>
     </div>
 
 <?php else: ?>
     <div class="zwei-spalten">
         <table class="tabelle">
-            <thead><tr><th>#</th><th>Name</th><th>Verein</th><th>Kata</th><th class="rechts">Punkte</th></tr></thead>
+            <thead><tr><th>#</th><th><?= te('Name') ?></th><th><?= te('Verein') ?></th><th>Kata</th><th class="rechts"><?= te('Punkte') ?></th></tr></thead>
             <tbody>
             <?php foreach ($phase['auftritte'] as $a): ?>
                 <tr>
@@ -94,7 +94,7 @@ $seite = static function (array $b, string $farbe) {
                     <td class="rechts zahl">
                         <?= $a['status'] === 'beendet' ? '<strong>' . e(number_format((float) $a['gesamt'], 1, ',', '')) . '</strong>' : '' ?>
                         <?php if ($eingabeUrl): ?>
-                            <a class="knopf klein" href="<?= e(url(str_replace('begegnung/', 'auftritt/', $eingabeUrl) . $a['id'])) ?>"><?= $a['status'] === 'beendet' ? 'Korr.' : 'Wertung' ?></a>
+                            <a class="knopf klein" href="<?= e(url(str_replace('begegnung/', 'auftritt/', $eingabeUrl) . $a['id'])) ?>"><?= $a['status'] === 'beendet' ? te('Korr.') : te('Wertung') ?></a>
                         <?php endif; ?>
                     </td>
                 </tr>
@@ -103,11 +103,11 @@ $seite = static function (array $b, string $farbe) {
         </table>
         <?php if ($phase['rangliste'] ?? []): ?>
             <table class="tabelle">
-                <thead><tr><th>Rang</th><th>Name</th><th class="rechts">Punkte</th><th class="rechts" title="Gleichstand: zuerst die niedrigste Wertung dazu">+ niedrigste</th><th class="rechts" title="dann auch die höchste Wertung (alle fünf)">+ höchste</th></tr></thead>
+                <thead><tr><th><?= te('Rang') ?></th><th><?= te('Name') ?></th><th class="rechts"><?= te('Punkte') ?></th><th class="rechts" title="<?= te('Gleichstand: zuerst die niedrigste Wertung dazu') ?>">+ <?= te('niedrigste') ?></th><th class="rechts" title="<?= te('dann auch die höchste Wertung (alle fünf)') ?>">+ <?= te('höchste') ?></th></tr></thead>
                 <tbody>
                 <?php foreach ($phase['rangliste'] as $z): ?>
                     <tr<?= $phase['typ'] === 'punkte_vorrunde' && $phase['aufsteiger'] && $z['platz'] <= (int) $phase['aufsteiger'] ? ' style="background:var(--erfolg-hell)"' : '' ?>>
-                        <td class="zahl"><?= $z['platz'] ?><?= $z['gleichstand'] ? ' <span class="tag warn" title="Gleichstand">=</span>' : '' ?></td>
+                        <td class="zahl"><?= $z['platz'] ?><?= $z['gleichstand'] ? ' <span class="tag warn" title="' . te('Gleichstand') . '">=</span>' : '' ?></td>
                         <td><?= e($z['name']) ?><?= ($z['verein'] ?? '') !== '' ? ' <span class="klein">' . e($z['verein']) . '</span>' : '' ?></td>
                         <td class="rechts zahl"><strong><?= e(number_format($z['gesamt'], 1, ',', '')) ?></strong></td>
                         <td class="rechts zahl"><?= e(number_format($z['mit_niedrigster'], 1, ',', '')) ?></td>

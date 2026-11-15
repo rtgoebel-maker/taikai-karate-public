@@ -12,7 +12,7 @@ use Wettkampf\Kern\Http\NichtGefunden;
 /** Hilfeseite für die Wettkampfleitung (aus einem Turnier heraus mit Turniermenü) und druckbare Handouts. */
 final class HilfeController extends Controller
 {
-    /** Druckbare Handouts mit Screenshots: Schlüssel = Vorlage unter templates/handout/ */
+    /** Druckbare Handouts mit Screenshots: Schlüssel = Vorlage unter templates/handout/; Titel werden bei der Anzeige mit t() übersetzt */
     public const HANDOUTS = [
         'flyer' => 'Überblick – Flyer',
         'tisch' => 'Tischbesatzung – Tablet',
@@ -30,12 +30,12 @@ final class HilfeController extends Controller
     public function handout(Request $request, string $name): Response
     {
         if (!isset(self::HANDOUTS[$name])) {
-            throw new NichtGefunden('Handout nicht gefunden.');
+            throw new NichtGefunden(t('Handout nicht gefunden.'));
         }
         $turnierId = $request->zahl('turnier');
         return $this->seite('handout/seite', [
             'name' => $name,
-            'titel' => self::HANDOUTS[$name],
+            'titel' => t(self::HANDOUTS[$name]), // Titel = Katalogschlüssel (lang/en/hilfe.php)
             'zurueck' => $turnierId !== null ? url("turnier/$turnierId/druck") : url('hilfe'),
         ]);
     }

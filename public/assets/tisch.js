@@ -30,9 +30,9 @@
     /** Ergebnisse nur, wenn die Leitung das Turnier gestartet hat (Phase „läuft“). */
     const turnierLaeuft = () => !T.zustand || !T.zustand.phase || T.zustand.phase === 'laeuft';
     const PHASE_HINWEIS = {
-        vorbereitung: 'Das Turnier ist noch nicht gestartet. Ergebnisse können erst eingetragen werden, wenn die Wettkampfleitung das Turnier startet.',
-        meldephase: 'Das Turnier ist noch nicht gestartet. Ergebnisse können erst eingetragen werden, wenn die Wettkampfleitung das Turnier startet.',
-        abgeschlossen: 'Das Turnier ist abgeschlossen – Ergebnisse sind gesperrt.',
+        vorbereitung: Wettkampf.t('Das Turnier ist noch nicht gestartet. Ergebnisse können erst eingetragen werden, wenn die Wettkampfleitung das Turnier startet.'),
+        meldephase: Wettkampf.t('Das Turnier ist noch nicht gestartet. Ergebnisse können erst eingetragen werden, wenn die Wettkampfleitung das Turnier startet.'),
+        abgeschlossen: Wettkampf.t('Das Turnier ist abgeschlossen – Ergebnisse sind gesperrt.'),
     };
 
     // --- Laden & Polling ------------------------------------------------------
@@ -112,21 +112,21 @@
         const fehlt = fehltSeiten(e);
         if (!fehlt.length || T.korrektur || !turnierLaeuft()) { return ''; }
         const person = (s) => (s === 'starter' ? e.starter : e[s]) || {};
-        const kennung = (s) => (s === 'starter' ? 'Starter' : s.toUpperCase());
-        const dochDa = fehlt.map((s) => `<button class="gross-knopf neutral" data-aktion="doch-da" data-seite="${s}">${esc(person(s).name)} ist doch da${e.typ === 'begegnung' && fehlt.length === 1 ? ' – Kampf beginnen' : ''}</button>`).join('');
+        const kennung = (s) => (s === 'starter' ? Wettkampf.t('Starter') : s.toUpperCase());
+        const dochDa = fehlt.map((s) => `<button class="gross-knopf neutral" data-aktion="doch-da" data-seite="${s}">${esc(e.typ === 'begegnung' && fehlt.length === 1 ? Wettkampf.t('{name} ist doch da – Kampf beginnen', { name: person(s).name }) : Wettkampf.t('{name} ist doch da', { name: person(s).name }))}</button>`).join('');
         if (e.typ === 'begegnung' && fehlt.length === 2) {
-            return `<div class="fehlt-bestaetigung"><strong>Laut Ausrufer fehlen beide Starter.</strong>
-                <p>Bitte unten unter „Kampflos / Disqualifikation“ entscheiden oder die Wettkampfleitung fragen.</p><div class="knoepfe">${dochDa}</div></div>`;
+            return `<div class="fehlt-bestaetigung"><strong>${esc(Wettkampf.t('Laut Ausrufer fehlen beide Starter.'))}</strong>
+                <p>${esc(Wettkampf.t('Bitte unten unter „Kampflos / Disqualifikation“ entscheiden oder die Wettkampfleitung fragen.'))}</p><div class="knoepfe">${dochDa}</div></div>`;
         }
         const s = fehlt[0];
         const ergebnis = e.typ === 'auftritt'
-            ? 'Kiken – Vortrag ohne Wertung'
-            : `Kiken – ${s === 'aka' ? 'SHIRO' : 'AKA'} (${esc(person(s === 'aka' ? 'shiro' : 'aka').name)}) gewinnt kampflos`;
+            ? esc(Wettkampf.t('Kiken – Vortrag ohne Wertung'))
+            : esc(Wettkampf.t('Kiken – {seite} ({name}) gewinnt kampflos', { seite: s === 'aka' ? 'SHIRO' : 'AKA', name: person(s === 'aka' ? 'shiro' : 'aka').name }));
         return `<div class="fehlt-bestaetigung">
-            <strong>Laut Ausrufer fehlt ${kennung(s)}: ${esc(person(s).name)}</strong>
-            <p>Bitte bestätigen, bevor es gilt. Danach geht es direkt mit dem nächsten Kampf weiter.</p>
+            <strong>${esc(Wettkampf.t('Laut Ausrufer fehlt {wer}: {name}', { wer: kennung(s), name: person(s).name }))}</strong>
+            <p>${esc(Wettkampf.t('Bitte bestätigen, bevor es gilt. Danach geht es direkt mit dem nächsten Kampf weiter.'))}</p>
             <div class="knoepfe">
-                <button class="gross-knopf senden" data-aktion="fehlt-bestaetigen" data-gegen="${s}">✓ Bestätigen: ${ergebnis}</button>
+                <button class="gross-knopf senden" data-aktion="fehlt-bestaetigen" data-gegen="${s}">${Wettkampf.t('✓ Bestätigen: {ergebnis}', { ergebnis })}</button>
                 ${dochDa}
             </div></div>`;
     }
@@ -137,9 +137,9 @@
      */
     function pauseHinweis(e) {
         if (!e || e.typ !== 'begegnung' || e.kumite_form !== 'jiyu' || T.korrektur || !(e.direkt_wieder || []).length) { return ''; }
-        const namen = e.direkt_wieder.map((s) => `<strong>${esc(e[s].name)}</strong> (${s === 'aka' ? 'AKA' : 'SHIRO'})`).join(' und ');
-        return `<div class="pause-hinweis">⏸ ${namen} ${e.direkt_wieder.length > 1 ? 'haben' : 'hat'} gerade gekämpft und ${e.direkt_wieder.length > 1 ? 'treten' : 'tritt'} direkt wieder an.
-            Bitte fragen, ob eine Pause benötigt wird – dann „Kampf unterbrechen“ und später fortsetzen.</div>`;
+        const namen = e.direkt_wieder.map((s) => `<strong>${esc(e[s].name)}</strong> (${s === 'aka' ? 'AKA' : 'SHIRO'})`).join(` ${esc(Wettkampf.t('und'))} `);
+        return `<div class="pause-hinweis">⏸ ${e.direkt_wieder.length > 1 ? Wettkampf.t('{namen} haben gerade gekämpft und treten direkt wieder an.', { namen }) : Wettkampf.t('{namen} hat gerade gekämpft und tritt direkt wieder an.', { namen })}
+            ${esc(Wettkampf.t('Bitte fragen, ob eine Pause benötigt wird – dann „Kampf unterbrechen“ und später fortsetzen.'))}</div>`;
     }
 
     /** Gespeicherte Wertung (7.2) wie eingegeben anzeigen (7,2). */
@@ -189,7 +189,7 @@
         if (e.typ === 'auftritt') {
             art = /final/i.test(text) ? 'finale' : 'vorrunde';
         } else if (e.rundenart === 'jgj') {
-            text += ' · jeder gegen jeden';
+            text += ' · ' + Wettkampf.t('jeder gegen jeden');
         } else if (e.rundenart === 'platz3') {
             art = 'platz3';
         } else if (text === 'Finale') {
@@ -198,40 +198,42 @@
             art = 'halbfinale';
         } else if (text === 'Viertelfinale') {
             art = 'viertelfinale';
-        } else if (/^Runde \d+$/.test(text)) {
-            text = 'Vorrunde';
         }
-        return `<span class="runde-marke r-${art}${klein ? ' klein' : ''}">${esc(text)}</span>`;
+        // erkannt wird am deutschen Text, angezeigt in der Sprache der Oberfläche
+        const anzeige = /^Runde \d+$/.test(e.runde || '') && e.typ !== 'auftritt' && e.rundenart !== 'jgj'
+            ? Wettkampf.t('Vorrunde')
+            : Wettkampf.runde(e.runde || '') + (e.rundenart === 'jgj' && e.typ !== 'auftritt' ? ' · ' + Wettkampf.t('jeder gegen jeden') : '');
+        return `<span class="runde-marke r-${art}${klein ? ' klein' : ''}">${esc(anzeige)}</span>`;
     }
 
     /** Stand des Ausrufs als Marke (Ansicht „Ausruf“ der Tischbesatzung). */
     function ausrufMarke(e) {
         const a = e.aufruf;
         if (!a) { return ''; }
-        const fehlt = Object.entries(a).filter(([k, v]) => !['fertig', 'am'].includes(k) && v === 'fehlt').map(([k]) => k === 'starter' ? 'Starter' : k.toUpperCase());
-        if (!a.fertig) { return '<span class="marke ausruf-offen" title="Der Ausrufer hat die Starter noch nicht bestätigt">Ausruf offen</span>'; }
+        const fehlt = Object.entries(a).filter(([k, v]) => !['fertig', 'am'].includes(k) && v === 'fehlt').map(([k]) => k === 'starter' ? Wettkampf.t('Starter') : k.toUpperCase());
+        if (!a.fertig) { return `<span class="marke ausruf-offen" title="${esc(Wettkampf.t('Der Ausrufer hat die Starter noch nicht bestätigt'))}">${esc(Wettkampf.t('Ausruf offen'))}</span>`; }
         return fehlt.length
-            ? `<span class="marke ausruf-fehlt">Ausruf: ${fehlt.join(', ')} fehlt</span>`
-            : '<span class="marke ausruf-bereit">Ausruf ✓ bereit</span>';
+            ? `<span class="marke ausruf-fehlt">${esc(Wettkampf.t('Ausruf: {wer} fehlt', { wer: fehlt.join(', ') }))}</span>`
+            : `<span class="marke ausruf-bereit">${esc(Wettkampf.t('Ausruf ✓ bereit'))}</span>`;
     }
 
 
     function listenRendern() {
         const z = T.zustand;
-        $('fortschritt').textContent = `${z.gesperrt ? '🔒 gesperrt · ' : ''}${z.beendet} beendet · ${z.offen} offen`;
-        $('fortschritt').title = z.gesperrt ? 'Von der Wettkampfleitung gesperrt – keine neuen Gruppen' + (z.sperr_grund ? ': ' + z.sperr_grund : '') : '';
+        $('fortschritt').textContent = `${z.gesperrt ? '🔒 ' + Wettkampf.t('gesperrt') + ' · ' : ''}${Wettkampf.t('{n} beendet', { n: z.beendet })} · ${Wettkampf.t('{n} offen', { n: z.offen })}`;
+        $('fortschritt').title = z.gesperrt ? Wettkampf.t('Von der Wettkampfleitung gesperrt – keine neuen Gruppen') + (z.sperr_grund ? ': ' + z.sperr_grund : '') : '';
         $('naechste').innerHTML = z.naechste.filter((e) => !T.aktuell || e.id !== T.aktuell.id || e.typ !== T.aktuell.typ).slice(0, 8).map((e) => `
-            <li><strong>${esc(e.klasse)}</strong> · ${e.typ === 'auftritt' ? 'Vortrag ' + esc(e.nr) : 'Kampf ' + esc(e.nr)} ${rundeMarke(e, true)} ${ausrufMarke(e)}<br>
+            <li><strong>${esc(e.klasse)}</strong> · ${esc(e.typ === 'auftritt' ? Wettkampf.t('Vortrag {nr}', { nr: e.nr }) : Wettkampf.t('Kampf {nr}', { nr: e.nr }))} ${rundeMarke(e, true)} ${ausrufMarke(e)}<br>
             ${e.typ === 'auftritt' ? esc(e.starter.name) : `<span style="color:var(--aka)">${esc(e.aka.name)}</span> – ${esc(e.shiro.name)}`}</li>`).join('')
-            || '<li class="klein">keine weiteren</li>';
+            || `<li class="klein">${esc(Wettkampf.t('keine weiteren'))}</li>`;
         $('letzte').innerHTML = (z.letzte || []).map((e) => `
             <li>${e.typ === 'auftritt'
-                ? `<strong>${esc(e.klasse)}</strong> · Vortrag ${esc(e.nr)}<br>
+                ? `<strong>${esc(e.klasse)}</strong> · ${esc(Wettkampf.t('Vortrag {nr}', { nr: e.nr }))}<br>
                    ${esc(e.starter.name)}: <strong>${esc(e.ergebnis)}</strong>`
-                : `<strong>${esc(e.klasse)}</strong> · Kampf ${esc(e.nr)}<br>
-                   Sieger: <strong>${esc(e.sieger === 'aka' ? e.aka.name : e.shiro.name)}</strong> <span class="klein">(${esc(e.entscheidung_text || e.entscheidung)})</span>`}<br>
-            <button class="knopf-korrektur" data-aktion="korrigieren" data-typ="${e.typ}" data-id="${e.id}">Korrigieren</button></li>`).join('')
-            || '<li class="klein">noch keine</li>';
+                : `<strong>${esc(e.klasse)}</strong> · ${esc(Wettkampf.t('Kampf {nr}', { nr: e.nr }))}<br>
+                   ${esc(Wettkampf.t('Sieger:'))} <strong>${esc(e.sieger === 'aka' ? e.aka.name : e.shiro.name)}</strong> <span class="klein">(${esc(e.entscheidung_text || e.entscheidung)})</span>`}<br>
+            <button class="knopf-korrektur" data-aktion="korrigieren" data-typ="${e.typ}" data-id="${e.id}">${esc(Wettkampf.t('Korrigieren'))}</button></li>`).join('')
+            || `<li class="klein">${esc(Wettkampf.t('noch keine'))}</li>`;
     }
 
     /**
@@ -256,7 +258,7 @@
                 const id = (e.starts || {})[s];
                 if (!id || !p || liste.has(id)) { continue; }
                 liste.set(id, { id, name: p.name, verein: p.verein, seite: s, stand: (e.aufruf || {})[s] || null,
-                    wo: e.typ === 'auftritt' ? `Vortrag ${e.nr}` : `Kampf ${e.nr}` });
+                    wo: e.typ === 'auftritt' ? Wettkampf.t('Vortrag {nr}', { nr: e.nr }) : Wettkampf.t('Kampf {nr}', { nr: e.nr }) });
             }
         }
         return [...liste.values()];
@@ -282,22 +284,22 @@
         const laeuftSchon = !!z.laufend && z.laufend.klasse_id === g.klasse_id && (z.laufend.status === 'laeuft' || !!z.laufend.gruppe_begonnen);
         const gestartet = laeuftSchon || [z.laufend, ...z.naechste].some((e) => e && e.klasse_id === g.klasse_id && (e.ausruf_freigegeben || e.gruppe_aufgerufen
             || (e.aufruf && (e.aufruf.fertig || e.aufruf.aka || e.aufruf.shiro || e.aufruf.starter))));
-        const startKnopf = gestartet || T.uebergang ? '' : `<p class="ausruf-nicht-gestartet">Noch nicht gestartet – der Ausrufer sieht die Starter erst danach.</p>
-            <button class="knopf-ausruf" data-aktion="ausruf-freigeben" data-klasse="${g.klasse_id}">📣 Ausruf starten</button>`;
+        const startKnopf = gestartet || T.uebergang ? '' : `<p class="ausruf-nicht-gestartet">${esc(Wettkampf.t('Noch nicht gestartet – der Ausrufer sieht die Starter erst danach.'))}</p>
+            <button class="knopf-ausruf" data-aktion="ausruf-freigeben" data-klasse="${g.klasse_id}">📣 ${esc(Wettkampf.t('Ausruf starten'))}</button>`;
         ziel.innerHTML = `<section class="ausruf-stand">
-            <h2>📣 Ausruf ${esc(g.klasse)} <span class="zahl">${da} von ${starter.length} da${fehlt ? ` · <span class="fehlt-text">${fehlt} fehlt</span>` : ''}</span></h2>
+            <h2>📣 ${esc(Wettkampf.t('Ausruf {klasse}', { klasse: g.klasse }))} <span class="zahl">${esc(Wettkampf.t('{da} von {gesamt} da', { da, gesamt: starter.length }))}${fehlt ? ` · <span class="fehlt-text">${esc(Wettkampf.t('{n} fehlt', { n: fehlt }))}</span>` : ''}</span></h2>
             ${startKnopf}
             <ul>${starter.map((x) => `<li class="${x.stand || 'offen'}">
-                <span class="stand-marke ${x.stand || 'offen'}">${x.stand === 'da' ? '✓ da' : x.stand === 'fehlt' ? '✗ fehlt' : 'offen'}</span>
+                <span class="stand-marke ${x.stand || 'offen'}">${esc(x.stand === 'da' ? Wettkampf.t('✓ da') : x.stand === 'fehlt' ? Wettkampf.t('✗ fehlt') : Wettkampf.t('offen'))}</span>
                 <span class="name">${esc(x.name)}</span> <span class="klein">${esc(x.verein)} · ${esc(x.wo)}${x.seite === 'starter' ? '' : ` · ${x.seite === 'aka' ? 'AKA' : 'SHIRO'}`}</span>
                 ${T.ausrufSelbst ? `<span class="knoepfe">
-                    <button data-aktion="ausruf-starter" data-klasse="${g.klasse_id}" data-start="${x.id}" data-status="${x.stand === 'da' ? '' : 'da'}" class="${x.stand === 'da' ? 'aktiv' : ''}">✓ da</button>
-                    <button data-aktion="ausruf-starter" data-klasse="${g.klasse_id}" data-start="${x.id}" data-status="${x.stand === 'fehlt' ? '' : 'fehlt'}" class="${x.stand === 'fehlt' ? 'aktiv' : ''}">✗ fehlt</button></span>` : ''}
+                    <button data-aktion="ausruf-starter" data-klasse="${g.klasse_id}" data-start="${x.id}" data-status="${x.stand === 'da' ? '' : 'da'}" class="${x.stand === 'da' ? 'aktiv' : ''}">${esc(Wettkampf.t('✓ da'))}</button>
+                    <button data-aktion="ausruf-starter" data-klasse="${g.klasse_id}" data-start="${x.id}" data-status="${x.stand === 'fehlt' ? '' : 'fehlt'}" class="${x.stand === 'fehlt' ? 'aktiv' : ''}">${esc(Wettkampf.t('✗ fehlt'))}</button></span>` : ''}
             </li>`).join('')}</ul>
             ${T.ausrufSelbst
-                ? `<button class="knopf-ausruf" data-aktion="ausruf-gruppe-abschliessen" data-klasse="${g.klasse_id}"${alleAbgehakt ? '' : ' disabled'}>Ausruf Gruppe ${esc(g.klasse)} abschließen</button>
-                   <button class="knopf-leise-hell" data-aktion="ausruf-selbst" data-an="0">Fertig</button>`
-                : '<button class="knopf-leise-hell" data-aktion="ausruf-selbst" data-an="1">Notfall: am Tablet abhaken</button>'}
+                ? `<button class="knopf-ausruf" data-aktion="ausruf-gruppe-abschliessen" data-klasse="${g.klasse_id}"${alleAbgehakt ? '' : ' disabled'}>${esc(Wettkampf.t('Ausruf Gruppe {klasse} abschließen', { klasse: g.klasse }))}</button>
+                   <button class="knopf-leise-hell" data-aktion="ausruf-selbst" data-an="0">${esc(Wettkampf.t('Fertig'))}</button>`
+                : `<button class="knopf-leise-hell" data-aktion="ausruf-selbst" data-an="1">${esc(Wettkampf.t('Notfall: am Tablet abhaken'))}</button>`}
         </section>`;
     }
 
@@ -314,23 +316,23 @@
         const begonnen = z.naechste.some((e) => e.klasse_id === g.klasse_id && (e.ausruf_freigegeben || e.gruppe_aufgerufen
             || (e.aufruf && (e.aufruf.fertig || e.aufruf.aka || e.aufruf.shiro || e.aufruf.starter))));
         if (begonnen) {
-            return `<div class="ausruf-leiste gestartet">📣 Ausruf für die nächste Gruppe <strong>${esc(g.klasse)}</strong> läuft</div>`;
+            return `<div class="ausruf-leiste gestartet">📣 ${Wettkampf.t('Ausruf für die nächste Gruppe <strong>{klasse}</strong> läuft', { klasse: esc(g.klasse) })}</div>`;
         }
-        return `<div class="ausruf-leiste">Nächste Gruppe <strong>${esc(g.klasse)}</strong> <span class="klein">${esc(g.klasse_name)}</span>
-            <button class="knopf-ausruf" data-aktion="ausruf-freigeben" data-klasse="${g.klasse_id}">📣 Ausruf starten</button></div>`;
+        return `<div class="ausruf-leiste">${Wettkampf.t('Nächste Gruppe <strong>{klasse}</strong>', { klasse: esc(g.klasse) })} <span class="klein">${esc(g.klasse_name)}</span>
+            <button class="knopf-ausruf" data-aktion="ausruf-freigeben" data-klasse="${g.klasse_id}">📣 ${esc(Wettkampf.t('Ausruf starten'))}</button></div>`;
     }
 
     /** Gruppe fertig: Tischbesatzung bestätigt den Abschluss (vor der nächsten Gruppe). */
     function abschlussRendern(a) {
         $('karte').innerHTML = `
             <div class="abschluss">
-                <div class="abschluss-kopf">✓ Gruppe <strong>${esc(a.klasse)}</strong> ist fertig</div>
-                <div class="klein">${esc(a.klasse_name)} · ${a.kaempfe} Kämpfe/Vorträge eingetragen</div>
-                <h3>Platzierungen</h3>
-                <ol class="podest-liste">${a.platzierungen.map((p) => `<li><span class="platz platz-${p.platz}">${p.platz}.</span> <strong>${esc(p.name)}</strong> <span class="klein">${esc(p.verein)}</span>${p.punkte === null || p.punkte === undefined ? '' : `<span class="punktzahl">${p.kiken ? 'Kiken' : Number(p.punkte).toFixed(1).replace('.', ',') + ' Punkte'}</span>`}</li>`).join('')
-                    || '<li class="klein">– (Stichentscheid durch die Wettkampfleitung)</li>'}</ol>
-                <p class="erklaerung">Bitte prüfen, ob alle Ergebnisse stimmen (Korrekturen rechts unter „Zuletzt eingetragen“). Mit dem Abschluss wird die nächste Gruppe geladen.</p>
-                <button class="gross-knopf senden" data-aktion="gruppe-abschliessen" data-klasse="${a.klasse_id}">Gruppe ${esc(a.klasse)} abschließen</button>
+                <div class="abschluss-kopf">✓ ${Wettkampf.t('Gruppe <strong>{klasse}</strong> ist fertig', { klasse: esc(a.klasse) })}</div>
+                <div class="klein">${esc(a.klasse_name)} · ${esc(Wettkampf.t('{n} Kämpfe/Vorträge eingetragen', { n: a.kaempfe }))}</div>
+                <h3>${esc(Wettkampf.t('Platzierungen'))}</h3>
+                <ol class="podest-liste">${a.platzierungen.map((p) => `<li><span class="platz platz-${p.platz}">${p.platz}.</span> <strong>${esc(p.name)}</strong> <span class="klein">${esc(p.verein)}</span>${p.punkte === null || p.punkte === undefined ? '' : `<span class="punktzahl">${p.kiken ? 'Kiken' : esc(Wettkampf.t('{punkte} Punkte', { punkte: Number(p.punkte).toFixed(1).replace('.', ',') }))}</span>`}</li>`).join('')
+                    || `<li class="klein">${esc(Wettkampf.t('– (Stichentscheid durch die Wettkampfleitung)'))}</li>`}</ol>
+                <p class="erklaerung">${esc(Wettkampf.t('Bitte prüfen, ob alle Ergebnisse stimmen (Korrekturen rechts unter „Zuletzt eingetragen“). Mit dem Abschluss wird die nächste Gruppe geladen.'))}</p>
+                <button class="gross-knopf senden" data-aktion="gruppe-abschliessen" data-klasse="${a.klasse_id}">${esc(Wettkampf.t('Gruppe {klasse} abschließen', { klasse: a.klasse }))}</button>
                 ${ausrufStartLeiste(a.klasse_id)}
             </div>`;
         ausrufStandRendern();
@@ -351,29 +353,29 @@
         const begonnen = n && (n.ausruf_freigegeben || n.gruppe_aufgerufen || gruppe.some((e) => e.aufruf && (e.aufruf.fertig || e.aufruf.aka || e.aufruf.shiro || e.aufruf.starter)));
         let stand;
         if (!n) {
-            stand = '<p>Alle Gruppen dieser Tatami sind abgeschlossen.</p>';
+            stand = `<p>${esc(Wettkampf.t('Alle Gruppen dieser Tatami sind abgeschlossen.'))}</p>`;
         } else if (abgeschlossen) {
-            stand = `<p class="uebergang-fertig">✓ Ausruf abgeschlossen – ${fehlt.length
-                ? `${da} von ${starter.length} da · <strong>${fehlt.length} fehlt</strong> (${fehlt.map((x) => esc(x.name)).join(', ')})`
-                : `alle ${starter.length} Starter da`}</p>`;
+            stand = `<p class="uebergang-fertig">✓ ${esc(Wettkampf.t('Ausruf abgeschlossen'))} – ${fehlt.length
+                ? `${esc(Wettkampf.t('{da} von {gesamt} da', { da, gesamt: starter.length }))} · <strong>${esc(Wettkampf.t('{n} fehlt', { n: fehlt.length }))}</strong> (${fehlt.map((x) => esc(x.name)).join(', ')})`
+                : esc(Wettkampf.t('alle {n} Starter da', { n: starter.length }))}</p>`;
         } else if (begonnen) {
-            stand = `<p class="uebergang-hinweis">📣 Der Ausruf läuft – ${da} von ${starter.length} da${fehlt.length ? ` · ${fehlt.length} fehlt` : ''}. Sobald der Ausrufer ihn abschließt, steht es hier.</p>`;
+            stand = `<p class="uebergang-hinweis">📣 ${esc(Wettkampf.t('Der Ausruf läuft'))} – ${esc(Wettkampf.t('{da} von {gesamt} da', { da, gesamt: starter.length }))}${fehlt.length ? ` · ${esc(Wettkampf.t('{n} fehlt', { n: fehlt.length }))}` : ''}. ${esc(Wettkampf.t('Sobald der Ausrufer ihn abschließt, steht es hier.'))}</p>`;
         } else {
-            stand = `<p class="uebergang-hinweis">${erste ? 'Die erste Gruppe dieser Tatami ist zugeteilt' : 'Die neue Gruppe wird geladen'} – <strong>bitte jetzt den Ausruf starten</strong>, damit der Ausrufer die Starter sieht.</p>
-                <button class="gross-knopf start" data-aktion="ausruf-freigeben" data-klasse="${n.klasse_id}">📣 Ausruf Gruppe ${esc(n.klasse)} starten</button>`;
+            stand = `<p class="uebergang-hinweis">${esc(erste ? Wettkampf.t('Die erste Gruppe dieser Tatami ist zugeteilt') : Wettkampf.t('Die neue Gruppe wird geladen'))} – ${Wettkampf.t('<strong>bitte jetzt den Ausruf starten</strong>, damit der Ausrufer die Starter sieht.')}</p>
+                <button class="gross-knopf start" data-aktion="ausruf-freigeben" data-klasse="${n.klasse_id}">📣 ${esc(Wettkampf.t('Ausruf Gruppe {klasse} starten', { klasse: n.klasse }))}</button>`;
         }
         $('karte').innerHTML = `
             <div class="uebergang">
                 <div class="uebergang-symbol">${abgeschlossen ? '✅' : '📣'}</div>
-                <h2>${n ? `${erste ? 'Erste' : 'Nächste'} Gruppe: <span class="code">${esc(n.klasse)}</span>` : 'Keine weitere Gruppe auf dieser Tatami'}</h2>
+                <h2>${n ? `${esc(erste ? Wettkampf.t('Erste Gruppe:') : Wettkampf.t('Nächste Gruppe:'))} <span class="code">${esc(n.klasse)}</span>` : esc(Wettkampf.t('Keine weitere Gruppe auf dieser Tatami'))}</h2>
                 ${n ? `<p>${esc(n.klasse_name)}</p>` : ''}
                 ${stand}
-                ${n && !laeuft ? '<p class="uebergang-hinweis">Das Turnier ist noch nicht gestartet – der Ausruf geht schon, Kämpfe erst nach dem Start durch die Wettkampfleitung.</p>' : ''}
+                ${n && !laeuft ? `<p class="uebergang-hinweis">${esc(Wettkampf.t('Das Turnier ist noch nicht gestartet – der Ausruf geht schon, Kämpfe erst nach dem Start durch die Wettkampfleitung.'))}</p>` : ''}
                 <div class="aktionen">
-                    <a class="gross-knopf neutral" href="${esc(location.pathname.replace(/\/app$/, '/ausruf') + T.query)}">📣 Zum Ausruf</a>
+                    <a class="gross-knopf neutral" href="${esc(location.pathname.replace(/\/app$/, '/ausruf') + T.query)}">📣 ${esc(Wettkampf.t('Zum Ausruf'))}</a>
                     ${abgeschlossen && laeuft
-                        ? '<button class="gross-knopf start" data-aktion="uebergang-weiter" data-starten="1">▶ Kampf beginnen</button>'
-                        : '<button class="gross-knopf senden" data-aktion="uebergang-weiter">Weiter</button>'}
+                        ? `<button class="gross-knopf start" data-aktion="uebergang-weiter" data-starten="1">▶ ${esc(Wettkampf.t('Kampf beginnen'))}</button>`
+                        : `<button class="gross-knopf senden" data-aktion="uebergang-weiter">${esc(Wettkampf.t('Weiter'))}</button>`}
                 </div>
             </div>`;
         ausrufStandRendern();
@@ -386,20 +388,20 @@
         if (!e) {
             const z = T.zustand || {};
             $('karte').innerHTML = z.gesperrt
-                ? `<p class="leer">🔒 Diese Tatami ist von der Wettkampfleitung gesperrt – es werden keine neuen Gruppen zugeteilt.${z.sperr_grund ? `<br><span class="klein">${esc(z.sperr_grund)}</span>` : ''}</p>`
+                ? `<p class="leer">🔒 ${esc(Wettkampf.t('Diese Tatami ist von der Wettkampfleitung gesperrt – es werden keine neuen Gruppen zugeteilt.'))}${z.sperr_grund ? `<br><span class="klein">${esc(z.sperr_grund)}</span>` : ''}</p>`
                 : z.turnier_rest === 0
-                    ? '<p class="leer">✅ Alle Kämpfe und Vorträge des Turniers sind beendet.<br><span class="klein">Auf dieser Tatami kommt nichts mehr – vielen Dank!</span></p>'
-                    : `<p class="leer">Keine offenen Kämpfe oder Vorträge auf dieser Tatami.<br><span class="klein">${z.verteilung === 'dynamisch'
-                        ? 'Die nächste Gruppe wird automatisch zugeteilt, sobald eine bereitsteht.' : 'Neue Kämpfe erscheinen automatisch.'}</span></p>`;
+                    ? `<p class="leer">✅ ${esc(Wettkampf.t('Alle Kämpfe und Vorträge des Turniers sind beendet.'))}<br><span class="klein">${esc(Wettkampf.t('Auf dieser Tatami kommt nichts mehr – vielen Dank!'))}</span></p>`
+                    : `<p class="leer">${esc(Wettkampf.t('Keine offenen Kämpfe oder Vorträge auf dieser Tatami.'))}<br><span class="klein">${esc(z.verteilung === 'dynamisch'
+                        ? Wettkampf.t('Die nächste Gruppe wird automatisch zugeteilt, sobald eine bereitsteht.') : Wettkampf.t('Neue Kämpfe erscheinen automatisch.'))}</span></p>`;
             return;
         }
         const istKata = e.disziplin.startsWith('kata');
         const kopf = `
             <div class="kopfzeile">
-                <div class="titel">${esc(e.klasse)} · ${e.typ === 'auftritt' ? 'Vortrag ' + esc(e.nr) : 'Kampf ' + esc(e.nr)} ${rundeMarke(e)}
-                    ${e.status === 'laeuft' ? (e.unterbrochen ? '<span class="marke unterbrochen">⏸ unterbrochen</span>' : '<span class="marke laeuft">läuft</span>') : ''}
-                    ${T.korrektur ? '<span class="marke korrektur">Korrektur</span>' : ausrufMarke(e)}</div>
-                <div><span class="marke">${esc({ flaggen: 'Flaggen', punkte: 'Punkte', kumite: 'Ippon/Wazaari', sanbon: 'Shobu Sanbon' }[e.system] || e.system)}</span>
+                <div class="titel">${esc(e.klasse)} · ${esc(e.typ === 'auftritt' ? Wettkampf.t('Vortrag {nr}', { nr: e.nr }) : Wettkampf.t('Kampf {nr}', { nr: e.nr }))} ${rundeMarke(e)}
+                    ${e.status === 'laeuft' ? (e.unterbrochen ? `<span class="marke unterbrochen">⏸ ${esc(Wettkampf.t('unterbrochen'))}</span>` : `<span class="marke laeuft">${esc(Wettkampf.t('läuft'))}</span>`) : ''}
+                    ${T.korrektur ? `<span class="marke korrektur">${esc(Wettkampf.t('Korrektur'))}</span>` : ausrufMarke(e)}</div>
+                <div><span class="marke">${esc({ flaggen: Wettkampf.t('Flaggen'), punkte: Wettkampf.t('Punkte'), kumite: 'Ippon/Wazaari', sanbon: 'Shobu Sanbon' }[e.system] || e.system)}</span>
                     ${e.kumite_form ? `<span class="marke">${esc({ kihon_ippon: 'Kihon-Ippon', jiyu_ippon: 'Jiyu-Ippon', jiyu: 'Jiyu-Kumite' }[e.kumite_form] || '')}</span>` : ''}</div>
             </div>
             <div class="klein">${esc(e.klasse_name)} · ${esc(e.phase)}</div>
@@ -414,8 +416,8 @@
                     <div class="seite shiro">
                         <div class="name">${esc(e.starter.name)}</div><div class="verein">${esc(e.starter.verein)}</div>
                         <div class="zeile"><label>Kata</label>${kataFeld('kata', e.kata_liste)}</div>
-                        <div class="zeile"><label>Wertungen</label>${krFelder('werte', e.kampfrichter)}<span class="summe" id="summe-werte"></span></div>
-                        <div class="erklaerung">Je Kampfrichter (KR) eine Wertung${e.kampfrichter >= 5 ? ' · höchste und niedrigste werden gestrichen' : ''}${e.punkte ? ` · erlaubt ${String(e.punkte.min).replace('.', ',')}–${String(e.punkte.max).replace('.', ',')}` : ''} · schnell ohne Komma: 77 = 7,7</div>
+                        <div class="zeile"><label>${esc(Wettkampf.t('Wertungen'))}</label>${krFelder('werte', e.kampfrichter)}<span class="summe" id="summe-werte"></span></div>
+                        <div class="erklaerung">${esc(Wettkampf.t('Je Kampfrichter (KR) eine Wertung'))}${e.kampfrichter >= 5 ? ' · ' + esc(Wettkampf.t('höchste und niedrigste werden gestrichen')) : ''}${e.punkte ? ' · ' + esc(Wettkampf.t('erlaubt {min}–{max}', { min: String(e.punkte.min).replace('.', ','), max: String(e.punkte.max).replace('.', ',') })) : ''} · ${esc(Wettkampf.t('schnell ohne Komma: 77 = 7,7'))}</div>
                     </div>
                 </div>`;
         } else {
@@ -427,11 +429,11 @@
                     <div class="kennung">${s === 'aka' ? 'AKA' : 'SHIRO'}</div>
                     <div class="name">${esc(e[s].name)}</div><div class="verein">${esc(e[s].verein)}</div>
                     ${istKata ? `<div class="zeile"><label>Kata</label>${kataFeld('kata_' + s, e.kata_liste)}</div>` : ''}
-                    ${!team && e.system === 'flaggen' ? `<div class="zeile"><label>Flaggen</label>${zaehler('flaggen_' + s)}<span class="erklaerung">Kampfrichter, die ${s === 'aka' ? 'Rot (AKA)' : 'Weiß (SHIRO)'} zeigen</span></div>` : ''}
+                    ${!team && e.system === 'flaggen' ? `<div class="zeile"><label>${esc(Wettkampf.t('Flaggen'))}</label>${zaehler('flaggen_' + s)}<span class="erklaerung">${esc(s === 'aka' ? Wettkampf.t('Kampfrichter, die Rot (AKA) zeigen') : Wettkampf.t('Kampfrichter, die Weiß (SHIRO) zeigen'))}</span></div>` : ''}
                     ${!team && istKumite(e) ? `
                         <div class="punkte-reihe">
-                            <div class="zeile"><label title="voller Punkt">Ippon</label>${zaehler(s + '_ippon')}</div>
-                            <div class="zeile"><label title="halber Punkt · 2 Wazaari = Ippon">Wazaari</label>${zaehler(s + '_wazaari')}</div>
+                            <div class="zeile"><label title="${esc(Wettkampf.t('voller Punkt'))}">Ippon</label>${zaehler(s + '_ippon')}</div>
+                            <div class="zeile"><label title="${esc(Wettkampf.t('halber Punkt · 2 Wazaari = Ippon'))}">Wazaari</label>${zaehler(s + '_wazaari')}</div>
                         </div>
                         ${strafenAuswahl(s)}
                         <div class="stand" id="stand-${s}"></div>` : ''}
@@ -443,37 +445,37 @@
         }
 
         const KAMPFLOS = {
-            kiken: ['Kiken', (s) => `${s} tritt nicht an oder gibt auf`],
-            hansoku: ['Hansoku', (s) => `${s} wird in diesem Kampf disqualifiziert`],
-            shikkaku: ['Shikkaku', (s) => `${s} wird vom ganzen Turnier ausgeschlossen`],
+            kiken: ['Kiken', (s) => Wettkampf.t('{seite} tritt nicht an oder gibt auf', { seite: s })],
+            hansoku: ['Hansoku', (s) => Wettkampf.t('{seite} wird in diesem Kampf disqualifiziert', { seite: s })],
+            shikkaku: ['Shikkaku', (s) => Wettkampf.t('{seite} wird vom ganzen Turnier ausgeschlossen', { seite: s })],
         };
         const kampflos = e.typ === 'auftritt'
             ? `<div class="kampflos-knoepfe"><button data-aktion="kampflos" data-entscheidung="kiken" class="${T.werte.entscheidung === 'kiken' ? 'aktiv' : ''}">
-                Kiken<span class="erklaerung">nicht angetreten bzw. Vortrag abgebrochen – keine Wertung</span></button></div>`
+                Kiken<span class="erklaerung">${esc(Wettkampf.t('nicht angetreten bzw. Vortrag abgebrochen – keine Wertung'))}</span></button></div>`
             : `<div class="kampflos-knoepfe">${Object.entries(KAMPFLOS).map(([d, [titel, text]]) => ['aka', 'shiro'].map((s) => {
                 const seite = s === 'aka' ? 'AKA' : 'SHIRO';
                 const gewinner = s === 'aka' ? 'SHIRO' : 'AKA';
                 return `<button data-aktion="kampflos" data-entscheidung="${d}" data-gegen="${s}" class="${T.werte.entscheidung === d && T.werte.gegen === s ? 'aktiv' : ''}">
-                    ${titel} gegen ${seite}<span class="erklaerung">${text(seite)} → ${gewinner} gewinnt</span></button>`;
+                    ${esc(Wettkampf.t('{titel} gegen {seite}', { titel, seite }))}<span class="erklaerung">${esc(text(seite))} → ${esc(Wettkampf.t('{seite} gewinnt', { seite: gewinner }))}</span></button>`;
             }).join('')).join('')}</div>`;
 
         $('karte').innerHTML = `${kopf}${inhalt}
             <div class="ergebnis-banner" id="ergebnis" hidden></div>
             <div class="aktionen">
-                ${e.typ === 'begegnung' && e.status === 'bereit' && !T.korrektur && turnierLaeuft() ? '<button class="gross-knopf start" data-aktion="starten">Kampf beginnt</button>' : ''}
+                ${e.typ === 'begegnung' && e.status === 'bereit' && !T.korrektur && turnierLaeuft() ? `<button class="gross-knopf start" data-aktion="starten">${esc(Wettkampf.t('Kampf beginnt'))}</button>` : ''}
                 ${e.typ === 'begegnung' && e.status === 'laeuft' && !T.korrektur && turnierLaeuft()
                     ? (e.unterbrochen
-                        ? '<button class="gross-knopf start" data-aktion="unterbrechen" data-an="0">▶ Kampf fortsetzen</button>'
-                        : '<button class="gross-knopf neutral" data-aktion="unterbrechen" data-an="1">⏸ Kampf unterbrechen</button>')
+                        ? `<button class="gross-knopf start" data-aktion="unterbrechen" data-an="0">▶ ${esc(Wettkampf.t('Kampf fortsetzen'))}</button>`
+                        : `<button class="gross-knopf neutral" data-aktion="unterbrechen" data-an="1">⏸ ${esc(Wettkampf.t('Kampf unterbrechen'))}</button>`)
                     : ''}
-                ${T.dirty || T.korrektur ? '<button class="gross-knopf neutral" data-aktion="verwerfen">Verwerfen</button>' : ''}
-                <button class="gross-knopf senden" data-aktion="senden" id="senden">Ergebnis senden</button>
+                ${T.dirty || T.korrektur ? `<button class="gross-knopf neutral" data-aktion="verwerfen">${esc(Wettkampf.t('Verwerfen'))}</button>` : ''}
+                <button class="gross-knopf senden" data-aktion="senden" id="senden">${esc(Wettkampf.t('Ergebnis senden'))}</button>
             </div>
-            <details class="kampflos"${T.werte.entscheidung ? ' open' : ''}><summary>Kampflos / Disqualifikation</summary>${kampflos}</details>
+            <details class="kampflos"${T.werte.entscheidung ? ' open' : ''}><summary>${esc(Wettkampf.t('Kampflos / Disqualifikation'))}</summary>${kampflos}</details>
             ${T.korrektur ? '' : ausrufStartLeiste(e.klasse_id)}
             ${T.korrektur && e.typ === 'begegnung' ? `<div class="zuruecksetzen">
-                <button class="knopf-korrektur" data-aktion="zuruecksetzen">Ergebnis löschen – Kampf neu austragen</button>
-                <span class="erklaerung">Falls das Ergebnis fälschlich gesendet wurde: Der Kampf wird sofort auf dieser Tatami neu ausgetragen.</span></div>` : ''}
+                <button class="knopf-korrektur" data-aktion="zuruecksetzen">${esc(Wettkampf.t('Ergebnis löschen – Kampf neu austragen'))}</button>
+                <span class="erklaerung">${esc(Wettkampf.t('Falls das Ergebnis fälschlich gesendet wurde: Der Kampf wird sofort auf dieser Tatami neu ausgetragen.'))}</span></div>` : ''}
             ${begriffe()}`;
         vorschau();
         ausrufStandRendern();
@@ -482,26 +484,26 @@
     /** Kurze Erklärung der Fachbegriffe für die Tischbesatzung. */
     function begriffe() {
         const liste = [
-            ['AKA / SHIRO', 'Rote bzw. weiße Seite der Begegnung.'],
-            ['Flaggen', 'Jede/r Kampfrichter/in zeigt Rot (AKA), Weiß (SHIRO) oder gekreuzt/unten (unentschieden). Es gewinnt die Seite mit mehr Flaggen.'],
-            ['Hikiwake', 'Unentschieden. Jede Flagge, die weder AKA noch SHIRO zugeordnet ist, zählt als unentschieden.'],
-            ['Hantei', 'Kampfrichterentscheid per Flagge, wenn nach Punkten Gleichstand herrscht.'],
-            ['Kampfzeit abgelaufen', 'Ohne Ippon gewinnt die höhere Wertung (z. B. ein Wazaari), bei Gleichstand Saishiai oder Hantei.'],
-            ['Saishiai', 'Verlängerung bei Gleichstand (Einzel): ein neuer Kampf über 2 Minuten, Strafen beginnen neu. Endet auch er unentschieden, entscheidet Hantei.'],
-            ['Ippon', 'Voller Punkt – entscheidet den Kampf (Shobu Ippon).'],
-            ['Wazaari', 'Halber Punkt; zwei Wazaari ergeben ein Ippon (Awazete Ippon).'],
-            ['Shobu Sanbon', 'Finale über zwei volle Punkte: der Kampf endet, wenn eine Seite zwei Ippon (bzw. vier Wazaari) erreicht.'],
-            ['Keikoku', 'Ermahnung – 1. Strafstufe.'],
-            ['Hansoku Chui', 'Verwarnung – 2. Strafstufe. Strafen geben dem Gegner keine Punkte, sie zählen beim Hantei.'],
-            ['Jogai / Mubobi', 'Verlassen der Kampffläche / Selbstgefährdung – eigene Strafreihe: Keikoku, Chui, Hansoku.'],
-            ['Kiken', 'Nicht angetreten oder aufgegeben – der Kampf geht an die Gegenseite.'],
-            ['Hansoku', 'Disqualifikation in diesem Kampf (3. Strafstufe einer Strafart) – der Gegner gewinnt, im Team zählt das als Ippon.'],
-            ['Shikkaku', 'Ausschluss vom gesamten Turnier.'],
-            ['Kihon-Ippon / Jiyu-Ippon / Jiyu-Kumite', 'Kampfformen: festgelegte Angriffe / freie Abwehr mit angesagten Angriffen / freier Kampf (Shobu Ippon).'],
-            ['Kata', 'Formlauf; bei Punktwertung geben die Kampfrichter Punkte, höchste und niedrigste Wertung werden gestrichen.'],
+            ['AKA / SHIRO', Wettkampf.t('Rote bzw. weiße Seite der Begegnung.')],
+            [Wettkampf.t('Flaggen'), Wettkampf.t('Jede/r Kampfrichter/in zeigt Rot (AKA), Weiß (SHIRO) oder gekreuzt/unten (unentschieden). Es gewinnt die Seite mit mehr Flaggen.')],
+            ['Hikiwake', Wettkampf.t('Unentschieden. Jede Flagge, die weder AKA noch SHIRO zugeordnet ist, zählt als unentschieden.')],
+            ['Hantei', Wettkampf.t('Kampfrichterentscheid per Flagge, wenn nach Punkten Gleichstand herrscht.')],
+            [Wettkampf.t('Kampfzeit abgelaufen'), Wettkampf.t('Ohne Ippon gewinnt die höhere Wertung (z. B. ein Wazaari), bei Gleichstand Saishiai oder Hantei.')],
+            ['Saishiai', Wettkampf.t('Verlängerung bei Gleichstand (Einzel): ein neuer Kampf über 2 Minuten, Strafen beginnen neu. Endet auch er unentschieden, entscheidet Hantei.')],
+            ['Ippon', Wettkampf.t('Voller Punkt – entscheidet den Kampf (Shobu Ippon).')],
+            ['Wazaari', Wettkampf.t('Halber Punkt; zwei Wazaari ergeben ein Ippon (Awazete Ippon).')],
+            ['Shobu Sanbon', Wettkampf.t('Finale über zwei volle Punkte: der Kampf endet, wenn eine Seite zwei Ippon (bzw. vier Wazaari) erreicht.')],
+            ['Keikoku', Wettkampf.t('Ermahnung – 1. Strafstufe.')],
+            ['Hansoku Chui', Wettkampf.t('Verwarnung – 2. Strafstufe. Strafen geben dem Gegner keine Punkte, sie zählen beim Hantei.')],
+            ['Jogai / Mubobi', Wettkampf.t('Verlassen der Kampffläche / Selbstgefährdung – eigene Strafreihe: Keikoku, Chui, Hansoku.')],
+            ['Kiken', Wettkampf.t('Nicht angetreten oder aufgegeben – der Kampf geht an die Gegenseite.')],
+            ['Hansoku', Wettkampf.t('Disqualifikation in diesem Kampf (3. Strafstufe einer Strafart) – der Gegner gewinnt, im Team zählt das als Ippon.')],
+            ['Shikkaku', Wettkampf.t('Ausschluss vom gesamten Turnier.')],
+            ['Kihon-Ippon / Jiyu-Ippon / Jiyu-Kumite', Wettkampf.t('Kampfformen: festgelegte Angriffe / freie Abwehr mit angesagten Angriffen / freier Kampf (Shobu Ippon).')],
+            ['Kata', Wettkampf.t('Formlauf; bei Punktwertung geben die Kampfrichter Punkte, höchste und niedrigste Wertung werden gestrichen.')],
         ];
-        return `<details class="begriffe"><summary>Begriffe kurz erklärt</summary><dl>
-            ${liste.map(([b, t]) => `<dt>${b}</dt><dd>${t}</dd>`).join('')}</dl></details>`;
+        return `<details class="begriffe"><summary>${esc(Wettkampf.t('Begriffe kurz erklärt'))}</summary><dl>
+            ${liste.map(([b, t]) => `<dt>${esc(b)}</dt><dd>${esc(t)}</dd>`).join('')}</dl></details>`;
     }
 
     function kataFeld(feld, liste) {
@@ -509,10 +511,10 @@
         if (liste && liste.length) {
             const optionen = [...liste];
             if (wert && !optionen.includes(wert)) { optionen.push(wert); }
-            return `<select class="gross" data-feld="${feld}"><option value="">– Kata wählen –</option>
+            return `<select class="gross" data-feld="${feld}"><option value="">${esc(Wettkampf.t('– Kata wählen –'))}</option>
                 ${optionen.map((k) => `<option${k === wert ? ' selected' : ''}>${esc(k)}</option>`).join('')}</select>`;
         }
-        return `<input class="gross" data-feld="${feld}" list="kata-liste" value="${esc(wert)}" placeholder="Kata (frei)">
+        return `<input class="gross" data-feld="${feld}" list="kata-liste" value="${esc(wert)}" placeholder="${esc(Wettkampf.t('Kata (frei)'))}">
             <datalist id="kata-liste">${KATAS.map((k) => `<option value="${k}">`).join('')}</datalist>`;
     }
 
@@ -520,7 +522,7 @@
         const werte = T.werte[feld] || [];
         let html = '';
         for (let i = 0; i < anzahl; i++) {
-            html += `<input class="kr" inputmode="decimal" data-feld="${feld}.${i}" value="${esc(werte[i] || '')}" placeholder="KR${i + 1}" aria-label="Kampfrichter ${i + 1}">`;
+            html += `<input class="kr" inputmode="decimal" data-feld="${feld}.${i}" value="${esc(werte[i] || '')}" placeholder="${esc(Wettkampf.t('KR{n}', { n: i + 1 }))}" aria-label="${esc(Wettkampf.t('Kampfrichter {n}', { n: i + 1 }))}">`;
         }
         return html;
     }
@@ -541,7 +543,7 @@
      * Hansoku Chui (Verwarnung), Hansoku (Disqualifikation, der Gegner gewinnt). Strafen geben
      * keine Punkte, sie zählen nur beim Hantei.
      */
-    const STRAFARTEN = [['regel', 'Regelverstoß', '', 'Regel'], ['jogai', 'Jogai', 'Jogai-', 'Jogai'], ['mubobi', 'Mubobi', 'Mubobi-', 'Mubobi']];
+    const STRAFARTEN = [['regel', Wettkampf.t('Regelverstoß'), '', Wettkampf.t('Regel')], ['jogai', 'Jogai', 'Jogai-', 'Jogai'], ['mubobi', 'Mubobi', 'Mubobi-', 'Mubobi']];
     const STRAFSTUFEN = ['', 'Keikoku', 'Hansoku Chui', 'Hansoku'];
     const KEINE_STRAFEN = { regel: 0, jogai: 0, mubobi: 0 };
 
@@ -597,7 +599,7 @@
         const art = hansokuSeite() ? 'Hansoku' : (kumiteZiel(e) === 4 ? 'Shobu Sanbon' : 'Ippon');
         const ja = await Wettkampf.frage(`${e[sieger].name} · ${e[sieger].verein}
 AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'))}`, {
-            titel: `${art} – ${kennung} gewinnt`, ja: 'Kampf beenden – Ergebnis senden', nein: 'Weiter eintragen', art: sieger, symbol: '🏁',
+            titel: Wettkampf.t('{art} – {seite} gewinnt', { art, seite: kennung }), ja: Wettkampf.t('Kampf beenden – Ergebnis senden'), nein: Wettkampf.t('Weiter eintragen'), art: sieger, symbol: '🏁',
         });
         if (ja) { await senden(true); }
     }
@@ -614,12 +616,12 @@ AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'
     function strafenAuswahl(seite) {
         const st = strafen(seite);
         return `<div class="verwarnung">
-            <div class="zeile"><label>Strafen</label><span class="verwarnung-knoepfe">
+            <div class="zeile"><label>${esc(Wettkampf.t('Strafen'))}</label><span class="verwarnung-knoepfe">
                 ${STRAFARTEN.map(([art, name, vor]) => {
                     // Knopf = der Ruf des Hauptkampfrichters für die nächste Stufe; gegebene Stufe als Plakette mit ✕
-                    const gegeben = st[art] ? `<button class="gesetzt${st[art] >= 3 ? ' eskalation' : ''}" data-aktion="strafe-weg" data-seite="${seite}" data-art="${art}" title="${name}: ${vor}${STRAFSTUFEN[st[art]]} zurücknehmen">${vor}${STRAFSTUFEN[st[art]]} ✕</button>` : '';
+                    const gegeben = st[art] ? `<button class="gesetzt${st[art] >= 3 ? ' eskalation' : ''}" data-aktion="strafe-weg" data-seite="${seite}" data-art="${art}" title="${esc(Wettkampf.t('{art}: {strafe} zurücknehmen', { art: name, strafe: vor + STRAFSTUFEN[st[art]] }))}">${vor}${STRAFSTUFEN[st[art]]} ✕</button>` : '';
                     return gegeben + (st[art] >= 3 ? ''
-                        : `<button data-aktion="strafe" data-seite="${seite}" data-art="${art}" title="${name}: ${vor}${STRAFSTUFEN[st[art] + 1]} geben"${st[art] === 2 ? ' class="eskalation"' : ''}>${vor}${STRAFSTUFEN[st[art] + 1]}</button>`);
+                        : `<button data-aktion="strafe" data-seite="${seite}" data-art="${art}" title="${esc(Wettkampf.t('{art}: {strafe} geben', { art: name, strafe: vor + STRAFSTUFEN[st[art] + 1] }))}"${st[art] === 2 ? ' class="eskalation"' : ''}>${vor}${STRAFSTUFEN[st[art] + 1]}</button>`);
                 }).join('')}
             </span></div>
         </div>`;
@@ -710,11 +712,11 @@ AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'
         }
         return `<div class="kampfuhr ${uhrKlasse(x)}" id="kampfuhr">
             <span class="uhr-zeit" id="uhr-zeit">${uhrText(rest)}</span>
-            <span class="uhr-status" id="uhr-status">${rest === 0 ? 'Soremade – Kampfzeit abgelaufen' : (rest <= 30000 ? 'Ato shibaraku' : (T.werte.saishiai ? 'Saishiai' : (e.rundenart === 'finale' ? 'Finale' : 'Kampfzeit')))}</span>
+            <span class="uhr-status" id="uhr-status">${esc(rest === 0 ? Wettkampf.t('Soremade – Kampfzeit abgelaufen') : (rest <= 30000 ? 'Ato shibaraku' : (T.werte.saishiai ? 'Saishiai' : (e.rundenart === 'finale' ? Wettkampf.t('Finale') : Wettkampf.t('Kampfzeit')))))}</span>
             ${rest > 0 ? (x.seit
                 ? '<button class="uhr-knopf stopp" data-aktion="uhr" data-wert="stopp">⏸ Yame</button>'
                 : '<button class="uhr-knopf start" data-aktion="uhr" data-wert="start">▶ Hajime</button>') : ''}
-            <button class="uhr-knopf neutral" data-aktion="uhr" data-wert="neu" title="Uhr zurücksetzen (z. B. nächster Einzelkampf im Team)">↺</button>
+            <button class="uhr-knopf neutral" data-aktion="uhr" data-wert="neu" title="${esc(Wettkampf.t('Uhr zurücksetzen (z. B. nächster Einzelkampf im Team)'))}">↺</button>
         </div>`;
     }
 
@@ -750,12 +752,12 @@ AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'
     function hanteiBlock(anzahl) {
         const f = flaggenStand('hantei', anzahl);
         return `<div class="hantei-block">
-            <div class="hantei-titel">Hantei – Flaggen der Kampfrichter</div>
+            <div class="hantei-titel">${esc(Wettkampf.t('Hantei – Flaggen der Kampfrichter'))}</div>
             <div class="hantei-zeilen">
-                <div class="zeile"><label class="aka-text">Flaggen AKA</label>${zaehler('hantei_aka')}</div>
-                <div class="zeile"><label>Flaggen SHIRO</label>${zaehler('hantei_shiro')}</div>
+                <div class="zeile"><label class="aka-text">${esc(Wettkampf.t('Flaggen AKA'))}</label>${zaehler('hantei_aka')}</div>
+                <div class="zeile"><label>${esc(Wettkampf.t('Flaggen SHIRO'))}</label>${zaehler('hantei_shiro')}</div>
             </div>
-            <div class="unentschieden">Unentschieden (Hikiwake): <strong>${f.u}</strong> von ${anzahl} Kampfrichtern</div>
+            <div class="unentschieden">${Wettkampf.t('Unentschieden (Hikiwake): <strong>{n}</strong> von {anzahl} Kampfrichtern', { n: Number(f.u), anzahl: Number(anzahl) })}</div>
         </div>`;
     }
 
@@ -767,10 +769,10 @@ AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'
         k.length = n + 1;
         k.forEach((x, i) => { x.entscheidungskampf = i === n || undefined; });
         return `<table class="team-tabelle">${k.map((x, i) => `
-            <tr><td><strong>${i < n ? 'Kampf ' + (i + 1) : 'Stichkampf'}</strong></td>
+            <tr><td><strong>${esc(i < n ? Wettkampf.t('Kampf {nr}', { nr: i + 1 }) : Wettkampf.t('Stichkampf'))}</strong></td>
             <td><span class="flaggen">${['aka', 'shiro', ...(i < n ? ['hikiwake'] : [])].map((s) => `
-                <button data-aktion="team" data-index="${i}" data-wert="${s}" class="${x.sieger === s ? 'aktiv' : ''}">${{ aka: 'AKA', shiro: 'SHIRO', hikiwake: 'Unentsch.' }[s]}</button>`).join('')}
-                ${i < n ? `<button data-aktion="team-hansoku" data-index="${i}" class="${x.hansoku ? 'aktiv' : ''}" title="Sieg durch Hansoku (zählt in der Unterbewertung als Ippon)">Hansoku</button>` : ''}</span></td>
+                <button data-aktion="team" data-index="${i}" data-wert="${s}" class="${x.sieger === s ? 'aktiv' : ''}">${esc({ aka: 'AKA', shiro: 'SHIRO', hikiwake: Wettkampf.t('Unentsch.') }[s])}</button>`).join('')}
+                ${i < n ? `<button data-aktion="team-hansoku" data-index="${i}" class="${x.hansoku ? 'aktiv' : ''}" title="${esc(Wettkampf.t('Sieg durch Hansoku (zählt in der Unterbewertung als Ippon)'))}">Hansoku</button>` : ''}</span></td>
             <td class="klein">A: I <input class="kr" style="width:3rem" data-feld="kaempfe.${i}.aka_ippon" value="${esc(x.aka_ippon || '')}"> W <input class="kr" style="width:3rem" data-feld="kaempfe.${i}.aka_wazaari" value="${esc(x.aka_wazaari || '')}">
                 · S: I <input class="kr" style="width:3rem" data-feld="kaempfe.${i}.shiro_ippon" value="${esc(x.shiro_ippon || '')}"> W <input class="kr" style="width:3rem" data-feld="kaempfe.${i}.shiro_wazaari" value="${esc(x.shiro_wazaari || '')}"></td></tr>`).join('')}</table>`;
     }
@@ -799,7 +801,7 @@ AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'
             feld.classList.toggle('ungueltig', falsch);
             feld.setAttribute('aria-invalid', falsch ? 'true' : 'false');
             if (falsch && !hinweis) {
-                hinweis = `Wertung „${text}“ ist ungültig – erlaubt sind ${String(min).replace('.', ',')} bis ${String(max).replace('.', ',')}. Bitte korrigieren.`;
+                hinweis = Wettkampf.t('Wertung „{wert}“ ist ungültig – erlaubt sind {min} bis {max}. Bitte korrigieren.', { wert: text, min: String(min).replace('.', ','), max: String(max).replace('.', ',') });
             }
         });
         return hinweis;
@@ -833,15 +835,15 @@ AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'
             hinweis = ungueltig;
         } else if (e.system === 'flaggen' && !w.kaempfe) {
             const f = flaggenStand('flaggen', kr);
-            $('flaggen-mitte').innerHTML = `Unentschieden (Hikiwake): <strong>${f.u}</strong> von ${kr} Kampfrichtern
-                <span class="klein">· jede nicht vergebene Flagge zählt als unentschieden</span>`;
+            $('flaggen-mitte').innerHTML = `${Wettkampf.t('Unentschieden (Hikiwake): <strong>{n}</strong> von {anzahl} Kampfrichtern', { n: Number(f.u), anzahl: Number(kr) })}
+                <span class="klein">· ${esc(Wettkampf.t('jede nicht vergebene Flagge zählt als unentschieden'))}</span>`;
             if (f.a !== f.s) {
                 sieger = f.a > f.s ? 'aka' : 'shiro';
-                detail = `${Math.max(f.a, f.s)} : ${Math.min(f.a, f.s)} Flaggen${f.u ? ` · ${f.u} unentschieden` : ''}`;
+                detail = Wettkampf.t('{a} : {b} Flaggen', { a: Math.max(f.a, f.s), b: Math.min(f.a, f.s) }) + (f.u ? ' · ' + Wettkampf.t('{n} unentschieden', { n: f.u }) : '');
             } else if (f.erfasst) {
-                hinweis = `Gleichstand ${f.a} : ${f.s}${f.u ? ` (${f.u} unentschieden)` : ''} – kein Sieger. Kampf verlängern bzw. erneut entscheiden lassen und dann neu eintragen.`;
+                hinweis = `${Wettkampf.t('Gleichstand {a} : {b}', { a: f.a, b: f.s })}${f.u ? ` (${Wettkampf.t('{n} unentschieden', { n: f.u })})` : ''} – ${Wettkampf.t('kein Sieger. Kampf verlängern bzw. erneut entscheiden lassen und dann neu eintragen.')}`;
             } else {
-                hinweis = 'Flaggen eintragen: Wie viele Kampfrichter zeigen AKA (rot), wie viele SHIRO (weiß)?';
+                hinweis = Wettkampf.t('Flaggen eintragen: Wie viele Kampfrichter zeigen AKA (rot), wie viele SHIRO (weiß)?');
             }
         } else if (w.kaempfe) {
             const siege = { aka: 0, shiro: 0 };
@@ -852,29 +854,33 @@ AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'
             const a = kumitePunkte('aka');
             const s = kumitePunkte('shiro');
             const ziel = kumiteZiel(e);
-            const zielText = ziel === 4 ? 'zwei volle Punkte' : 'Ippon';
+            const zielText = ziel === 4 ? Wettkampf.t('zwei volle Punkte') : 'Ippon';
             const stand = `AKA ${kumiteText(a)} : SHIRO ${kumiteText(s)}`;
             for (const seite of ['aka', 'shiro']) {
                 const text = strafenText(strafen(seite));
-                $('stand-' + seite).innerHTML = `Wertung: <strong>${kumiteText(seite === 'aka' ? a : s)}</strong>`
-                    + (text ? ` <span class="klein">· Strafen: ${esc(text)} (zählen beim Hantei)</span>` : '');
+                $('stand-' + seite).innerHTML = `${esc(Wettkampf.t('Wertung:'))} <strong>${kumiteText(seite === 'aka' ? a : s)}</strong>`
+                    + (text ? ` <span class="klein">· ${esc(Wettkampf.t('Strafen: {strafen} (zählen beim Hantei)', { strafen: text }))}</span>` : '');
             }
             const h = hansokuSeite();
             ippon = !!h || (Math.max(a, s) >= ziel && a !== s);
             if (h) {
                 sieger = h === 'aka' ? 'shiro' : 'aka';
-                detail = `Hansoku gegen ${h === 'aka' ? 'AKA' : 'SHIRO'} (${strafenText(strafen(h))})`;
+                detail = Wettkampf.t('Hansoku gegen {seite} ({strafen})', { seite: h === 'aka' ? 'AKA' : 'SHIRO', strafen: strafenText(strafen(h)) });
             } else if (ippon) {
                 sieger = a > s ? 'aka' : 'shiro';
-                detail = `${ziel === 4 ? 'Shobu Sanbon – zwei volle Punkte' : 'Ippon'} erreicht · ${stand}`;
+                detail = `${ziel === 4 ? Wettkampf.t('Shobu Sanbon – zwei volle Punkte erreicht') : Wettkampf.t('Ippon erreicht')} · ${stand}`;
             } else if (!w.zeit_abgelaufen) {
                 hinweis = a + s === 0
-                    ? `Wertung eintragen (Ippon/Wazaari${ziel === 4 ? ' – Shobu Sanbon: zwei volle Punkte' : ''}). Endet die Kampfzeit vorher: „Kampfzeit abgelaufen“ tippen.`
-                    : `Noch ${ziel === 4 ? 'keine zwei vollen Punkte' : 'kein Ippon'} erreicht (${stand}) – der Kampf geht weiter. Ist die Kampfzeit abgelaufen: „Kampfzeit abgelaufen“ tippen.`;
+                    ? (ziel === 4
+                        ? Wettkampf.t('Wertung eintragen (Ippon/Wazaari – Shobu Sanbon: zwei volle Punkte). Endet die Kampfzeit vorher: „Kampfzeit abgelaufen“ tippen.')
+                        : Wettkampf.t('Wertung eintragen (Ippon/Wazaari). Endet die Kampfzeit vorher: „Kampfzeit abgelaufen“ tippen.'))
+                    : (ziel === 4
+                        ? Wettkampf.t('Noch keine zwei vollen Punkte erreicht ({stand}) – der Kampf geht weiter. Ist die Kampfzeit abgelaufen: „Kampfzeit abgelaufen“ tippen.', { stand })
+                        : Wettkampf.t('Noch kein Ippon erreicht ({stand}) – der Kampf geht weiter. Ist die Kampfzeit abgelaufen: „Kampfzeit abgelaufen“ tippen.', { stand }));
             } else if (a !== s) {
                 sieger = a > s ? 'aka' : 'shiro';
-                detail = `Kampfzeit abgelaufen · ${stand}`;
-                zeitSieg = `Hinweis: Kein ${zielText} erreicht – Sieg nach Ablauf der Kampfzeit mit ${kumiteText(Math.max(a, s))}.`;
+                detail = `${Wettkampf.t('Kampfzeit abgelaufen')} · ${stand}`;
+                zeitSieg = Wettkampf.t('Hinweis: Kein {ziel} erreicht – Sieg nach Ablauf der Kampfzeit mit {wertung}.', { ziel: zielText, wertung: kumiteText(Math.max(a, s)) });
             } else {
                 gleichstand = true;
             }
@@ -894,24 +900,24 @@ AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'
             let zeit = '';
             if (kumite && w.saishiai && w.hauptkampf) {
                 const h = w.hauptkampf;
-                zeit += `<div class="saishiai-hinweis">Saishiai (Verlängerung) – neuer Kampf. Hauptkampf: AKA ${kumiteText((h.aka_ippon || 0) * 2 + (h.aka_wazaari || 0))} : SHIRO ${kumiteText((h.shiro_ippon || 0) * 2 + (h.shiro_wazaari || 0))}</div>`;
+                zeit += `<div class="saishiai-hinweis">${esc(Wettkampf.t('Saishiai (Verlängerung) – neuer Kampf. Hauptkampf:'))} AKA ${kumiteText((h.aka_ippon || 0) * 2 + (h.aka_wazaari || 0))} : SHIRO ${kumiteText((h.shiro_ippon || 0) * 2 + (h.shiro_wazaari || 0))}</div>`;
             }
             if (kumite && !ippon) {
                 zeit += w.zeit_abgelaufen
-                    ? `<div class="zeit-abgelaufen">⏱ <strong>Kampfzeit abgelaufen</strong> <span class="klein">höhere Wertung gewinnt, bei Gleichstand ${w.saishiai ? '' : 'Saishiai oder '}Hantei</span>
-                        <button data-aktion="zeit" data-wert="0">Zeit läuft noch</button>
-                        ${gleichstand && !w.saishiai ? '<button data-aktion="saishiai" title="neuer Kampf über 2 Minuten, Strafen beginnen neu">Saishiai (Verlängerung)</button>' : ''}</div>`
-                    : '<button class="gross-knopf neutral hantei-start" data-aktion="zeit" data-wert="1">⏱ Kampfzeit abgelaufen</button>';
+                    ? `<div class="zeit-abgelaufen">⏱ <strong>${esc(Wettkampf.t('Kampfzeit abgelaufen'))}</strong> <span class="klein">${esc(w.saishiai ? Wettkampf.t('höhere Wertung gewinnt, bei Gleichstand Hantei') : Wettkampf.t('höhere Wertung gewinnt, bei Gleichstand Saishiai oder Hantei'))}</span>
+                        <button data-aktion="zeit" data-wert="0">${esc(Wettkampf.t('Zeit läuft noch'))}</button>
+                        ${gleichstand && !w.saishiai ? `<button data-aktion="saishiai" title="${esc(Wettkampf.t('neuer Kampf über 2 Minuten, Strafen beginnen neu'))}">${esc(Wettkampf.t('Saishiai (Verlängerung)'))}</button>` : ''}</div>`
+                    : `<button class="gross-knopf neutral hantei-start" data-aktion="zeit" data-wert="1">⏱ ${esc(Wettkampf.t('Kampfzeit abgelaufen'))}</button>`;
             }
             hantei.innerHTML = zeit + (gleichstand && !w.entscheidung ? hanteiBlock(kr) : '');
             if (gleichstand && !w.entscheidung) {
                 const f = flaggenStand('hantei', kr);
                 if (f.a !== f.s) {
                     sieger = f.a > f.s ? 'aka' : 'shiro';
-                    detail = `Hantei ${Math.max(f.a, f.s)} : ${Math.min(f.a, f.s)}${f.u ? ` · ${f.u} unentschieden` : ''}`;
+                    detail = `Hantei ${Math.max(f.a, f.s)} : ${Math.min(f.a, f.s)}${f.u ? ` · ${Wettkampf.t('{n} unentschieden', { n: f.u })}` : ''}`;
                 } else {
                     hinweis = f.erfasst
-                        ? `Hantei ${f.a} : ${f.s} – weiterhin Gleichstand. Bitte erneut entscheiden lassen (Hantei ist Pflichtentscheid).`
+                        ? `Hantei ${f.a} : ${f.s} – ${Wettkampf.t('weiterhin Gleichstand. Bitte erneut entscheiden lassen (Hantei ist Pflichtentscheid).')}`
                         : ''; // der Hantei-Block erklärt sich selbst – kein zweiter Hinweis darunter
                 }
             }
@@ -925,7 +931,7 @@ AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'
         if (banner && e.typ === 'begegnung') {
             if (sieger) {
                 banner.className = 'ergebnis-banner ' + sieger;
-                banner.innerHTML = `Sieger: <strong>${esc(e[sieger].name)}</strong> (${sieger === 'aka' ? 'AKA' : 'SHIRO'})${detail ? ` · ${esc(detail)}` : ''}`
+                banner.innerHTML = `${esc(Wettkampf.t('Sieger:'))} <strong>${esc(e[sieger].name)}</strong> (${sieger === 'aka' ? 'AKA' : 'SHIRO'})${detail ? ` · ${esc(detail)}` : ''}`
                     + (zeitSieg ? `<div class="banner-hinweis">${esc(zeitSieg)}</div>` : '');
                 banner.hidden = false;
             } else if (hinweis) {
@@ -1037,7 +1043,7 @@ AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'
             if (a === 'strafe' && st[art] === 2) {
                 const name = seite === 'aka' ? 'AKA' : 'SHIRO';
                 const vor = STRAFARTEN.find(([x]) => x === art)[2];
-                if (!await Wettkampf.frage(`${name} wird für diesen Kampf disqualifiziert, der Gegner gewinnt.`, { titel: `${vor}Hansoku für ${name}`, ja: `${vor}Hansoku geben`, art: 'gefahr', symbol: '🟥' })) { return; }
+                if (!await Wettkampf.frage(Wettkampf.t('{seite} wird für diesen Kampf disqualifiziert, der Gegner gewinnt.', { seite: name }), { titel: Wettkampf.t('{strafe} für {seite}', { strafe: `${vor}Hansoku`, seite: name }), ja: Wettkampf.t('{strafe} geben', { strafe: `${vor}Hansoku` }), art: 'gefahr', symbol: '🟥' })) { return; }
             }
             st[art] = Math.max(0, Math.min(3, st[art] + (a === 'strafe' ? 1 : -1)));
             T.werte[seite + '_strafen'] = st;
@@ -1053,13 +1059,13 @@ AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'
             } else if (knopf.dataset.wert === 'stopp') {
                 Object.assign(x, { rest: uhrRest(x), seit: null });
             } else {
-                if (x.seit && !await Wettkampf.frage('Die Uhr läuft gerade.', { titel: 'Kampfuhr zurücksetzen?', ja: 'Zurücksetzen' })) { return; }
+                if (x.seit && !await Wettkampf.frage(Wettkampf.t('Die Uhr läuft gerade.'), { titel: Wettkampf.t('Kampfuhr zurücksetzen?'), ja: Wettkampf.t('Zurücksetzen') })) { return; }
                 Object.assign(x, { rest: uhrDauer(e), seit: null, ato: false, ende: false });
             }
             uhrSchreiben(e, x);
             karteRendern();
         } else if (a === 'saishiai') {
-            if (!await Wettkampf.frage('Die Verlängerung ist ein neuer Kampf über 2 Minuten. Wertungen und Strafen beginnen bei null; der Stand des Hauptkampfs bleibt gespeichert.', { titel: 'Saishiai – Verlängerung', ja: 'Saishiai beginnen', symbol: '⏱' })) { return; }
+            if (!await Wettkampf.frage(Wettkampf.t('Die Verlängerung ist ein neuer Kampf über 2 Minuten. Wertungen und Strafen beginnen bei null; der Stand des Hauptkampfs bleibt gespeichert.'), { titel: Wettkampf.t('Saishiai – Verlängerung'), ja: Wettkampf.t('Saishiai beginnen'), symbol: '⏱' })) { return; }
             const haupt = {};
             for (const s of ['aka', 'shiro']) {
                 Object.assign(haupt, { [s + '_ippon']: T.werte[s + '_ippon'] || 0, [s + '_wazaari']: T.werte[s + '_wazaari'] || 0, [s + '_strafen']: strafen(s) });
@@ -1098,9 +1104,9 @@ AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'
             T.aktuell = null;
             await laden();
         } else if (a === 'gruppe-abschliessen') {
-            if (!await Wettkampf.frage('Danach wird die nächste Gruppe geladen.', { titel: `Gruppe ${T.zustand.abschluss.klasse} abschließen?`, ja: 'Gruppe abschließen', symbol: '✅' })) { return; }
+            if (!await Wettkampf.frage(Wettkampf.t('Danach wird die nächste Gruppe geladen.'), { titel: Wettkampf.t('Gruppe {klasse} abschließen?', { klasse: T.zustand.abschluss.klasse }), ja: Wettkampf.t('Gruppe abschließen'), symbol: '✅' })) { return; }
             const klasse = T.zustand.abschluss.klasse;
-            await ausfuehren(() => befehl('/klasse/' + knopf.dataset.klasse + '/abschliessen', {}), `Gruppe ${klasse} abgeschlossen ✓`);
+            await ausfuehren(() => befehl('/klasse/' + knopf.dataset.klasse + '/abschliessen', {}), Wettkampf.t('Gruppe {klasse} abgeschlossen ✓', { klasse }));
             if (!T.zustand.abschluss || T.zustand.abschluss.klasse !== klasse) {
                 T.uebergang = { klasse }; // nur nach erfolgreichem Abschluss
                 karteRendern();
@@ -1113,18 +1119,18 @@ AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'
             // Ausruf abgeschlossen: ersten Kampf der neuen Gruppe gleich beginnen (fehlt jemand, fragt die Karte nach)
             const e = T.aktuell;
             if (knopf.dataset.starten === '1' && e && e.typ === 'begegnung' && e.status === 'bereit' && !fehltSeiten(e).length) {
-                await ausfuehren(() => befehl('/begegnung/' + e.id + '/starten', {}), 'Kampf läuft – auf der Statusseite sichtbar.');
+                await ausfuehren(() => befehl('/begegnung/' + e.id + '/starten', {}), Wettkampf.t('Kampf läuft – auf der Statusseite sichtbar.'));
             }
         } else if (a === 'starten') {
             if (T.aktuell.aufruf && !T.aktuell.aufruf.fertig
-                && !await Wettkampf.frage('Der Ausruf für diesen Kampf ist noch nicht abgeschlossen (Ansicht „Ausruf“).', { titel: 'Trotzdem jetzt beginnen?', ja: 'Kampf beginnen', symbol: '📣' })) { return; }
-            await ausfuehren(() => befehl('/begegnung/' + T.aktuell.id + '/starten', {}), 'Kampf läuft – auf der Statusseite sichtbar.');
+                && !await Wettkampf.frage(Wettkampf.t('Der Ausruf für diesen Kampf ist noch nicht abgeschlossen (Ansicht „Ausruf“).'), { titel: Wettkampf.t('Trotzdem jetzt beginnen?'), ja: Wettkampf.t('Kampf beginnen'), symbol: '📣' })) { return; }
+            await ausfuehren(() => befehl('/begegnung/' + T.aktuell.id + '/starten', {}), Wettkampf.t('Kampf läuft – auf der Statusseite sichtbar.'));
         } else if (a === 'fehlt-bestaetigen') {
             const e = T.aktuell;
             const daten = e.typ === 'auftritt'
                 ? { entscheidung: 'kiken', version: e.version }
                 : { entscheidung: 'kiken', gegen: knopf.dataset.gegen, version: e.version };
-            await ausfuehren(() => befehl('/' + e.typ + '/' + e.id, daten), 'Kiken eingetragen – weiter mit dem nächsten Kampf.', true);
+            await ausfuehren(() => befehl('/' + e.typ + '/' + e.id, daten), Wettkampf.t('Kiken eingetragen – weiter mit dem nächsten Kampf.'), true);
         } else if (a === 'doch-da') {
             const e = T.aktuell;
             await ausfuehren(async () => {
@@ -1132,22 +1138,22 @@ AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'
                 if (e.typ === 'begegnung' && e.status === 'bereit' && fehltSeiten(e).length === 1) {
                     await befehl('/begegnung/' + e.id + '/starten', {});
                 }
-            }, 'Starter ist da – der Kampf kann beginnen.');
+            }, Wettkampf.t('Starter ist da – der Kampf kann beginnen.'));
         } else if (a === 'ausruf-selbst') {
             T.ausrufSelbst = knopf.dataset.an === '1';
             ausrufStandRendern();
         } else if (a === 'ausruf-starter') {
-            await ausfuehren(() => befehl('/ausruf/klasse/' + knopf.dataset.klasse + '/starter/' + knopf.dataset.start, { status: knopf.dataset.status || null }), 'Ausruf aktualisiert.');
+            await ausfuehren(() => befehl('/ausruf/klasse/' + knopf.dataset.klasse + '/starter/' + knopf.dataset.start, { status: knopf.dataset.status || null }), Wettkampf.t('Ausruf aktualisiert.'));
         } else if (a === 'ausruf-gruppe-abschliessen') {
-            await ausfuehren(() => befehl('/ausruf/klasse/' + knopf.dataset.klasse + '/abschliessen', {}), 'Ausruf der Gruppe abgeschlossen ✓');
+            await ausfuehren(() => befehl('/ausruf/klasse/' + knopf.dataset.klasse + '/abschliessen', {}), Wettkampf.t('Ausruf der Gruppe abgeschlossen ✓'));
             T.ausrufSelbst = false;
         } else if (a === 'ausruf-freigeben') {
             await ausfuehren(() => befehl('/klasse/' + knopf.dataset.klasse + '/ausruf-freigeben', { an: true }),
-                'Ausruf gestartet – der Ausrufer sieht jetzt die Starter der Gruppe.');
+                Wettkampf.t('Ausruf gestartet – der Ausrufer sieht jetzt die Starter der Gruppe.'));
         } else if (a === 'unterbrechen') {
             const an = knopf.dataset.an === '1';
             await ausfuehren(() => befehl('/begegnung/' + T.aktuell.id + '/unterbrechen', { an }),
-                an ? 'Kampf unterbrochen – auf der Statusseite sichtbar.' : 'Kampf läuft weiter.');
+                an ? Wettkampf.t('Kampf unterbrochen – auf der Statusseite sichtbar.') : Wettkampf.t('Kampf läuft weiter.'));
         } else if (a === 'senden') {
             await senden();
         } else if (a === 'korrigieren') {
@@ -1178,25 +1184,25 @@ AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'
         if (!daten.zeit_abgelaufen) { delete daten.zeit_abgelaufen; }
         const name = (s) => (s === 'aka' ? 'AKA ' + e.aka.name : 'SHIRO ' + e.shiro.name);
         const [titel, text] = e.typ === 'auftritt'
-            ? (T.werte.entscheidung ? ['Kiken eintragen?', e.starter.name] : ['Wertung senden?', e.starter.name])
-            : (T.sieger ? [`Sieger: ${T.sieger === 'aka' ? 'AKA' : 'SHIRO'}`, `${name(T.sieger)}${T.zeitSieg ? `\n\n${T.zeitSieg}` : ''}`] : ['Ergebnis senden?', '']);
-        if (!bestaetigt && !await Wettkampf.frage(text, { titel, ja: 'Ergebnis senden', art: e.typ === 'begegnung' && T.sieger ? T.sieger : '' })) { return; }
+            ? (T.werte.entscheidung ? [Wettkampf.t('Kiken eintragen?'), e.starter.name] : [Wettkampf.t('Wertung senden?'), e.starter.name])
+            : (T.sieger ? [Wettkampf.t('Sieger: {seite}', { seite: T.sieger === 'aka' ? 'AKA' : 'SHIRO' }), `${name(T.sieger)}${T.zeitSieg ? `\n\n${T.zeitSieg}` : ''}`] : [Wettkampf.t('Ergebnis senden?'), '']);
+        if (!bestaetigt && !await Wettkampf.frage(text, { titel, ja: Wettkampf.t('Ergebnis senden'), art: e.typ === 'begegnung' && T.sieger ? T.sieger : '' })) { return; }
         const pfad = (e.typ === 'auftritt' ? '/auftritt/' : '/begegnung/') + e.id;
         // dieselbe Befehls-ID für erneutes Senden desselben Eintrags: kam das erste Senden doch an, zählt es nicht doppelt
         const schluessel = `${e.typ}:${e.id}:${e.version}`;
         if (!T.befehl || T.befehl.schluessel !== schluessel) { T.befehl = { schluessel, id: Wettkampf.befehlsId() }; }
         const id = T.befehl.id;
-        await ausfuehren(() => befehl(pfad, daten, id), 'Ergebnis übertragen ✓', true);
+        await ausfuehren(() => befehl(pfad, daten, id), Wettkampf.t('Ergebnis übertragen ✓'), true);
     }
 
     /** Löscht ein (fälschlich) gesendetes Ergebnis; der Kampf wird wieder offen. */
     async function zuruecksetzen() {
         const e = T.aktuell;
         if (!e || !T.korrektur || T.sendet) { return; }
-        if (!await Wettkampf.frage('Der Kampf wird danach sofort auf dieser Tatami neu ausgetragen.', { titel: `Ergebnis von ${e.klasse} · Kampf ${e.nr} löschen?`, ja: 'Ergebnis löschen', art: 'gefahr' })) { return; }
+        if (!await Wettkampf.frage(Wettkampf.t('Der Kampf wird danach sofort auf dieser Tatami neu ausgetragen.'), { titel: Wettkampf.t('Ergebnis von {klasse} · Kampf {nr} löschen?', { klasse: e.klasse, nr: e.nr }), ja: Wettkampf.t('Ergebnis löschen'), art: 'gefahr' })) { return; }
         await ausfuehren(
             () => befehl('/begegnung/' + e.id + '/zuruecksetzen', { leitung_pin: T.korrektur.pin }),
-            'Ergebnis gelöscht – der Kampf wird jetzt neu ausgetragen.',
+            Wettkampf.t('Ergebnis gelöscht – der Kampf wird jetzt neu ausgetragen.'),
             true,
         );
     }
@@ -1204,13 +1210,13 @@ AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'
     async function korrekturStarten(typ, id) {
         let pin = '';
         if (T.pinPflicht) {
-            pin = await Wettkampf.dialog('Korrekturen nur mit Berechtigung der Wettkampfleitung.', { titel: 'Leitungs-PIN eingeben', ja: 'Weiter', symbol: '🔒', eingabe: { typ: 'password', inputmode: 'numeric' } });
+            pin = await Wettkampf.dialog(Wettkampf.t('Korrekturen nur mit Berechtigung der Wettkampfleitung.'), { titel: Wettkampf.t('Leitungs-PIN eingeben'), ja: Wettkampf.t('Weiter'), symbol: '🔒', eingabe: { typ: 'password', inputmode: 'numeric' } });
             if (!pin) { return; }
         }
         try {
             const antwort = await fetch(url('/eintrag/' + typ + '/' + id), { credentials: 'same-origin', cache: 'no-store' });
             const eintrag = await antwort.json();
-            if (!antwort.ok) { throw new Error(eintrag.fehler || 'Fehler'); }
+            if (!antwort.ok) { throw new Error(eintrag.fehler || Wettkampf.t('Fehler')); }
             T.aktuell = eintrag;
             T.werte = startwerte(eintrag);
             T.korrektur = { pin };
@@ -1239,7 +1245,7 @@ AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'
             await laden();
         } catch (fehler) {
             meldung(fehler.unklar || navigator.onLine === false
-                ? 'Keine Verbindung zum Server – unklar, ob es angekommen ist. Bitte erneut senden, sobald das WLAN wieder da ist: doppelt eingetragen wird nichts.'
+                ? Wettkampf.t('Keine Verbindung zum Server – unklar, ob es angekommen ist. Bitte erneut senden, sobald das WLAN wieder da ist: doppelt eingetragen wird nichts.')
                 : fehler.message, false);
         } finally {
             T.sendet = false;
@@ -1261,11 +1267,11 @@ AKA ${kumiteText(kumitePunkte('aka'))} : SHIRO ${kumiteText(kumitePunkte('shiro'
     // --- Start ---------------------------------------------------------------------
 
     const beobachter = new MutationObserver(() => {
-        $('verbindung').textContent = body.classList.contains('offline') ? 'offline' : 'online';
+        $('verbindung').textContent = body.classList.contains('offline') ? Wettkampf.t('offline') : Wettkampf.t('online');
         $('verbindung').className = 'verbindung ' + (body.classList.contains('offline') ? 'weg' : 'ok');
     });
     beobachter.observe(body, { attributes: true, attributeFilter: ['class'] });
 
-    laden().catch((f) => meldung('Laden fehlgeschlagen: ' + f.message, false));
+    laden().catch((f) => meldung(Wettkampf.t('Laden fehlgeschlagen: {grund}', { grund: f.message }), false));
     Wettkampf.beobachten(url('/revision'), laden, 4000);
 })();

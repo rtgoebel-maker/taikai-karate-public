@@ -44,7 +44,7 @@ final class ErgebnisController extends Controller
         $b = $this->db->eine(
             'SELECT b.*, p.klasse_id FROM begegnung b JOIN phase p ON p.id = b.phase_id JOIN klasse k ON k.id = p.klasse_id WHERE b.id = ? AND k.turnier_id = ?',
             [$begegnungid, $id],
-        ) ?? throw new NichtGefunden('Begegnung nicht gefunden.');
+        ) ?? throw new NichtGefunden(t('Begegnung nicht gefunden.'));
         $ansicht = (new KlassenAnsicht($this->db))->laden((int) $b['klasse_id']);
         $begegnung = null;
         foreach ($ansicht['phasen'] as $phase) {
@@ -67,7 +67,7 @@ final class ErgebnisController extends Controller
         $this->turnier($id);
         (new TurnierPhaseService($this->db))->ergebnisseErlaubt($id);
         (new ErgebnisService($this->db))->begegnungEintragen($id, $begegnungid, $request->post, true);
-        $this->erfolg('Ergebnis gespeichert.');
+        $this->erfolg(t('Ergebnis gespeichert.'));
         return $this->zurKlasse($id, $begegnungid);
     }
 
@@ -82,7 +82,7 @@ final class ErgebnisController extends Controller
     {
         (new TurnierPhaseService($this->db))->ergebnisseErlaubt($id);
         (new ErgebnisService($this->db))->begegnungZuruecksetzen($id, $begegnungid);
-        $this->erfolg('Ergebnis zurückgesetzt.');
+        $this->erfolg(t('Ergebnis zurückgesetzt.'));
         return $this->zurKlasse($id, $begegnungid);
     }
 
@@ -92,7 +92,7 @@ final class ErgebnisController extends Controller
         $a = $this->db->eine(
             'SELECT a.*, p.klasse_id, p.bezeichnung AS phase FROM auftritt a JOIN phase p ON p.id = a.phase_id JOIN klasse k ON k.id = p.klasse_id WHERE a.id = ? AND k.turnier_id = ?',
             [$auftrittid, $id],
-        ) ?? throw new NichtGefunden('Auftritt nicht gefunden.');
+        ) ?? throw new NichtGefunden(t('Auftritt nicht gefunden.'));
         $ansicht = new KlassenAnsicht($this->db);
         $klasse = $this->db->eine('SELECT * FROM klasse WHERE id = ?', [$a['klasse_id']]);
         return $this->seite('ergebnis/auftritt', [
@@ -109,7 +109,7 @@ final class ErgebnisController extends Controller
         (new TurnierPhaseService($this->db))->ergebnisseErlaubt($id);
         (new ErgebnisService($this->db))->auftrittEintragen($id, $auftrittid, $request->post, true);
         $klasseId = (int) $this->db->wert('SELECT p.klasse_id FROM auftritt a JOIN phase p ON p.id = a.phase_id WHERE a.id = ?', [$auftrittid]);
-        $this->erfolg('Wertung gespeichert.');
+        $this->erfolg(t('Wertung gespeichert.'));
         return $this->weiter("turnier/$id/klasse/$klasseId");
     }
 
@@ -117,21 +117,21 @@ final class ErgebnisController extends Controller
     {
         (new TurnierPhaseService($this->db))->ergebnisseErlaubt($id);
         (new ErgebnisService($this->db))->stichentscheid($id, $klasseid, $request->text('art'), (array) $request->post('rang', []));
-        $this->erfolg('Stichentscheid gespeichert.');
+        $this->erfolg(t('Stichentscheid gespeichert.'));
         return $this->weiter("turnier/$id/klasse/$klasseid");
     }
 
     public function bestaetigen(Request $request, int $id, int $klasseid): Response
     {
         (new ErgebnisService($this->db))->bestaetigen($id, $klasseid);
-        $this->erfolg('Platzierungen bestätigt.');
+        $this->erfolg(t('Platzierungen bestätigt.'));
         return $this->weiter($request->text('zurueck') === 'klasse' ? "turnier/$id/klasse/$klasseid" : "turnier/$id/ergebnisse");
     }
 
     public function bestaetigungAufheben(Request $request, int $id, int $klasseid): Response
     {
         (new ErgebnisService($this->db))->bestaetigungAufheben($id, $klasseid);
-        $this->erfolg('Bestätigung aufgehoben.');
+        $this->erfolg(t('Bestätigung aufgehoben.'));
         return $this->weiter("turnier/$id/klasse/$klasseid");
     }
 

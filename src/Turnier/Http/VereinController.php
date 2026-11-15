@@ -36,7 +36,7 @@ final class VereinController extends Controller
     public function leereLoeschen(Request $request): Response
     {
         $anzahl = (new StammdatenService($this->db))->leereVereineLoeschen();
-        $this->erfolg($anzahl === 1 ? 'Ein leerer Verein gelöscht.' : "$anzahl leere Vereine gelöscht.");
+        $this->erfolg($anzahl === 1 ? t('Ein leerer Verein gelöscht.') : t('{n} leere Vereine gelöscht.', ['n' => $anzahl]));
         return $this->weiter('vereine');
     }
 
@@ -44,20 +44,20 @@ final class VereinController extends Controller
     {
         $name = trim((string) preg_replace('/\s+/u', ' ', $request->text('name')));
         if ($name === '') {
-            throw new FachFehler('Bitte einen Vereinsnamen angeben.');
+            throw new FachFehler(t('Bitte einen Vereinsnamen angeben.'));
         }
         $felder = ['name' => mb_substr($name, 0, 200), 'kurzname' => mb_substr($request->text('kurzname'), 0, 30) ?: null];
         $id = $request->zahl('id');
         $doppelt = $this->db->wert('SELECT id FROM verein WHERE LOWER(name) = LOWER(?) AND id <> ?', [$name, $id ?? 0]);
         if ($doppelt !== null) {
-            throw new FachFehler("Ein Verein „{$name}“ existiert bereits – bei Bedarf unten zusammenführen.");
+            throw new FachFehler(t('Ein Verein „{name}“ existiert bereits – bei Bedarf unten zusammenführen.', ['name' => $name]));
         }
         if ($id) {
             $this->db->update('verein', $felder, ['id' => $id]);
         } else {
             $this->db->insert('verein', $felder + ['uuid' => Uuid::v4()]);
         }
-        $this->erfolg('Verein gespeichert.');
+        $this->erfolg(t('Verein gespeichert.'));
         return $this->weiter($request->post('zurueck') === 'zeigen' && $id ? "verein/$id" : 'vereine');
     }
 
@@ -74,17 +74,17 @@ final class VereinController extends Controller
         $service = new VereinService($this->db);
         $vorschau = $service->vorschau((int) $request->zahl('von'), (int) $request->zahl('nach'));
         $service->zusammenfuehren((int) $vorschau['von']['id'], (int) $vorschau['nach']['id']);
-        $this->erfolg("„{$vorschau['von']['name']}“ in „{$vorschau['nach']['name']}“ zusammengeführt.");
+        $this->erfolg(t('„{von}“ in „{nach}“ zusammengeführt.', ['von' => $vorschau['von']['name'], 'nach' => $vorschau['nach']['name']]));
         return $this->weiter('vereine');
     }
 
     public function loeschen(Request $request, int $id): Response
     {
         if (!in_array($id, (new StammdatenService($this->db))->leereVereine(), true)) {
-            throw new FachFehler('Der Verein hat noch Athleten, Teams, Anmeldungen oder Konten (Coaches) und kann nicht gelöscht werden.');
+            throw new FachFehler(t('Der Verein hat noch Athleten, Teams, Anmeldungen oder Konten (Coaches) und kann nicht gelöscht werden.'));
         }
         $this->db->delete('verein', ['id' => $id]);
-        $this->erfolg('Verein gelöscht.');
+        $this->erfolg(t('Verein gelöscht.'));
         return $this->weiter('vereine');
     }
 }

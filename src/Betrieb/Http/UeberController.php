@@ -30,7 +30,7 @@ final class UeberController extends Controller
     public function index(Request $request): Response
     {
         return $this->seite('ueber/index', [
-            'titel' => 'Über diese Software',
+            'titel' => t('Über diese Software'),
             'version' => Version::aktuell($this->app->wurzel),
             'syncProtokoll' => Version::SYNC_PROTOKOLL,
             'quellcode' => $this->quellcodeUrl(),
@@ -44,10 +44,10 @@ final class UeberController extends Controller
     {
         $datei = $this->app->wurzel . '/CHANGELOG.md';
         if (!is_file($datei)) {
-            throw new NichtGefunden('Changelog nicht vorhanden.');
+            throw new NichtGefunden(t('Changelog nicht vorhanden.'));
         }
         return $this->seite('ueber/changelog', [
-            'titel' => 'Changelog',
+            'titel' => t('Changelog'),
             'html' => Markdown::html((string) file_get_contents($datei)),
             'version' => Version::aktuell($this->app->wurzel),
         ]);
@@ -57,10 +57,10 @@ final class UeberController extends Controller
     {
         $datei = $this->app->wurzel . '/LICENSE';
         if (!is_file($datei)) {
-            throw new NichtGefunden('Lizenztext nicht vorhanden.');
+            throw new NichtGefunden(t('Lizenztext nicht vorhanden.'));
         }
         $hinweis = is_file($this->app->wurzel . '/NOTICE') ? (string) file_get_contents($this->app->wurzel . '/NOTICE') : '';
-        return $this->seite('ueber/lizenz', ['titel' => 'Lizenz', 'text' => (string) file_get_contents($datei), 'hinweis' => $hinweis]);
+        return $this->seite('ueber/lizenz', ['titel' => t('Lizenz'), 'text' => (string) file_get_contents($datei), 'hinweis' => $hinweis]);
     }
 
     /**

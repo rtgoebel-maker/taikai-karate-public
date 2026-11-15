@@ -22,7 +22,7 @@ final class PdfBeleg
     public static function erzeugen(string $html): string
     {
         if (!self::verfuegbar()) {
-            throw new FachFehler('PDF-Erzeugung ist auf diesem Server nicht verfügbar (PHP-Erweiterung dom fehlt, unter Linux: sudo apt install php-xml).');
+            throw new FachFehler(t('PDF-Erzeugung ist auf diesem Server nicht verfügbar (PHP-Erweiterung dom fehlt, unter Linux: sudo apt install php-xml).'));
         }
         $optionen = new Options();
         $optionen->setIsRemoteEnabled(false);

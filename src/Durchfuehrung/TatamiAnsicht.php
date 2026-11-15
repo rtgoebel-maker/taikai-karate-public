@@ -292,7 +292,7 @@ final class TatamiAnsicht
             'klasse_name' => $phase['klasse_name'],
             'disziplin' => $phase['disziplin'],
             'phase' => $phase['bezeichnung'],
-            'runde' => $b['art'] === 'jgj' ? 'Runde ' . $b['runde'] : KoBaum::rundenName((int) ($phase['baum_groesse'] ?: 2), (int) $b['runde'], $b['art']),
+            'runde' => $b['art'] === 'jgj' ? 'Runde ' . $b['runde'] : KoBaum::rundenName((int) ($phase['baum_groesse'] ?: 2), (int) $b['runde'], $b['art'], true),
             'rundenart' => $b['art'],
             'system' => $b['wertungssystem'],
             'kumite_form' => $b['kumite_form'],

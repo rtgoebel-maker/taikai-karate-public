@@ -29,7 +29,7 @@ final class AssistentController extends Controller
     {
         $turnier = $this->turnier($id);
         if (!TurnierAssistent::gueltig($schritt)) {
-            throw new NichtGefunden('Diesen Schritt gibt es nicht.');
+            throw new NichtGefunden(t('Diesen Schritt gibt es nicht.'));
         }
         $daten = [
             'turnier' => $turnier,

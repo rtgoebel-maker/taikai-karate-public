@@ -1,6 +1,6 @@
 /* Aushang „Starterlisten & Wettkampfbäume“: Reiter, Filter, Namenssuche, Drucken, Hinweis auf neuen Listenstand.
    Daten aus dem JSON-Block #sl-daten: personen, revision, revisionUrl (null in der Offlinekopie). */
-(() => {
+((Wettkampf) => {
     const datenBlock = document.getElementById('sl-daten');
     if (!datenBlock) { return; }
     const { personen, revision: bekannt, revisionUrl } = JSON.parse(datenBlock.textContent);
@@ -34,7 +34,7 @@
                 starts += parseInt(document.querySelector('.sl-chip[data-anker="' + g.id + '"] span').textContent, 10);
             }
         });
-        $('sl-zusammenfassung').textContent = `${sichtbar} Gruppen · ${starts} Starts`;
+        $('sl-zusammenfassung').textContent = Wettkampf.t('{gruppen} Gruppen · {starts} Starts', { gruppen: sichtbar, starts });
         $('sl-keine').hidden = sichtbar > 0;
     }
     ['sl-suche', 'sl-gruppe', 'sl-tatami'].forEach((id) => $(id).addEventListener('input', filtern));
@@ -59,11 +59,11 @@
     // Namenssuche
     $('sl-namensuche').addEventListener('input', () => {
         const text = $('sl-namensuche').value.trim().toLowerCase();
-        if (text.length < 2) { $('sl-treffer').innerHTML = '<tr><td colspan="4" class="leise">Bitte Suchbegriff eingeben.</td></tr>'; return; }
+        if (text.length < 2) { $('sl-treffer').innerHTML = `<tr><td colspan="4" class="leise">${esc(Wettkampf.t('Bitte Suchbegriff eingeben.'))}</td></tr>`; return; }
         const treffer = personen.filter((p) => (p.name + ' ' + p.verein).toLowerCase().includes(text)).slice(0, 200);
         $('sl-treffer').innerHTML = treffer.map((p) => `<tr><td><strong>${esc(p.name)}</strong></td><td>${esc(p.verein)}</td>
             <td><a href="#${esc(p.anker)}" data-zu="${esc(p.anker)}">${esc(p.code)}</a></td><td>${esc(p.tatami) || '–'}</td></tr>`).join('')
-            || '<tr><td colspan="4" class="leise">Keine Treffer.</td></tr>';
+            || `<tr><td colspan="4" class="leise">${esc(Wettkampf.t('Keine Treffer.'))}</td></tr>`;
     });
     $('sl-treffer').addEventListener('click', (ev) => {
         const link = ev.target.closest('[data-zu]');
@@ -79,10 +79,13 @@
                 const antwort = await fetch(revisionUrl, { cache: 'no-store' });
                 const { revision } = await antwort.json();
                 if (revision !== bekannt) { $('sl-neu').hidden = false; }
-                $('live-status').textContent = 'live';
+                $('live-status').textContent = Wettkampf.t('live');
             } catch (e) {
-                $('live-status').textContent = 'keine Verbindung';
+                $('live-status').textContent = Wettkampf.t('keine Verbindung');
             }
         }, 15000);
     }
-})();
+})(typeof Wettkampf !== 'undefined' ? Wettkampf : {
+    // ohne app.js (z. B. Anmeldeformular, Einblendung, Offlinekopie): Katalog aus sprache/texte.js, sonst Deutsch
+    t: (de, werte = {}) => ((window.WettkampfTexte && window.WettkampfTexte[de]) || de).replace(/\{(\w+)\}/g, (alles, name) => (name in werte ? String(werte[name]) : alles)),
+});

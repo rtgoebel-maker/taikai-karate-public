@@ -32,11 +32,11 @@ final class UebergabeService
     public function uebergeben(int $turnierId, string $von): array
     {
         return $this->db->transaktion(function () use ($turnierId, $von) {
-            $turnier = $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler('Turnier nicht gefunden.');
+            $turnier = $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler(t('Turnier nicht gefunden.'));
             if (($turnier['fuehrung_instanz'] ?? null) !== null) {
                 throw new FachFehler(hash_equals($this->instanz->id(), (string) $turnier['fuehrung_instanz'])
-                    ? 'Dieses Turnier wurde an diese Installation übergeben – weitergeben kann nur Online.'
-                    : 'Das Turnier ist bereits übergeben.');
+                    ? t('Dieses Turnier wurde an diese Installation übergeben – weitergeben kann nur Online.')
+                    : t('Das Turnier ist bereits übergeben.'));
             }
             $nr = (int) $turnier['uebergabe_nr'] + 1;
             $code = Uebergabecode::neu();
@@ -70,7 +70,7 @@ final class UebergabeService
     {
         $laufend = $this->laufende($turnierId);
         if ($laufend === null || !hash_equals((string) $laufend['code_hash'], Uebergabecode::hash($code))) {
-            throw new FachFehler('Keine laufende Übergabe mit diesem Code.');
+            throw new FachFehler(t('Keine laufende Übergabe mit diesem Code.'));
         }
         $paket = (new SicherungService($this->db))->exportieren($turnierId);
         $paket['uebergabe'] = [
@@ -107,7 +107,7 @@ final class UebergabeService
         $darf = $rechte !== null && $laufend !== null && ($rechte['admin'] || in_array((int) $laufend['turnier_id'], $rechte['turniere'], true));
         if (!$darf) {
             $schutz->fehlschlag($ziel, $ip);
-            throw new FachFehler('Anmeldung oder Übergabe-Code ist falsch.');
+            throw new FachFehler(t('Anmeldung oder Übergabe-Code ist falsch.'));
         }
         $schutz->erfolg($ziel, $ip);
         $turnierId = (int) $laufend['turnier_id'];
@@ -123,12 +123,12 @@ final class UebergabeService
     public function zuruecknehmen(int $turnierId, string $von): void
     {
         $this->db->transaktion(function () use ($turnierId, $von) {
-            $turnier = $this->db->eine('SELECT fuehrung_instanz, uebergabe_nr FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler('Turnier nicht gefunden.');
+            $turnier = $this->db->eine('SELECT fuehrung_instanz, uebergabe_nr FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler(t('Turnier nicht gefunden.'));
             if ($turnier['fuehrung_instanz'] === null) {
-                throw new FachFehler('Das Turnier ist nicht übergeben.');
+                throw new FachFehler(t('Das Turnier ist nicht übergeben.'));
             }
             if (hash_equals($this->instanz->id(), (string) $turnier['fuehrung_instanz'])) {
-                throw new FachFehler('Diese Installation führt das Turnier selbst; zurückgeben folgt mit Schritt 9h.');
+                throw new FachFehler(t('Diese Installation führt das Turnier selbst; zurückgeben folgt mit Schritt 9h.'));
             }
             $this->db->query('UPDATE sync_uebergabe SET beendet_am = ? WHERE turnier_id = ? AND beendet_am IS NULL', [date('Y-m-d H:i:s'), $turnierId]);
             $this->db->update('turnier', ['fuehrung_instanz' => null, 'fuehrung_name' => null, 'fuehrung_seit' => null], ['id' => $turnierId]);

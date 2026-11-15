@@ -34,19 +34,21 @@ final class FeedbackMail
             return;
         }
         $turnier = $f['turnier_id'] !== null ? (string) ($this->db->wert('SELECT name FROM turnier WHERE id = ?', [$f['turnier_id']]) ?? '') : '';
-        $art = FeedbackService::ARTEN[$f['art']] ?? (string) $f['art'];
-        $text = "Neue Feedback-Meldung aus einer Taikai-Installation\n\n"
-            . "Art:          $art\n"
-            . 'Seite:        ' . $this->post->link((string) $f['seite']) . "\n"
-            . ($turnier !== '' ? "Turnier:      $turnier\n" : '')
-            . "Von:          {$f['von']}\n"
-            . ($antwortAn !== null ? "Rückfragen:   $antwortAn\n" : '')
-            . 'Gerät:        ' . ($f['geraet'] ?? '–') . "\n"
-            . 'Version:      ' . Version::aktuell() . "\n"
-            . 'Installation: ' . $this->post->link('') . " (Meldung Nr. {$f['id']})\n\n"
-            . "Beschreibung:\n" . $f['beschreibung'] . "\n"
-            . ($f['screenshot'] ? "\nScreenshot im Anhang.\n" : '')
-            . "\n-- \nVerschickt über den Feedback-Knopf von Taikai – Karate.";
+        $art = t(FeedbackService::ARTEN[$f['art']] ?? (string) $f['art']);
+        // Zeile „Bezeichnung: Wert“, Werte untereinander ausgerichtet (Spalte 15)
+        $zeile = static fn(string $bezeichnung, string $wert): string => $bezeichnung . str_repeat(' ', max(1, 14 - mb_strlen($bezeichnung))) . $wert . "\n";
+        $text = t('Neue Feedback-Meldung aus einer Taikai-Installation') . "\n\n"
+            . $zeile(t('Art:'), $art)
+            . $zeile(t('Seite:'), $this->post->link((string) $f['seite']))
+            . ($turnier !== '' ? $zeile(t('Turnier:'), $turnier) : '')
+            . $zeile(t('Von:'), (string) $f['von'])
+            . ($antwortAn !== null ? $zeile(t('Rückfragen:'), $antwortAn) : '')
+            . $zeile(t('Gerät:'), (string) ($f['geraet'] ?? '–'))
+            . $zeile(t('Version:'), Version::aktuell())
+            . $zeile(t('Installation:'), $this->post->link('') . ' ' . t('(Meldung Nr. {nr})', ['nr' => $f['id']])) . "\n"
+            . t('Beschreibung:') . "\n" . $f['beschreibung'] . "\n"
+            . ($f['screenshot'] ? "\n" . t('Screenshot im Anhang.') . "\n" : '')
+            . "\n-- \n" . t('Verschickt über den Feedback-Knopf von Taikai – Karate.');
         $anhaenge = [];
         if ($f['screenshot']) {
             $daten = base64_decode((string) $f['screenshot'], true);

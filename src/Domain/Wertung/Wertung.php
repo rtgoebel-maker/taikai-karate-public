@@ -25,9 +25,12 @@ final class Wertung
         'entscheidungskampf' => 'Entscheidungskampf',
     ];
 
+    /** In der aktuellen Sprache (Karate-Begriffe bleiben). */
     public static function entscheidungText(?string $entscheidung): string
     {
-        return self::ENTSCHEIDUNG_TEXT[(string) $entscheidung] ?? ucfirst((string) $entscheidung);
+        return isset(self::ENTSCHEIDUNG_TEXT[(string) $entscheidung])
+            ? t(self::ENTSCHEIDUNG_TEXT[(string) $entscheidung])
+            : ucfirst((string) $entscheidung);
     }
 
     /** Kata-Wertungstafeln laut Wettkampfordnung (C 1.1): 0,0 bis 9,9 in Zehnteln */
@@ -48,7 +51,7 @@ final class Wertung
     public static function kampflos(string $entscheidung, string $gegen, ?string $grund = null): array
     {
         if (!in_array($entscheidung, self::KAMPFLOS, true)) {
-            throw new FachFehler('Unbekannte Entscheidung.');
+            throw new FachFehler(t('Unbekannte Entscheidung.'));
         }
         self::seitePruefen($gegen);
         return [
@@ -68,10 +71,10 @@ final class Wertung
     public static function flaggen(int $aka, int $shiro, int $kampfrichter, int $unentschieden = 0): array
     {
         if ($aka < 0 || $shiro < 0 || $unentschieden < 0 || $aka + $shiro + $unentschieden !== $kampfrichter) {
-            throw new FachFehler("Bitte genau $kampfrichter Flaggen erfassen (Aka $aka + Shiro $shiro + Unentschieden $unentschieden).");
+            throw new FachFehler(t('Bitte genau {n} Flaggen erfassen (Aka {aka} + Shiro {shiro} + Unentschieden {unentschieden}).', ['n' => $kampfrichter, 'aka' => $aka, 'shiro' => $shiro, 'unentschieden' => $unentschieden]));
         }
         if ($aka === $shiro) {
-            throw new FachFehler("Gleichstand $aka : $shiro – kein Sieger. Bitte verlängern bzw. erneut entscheiden lassen.");
+            throw new FachFehler(t('Gleichstand {aka} : {shiro} – kein Sieger. Bitte verlängern bzw. erneut entscheiden lassen.', ['aka' => $aka, 'shiro' => $shiro]));
         }
         return [
             'sieger' => $aka > $shiro ? 'aka' : 'shiro',
@@ -98,19 +101,19 @@ final class Wertung
         foreach (array_values($werte) as $w) {
             $text = str_replace(',', '.', trim((string) $w));
             if ($text === '' || !is_numeric($text)) {
-                throw new FachFehler('Bitte alle Wertungen als Zahl eingeben.');
+                throw new FachFehler(t('Bitte alle Wertungen als Zahl eingeben.'));
             }
             $zahl = (float) $text;
             if ($zahl < $min - 1e-9 || $zahl > $max + 1e-9) {
-                throw new FachFehler(sprintf('Wertung %s liegt außerhalb von %s bis %s.', self::zahl($zahl), self::zahl($min), self::zahl($max)));
+                throw new FachFehler(t('Wertung {wert} liegt außerhalb von {min} bis {max}.', ['wert' => self::zahl($zahl), 'min' => self::zahl($min), 'max' => self::zahl($max)]));
             }
             if ($schritt > 0 && abs(round(($zahl - $min) / $schritt) * $schritt - ($zahl - $min)) > 1e-6) {
-                throw new FachFehler(sprintf('Wertung %s passt nicht zur Schrittweite %s.', self::zahl($zahl), self::zahl($schritt)));
+                throw new FachFehler(t('Wertung {wert} passt nicht zur Schrittweite {schritt}.', ['wert' => self::zahl($zahl), 'schritt' => self::zahl($schritt)]));
             }
             $zahlen[] = round($zahl, 2);
         }
         if (count($zahlen) !== $kampfrichter) {
-            throw new FachFehler("Bitte $kampfrichter Wertungen eingeben.");
+            throw new FachFehler(t('Bitte {n} Wertungen eingeben.', ['n' => $kampfrichter]));
         }
         $gestrichen = [];
         if (($optionen['streichung'] ?? true) && $kampfrichter >= 5) {
@@ -171,7 +174,7 @@ final class Wertung
             return ['sieger' => $vergleich > 0 ? 'aka' : 'shiro', 'entscheidung' => 'punkte', 'daten' => $daten];
         }
         if ($hantei === null) {
-            throw new FachFehler('Punktgleichstand – bitte per Flaggenentscheid (Hantei) entscheiden.');
+            throw new FachFehler(t('Punktgleichstand – bitte per Flaggenentscheid (Hantei) entscheiden.'));
         }
         $flaggen = self::flaggen($hantei['aka'], $hantei['shiro'], $kampfrichter, $hantei['unentschieden'] ?? 0);
         return ['sieger' => $flaggen['sieger'], 'entscheidung' => 'hantei', 'daten' => $daten + $flaggen['daten']];
@@ -206,7 +209,7 @@ final class Wertung
         // Hansoku (3. Stufe einer Strafart) entscheidet sofort für den Gegner
         $hansoku = array_values(array_filter(['aka', 'shiro'], static fn(string $s) => max($daten[$s]['strafen']) >= 3));
         if (count($hansoku) === 2) {
-            throw new FachFehler('Beide Seiten mit Hansoku – bitte die Entscheidung als Hansoku bzw. Shikkaku gegen eine Seite eintragen.');
+            throw new FachFehler(t('Beide Seiten mit Hansoku – bitte die Entscheidung als Hansoku bzw. Shikkaku gegen eine Seite eintragen.'));
         }
         if ($hansoku !== []) {
             $gegen = $hansoku[0];
@@ -219,19 +222,18 @@ final class Wertung
         }
         $zeitAbgelaufen = !empty($eingabe['zeit_abgelaufen']) || $hantei !== null;
         if (!$zeitAbgelaufen) {
-            throw new FachFehler(sprintf(
-                '%s (AKA %s : SHIRO %s). Der Kampf geht weiter – oder „Kampfzeit abgelaufen“ wählen.',
-                $ziel === self::ZIEL_SANBON ? 'Noch keine zwei vollen Punkte erreicht' : 'Noch kein Ippon erreicht',
-                self::kumiteText($punkte['aka']),
-                self::kumiteText($punkte['shiro']),
-            ));
+            throw new FachFehler(t('{stand} (AKA {aka} : SHIRO {shiro}). Der Kampf geht weiter – oder „Kampfzeit abgelaufen“ wählen.', [
+                'stand' => $ziel === self::ZIEL_SANBON ? t('Noch keine zwei vollen Punkte erreicht') : t('Noch kein Ippon erreicht'),
+                'aka' => self::kumiteText($punkte['aka']),
+                'shiro' => self::kumiteText($punkte['shiro']),
+            ]));
         }
         $daten['zeit_abgelaufen'] = true;
         if ($vergleich !== 0) {
             return ['sieger' => $vergleich > 0 ? 'aka' : 'shiro', 'entscheidung' => 'wertung', 'daten' => $daten];
         }
         if ($hantei === null) {
-            throw new FachFehler('Gleichstand – bitte Saishiai (Verlängerung) austragen oder Hantei (Flaggenentscheid) eintragen.');
+            throw new FachFehler(t('Gleichstand – bitte Saishiai (Verlängerung) austragen oder Hantei (Flaggenentscheid) eintragen.'));
         }
         $flaggen = self::flaggen($hantei['aka'], $hantei['shiro'], $kampfrichter, $hantei['unentschieden'] ?? 0);
         return ['sieger' => $flaggen['sieger'], 'entscheidung' => 'hantei', 'daten' => $daten + $flaggen['daten']];
@@ -248,14 +250,14 @@ final class Wertung
         $ippon = (int) ($eingabe["{$s}_ippon"] ?? 0);
         $wazaari = (int) ($eingabe["{$s}_wazaari"] ?? 0);
         if ($ippon < 0 || $wazaari < 0 || $ippon > 5 || $wazaari > 10) {
-            throw new FachFehler('Ungültige Anzahl Ippon/Wazaari.');
+            throw new FachFehler(t('Ungültige Anzahl Ippon/Wazaari.'));
         }
         $roh = is_array($eingabe["{$s}_strafen"] ?? null) ? $eingabe["{$s}_strafen"] : [];
         $strafen = [];
         foreach (array_keys(self::STRAFARTEN) as $art) {
             $stufe = (int) ($roh[$art] ?? 0);
             if ($stufe < 0 || $stufe > 3) {
-                throw new FachFehler('Ungültige Strafstufe (0 bis 3).');
+                throw new FachFehler(t('Ungültige Strafstufe (0 bis 3).'));
             }
             $strafen[$art] = $stufe;
         }
@@ -322,7 +324,7 @@ final class Wertung
         $einzel = 0;
         foreach ($kaempfe as $k) {
             if (!in_array($k['sieger'], ['aka', 'shiro', 'hikiwake'], true)) {
-                throw new FachFehler('Jeder Einzelkampf braucht ein Ergebnis (Aka, Shiro oder Hikiwake).');
+                throw new FachFehler(t('Jeder Einzelkampf braucht ein Ergebnis (Aka, Shiro oder Hikiwake).'));
             }
             if (!empty($k['entscheidungskampf'])) {
                 $entscheidung = $k['sieger'];
@@ -342,7 +344,7 @@ final class Wertung
         }
         // B 11 9.5: auch ein schon entschiedener Mannschaftskampf wird zu Ende gekämpft
         if ($anzahl !== null && $einzel !== $anzahl) {
-            throw new FachFehler("Bitte alle $anzahl Einzelkämpfe eintragen – auch wenn der Mannschaftskampf schon entschieden ist.");
+            throw new FachFehler(t('Bitte alle {n} Einzelkämpfe eintragen – auch wenn der Mannschaftskampf schon entschieden ist.', ['n' => $anzahl]));
         }
         $daten = ['kaempfe' => $kaempfe, 'summe' => $summe, 'aka' => ['ippon' => $summe['aka']['ippon'], 'wazaari' => $summe['aka']['wazaari']],
             'shiro' => ['ippon' => $summe['shiro']['ippon'], 'wazaari' => $summe['shiro']['wazaari']]];
@@ -351,7 +353,7 @@ final class Wertung
             return ['sieger' => $vergleich > 0 ? 'aka' : 'shiro', 'entscheidung' => 'team', 'daten' => $daten];
         }
         if ($entscheidung === null || $entscheidung === 'hikiwake') {
-            throw new FachFehler('Gleichstand nach Einzelsiegen, Ippon-Siegen und Wazaari der Sieger – bitte den Stichkampf eintragen.');
+            throw new FachFehler(t('Gleichstand nach Einzelsiegen, Ippon-Siegen und Wazaari der Sieger – bitte den Stichkampf eintragen.'));
         }
         return ['sieger' => $entscheidung, 'entscheidung' => 'entscheidungskampf', 'daten' => $daten];
     }
@@ -359,7 +361,7 @@ final class Wertung
     private static function seitePruefen(string $seite): void
     {
         if (!in_array($seite, ['aka', 'shiro'], true)) {
-            throw new FachFehler('Seite muss Aka oder Shiro sein.');
+            throw new FachFehler(t('Seite muss Aka oder Shiro sein.'));
         }
     }
 

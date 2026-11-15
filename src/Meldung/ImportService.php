@@ -56,7 +56,7 @@ final class ImportService
     public function analysieren(int $turnierId, array $zeilen): array
     {
         if (count($zeilen) < 2) {
-            throw new FachFehler('Die Datei enthält keine Datenzeilen.');
+            throw new FachFehler(t('Die Datei enthält keine Datenzeilen.'));
         }
         $kopf = array_shift($zeilen);
         $spalten = $this->spaltenErkennen($kopf);
@@ -87,29 +87,29 @@ final class ImportService
 
             $geschlecht = self::geschlecht($wert('geschlecht'));
             if ($geschlecht === null) {
-                $fehler[] = 'Geschlecht fehlt/unbekannt';
+                $fehler[] = t('Geschlecht fehlt/unbekannt');
             }
             $grad = Graduierung::parse($wert('graduierung'));
             if ($grad === null) {
-                $fehler[] = "Graduierung „{$wert('graduierung')}“ nicht erkannt";
+                $fehler[] = t('Graduierung „{wert}“ nicht erkannt', ['wert' => $wert('graduierung')]);
             }
             $geburt = Alter::datumParsen($wert('geburtsdatum'));
             if ($wert('geburtsdatum') !== '' && $geburt === null) {
-                $fehler[] = "Geburtsdatum „{$wert('geburtsdatum')}“ ungültig";
+                $fehler[] = t('Geburtsdatum „{wert}“ ungültig', ['wert' => $wert('geburtsdatum')]);
             }
             $alter = is_numeric($wert('alter')) ? (int) $wert('alter') : null;
             if ($geburt !== null && $geburt > $datum) {
-                $fehler[] = 'Geburtsdatum liegt nach dem Turnier';
+                $fehler[] = t('Geburtsdatum liegt nach dem Turnier');
                 $geburt = null;
             }
             if ($geburt === null && $alter === null) {
-                $fehler[] = 'Geburtsdatum oder Alter fehlt';
+                $fehler[] = t('Geburtsdatum oder Alter fehlt');
             }
             if ($wert('nachname') === '' || $wert('vorname') === '') {
-                $fehler[] = 'Name unvollständig';
+                $fehler[] = t('Name unvollständig');
             }
             if ($wert('dojo') === '') {
-                $hinweise[] = 'kein Dojo angegeben';
+                $hinweise[] = t('kein Dojo angegeben');
             }
 
             $disziplinen = [];
@@ -121,20 +121,20 @@ final class ImportService
             }
             $klasse = $wert('klasse');
             if ($klasse !== '' && !isset($klassen[mb_strtolower($klasse)])) {
-                $hinweise[] = "Klasse „{$klasse}“ unbekannt – wird ignoriert";
+                $hinweise[] = t('Klasse „{klasse}“ unbekannt – wird ignoriert', ['klasse' => $klasse]);
                 $klasse = '';
             }
             if ($disziplinen === [] && $wert('kata_team') === '' && $wert('kumite_team') === '' && $klasse === '') {
-                $hinweise[] = 'keine Disziplin gemeldet';
+                $hinweise[] = t('keine Disziplin gemeldet');
             }
 
             $schluessel = mb_strtolower($wert('vorname')) . '|' . mb_strtolower($wert('nachname')) . '|' . $geburt;
             $dublette = isset($vorhanden[$schluessel]);
             if ($dublette) {
-                $hinweise[] = 'bereits erfasst – wird übersprungen';
+                $hinweise[] = t('bereits erfasst – wird übersprungen');
             }
             if (isset($gesehen[$schluessel])) {
-                $hinweise[] = 'doppelt in der Datei – wird übersprungen';
+                $hinweise[] = t('doppelt in der Datei – wird übersprungen');
                 $dublette = true;
             }
             $gesehen[$schluessel] = true;

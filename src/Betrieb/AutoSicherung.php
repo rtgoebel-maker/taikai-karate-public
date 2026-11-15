@@ -113,7 +113,7 @@ final class AutoSicherung
     public function sichern(?int $jetzt = null): string
     {
         if (!$this->ordnerBereit()) {
-            throw new FachFehler('Der Ordner für Sicherungen kann nicht angelegt werden: ' . $this->ordner);
+            throw new FachFehler(t('Der Ordner für Sicherungen kann nicht angelegt werden: {ordner}', ['ordner' => $this->ordner]));
         }
         $jetzt ??= time();
         $name = 'auto_' . date('Ymd_His', $jetzt) . '.sqlite';
@@ -168,7 +168,7 @@ final class AutoSicherung
     {
         $pfad = $this->ordner . '/' . $name;
         if (!preg_match(self::MUSTER, $name) || !is_file($pfad)) {
-            throw new FachFehler('Diese Sicherung gibt es nicht.');
+            throw new FachFehler(t('Diese Sicherung gibt es nicht.'));
         }
         return $pfad;
     }

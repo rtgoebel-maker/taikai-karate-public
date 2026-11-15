@@ -94,46 +94,46 @@ $paarung = static function (array $e): string {
 };
 $kopf = static fn (array $e, string $text) => '<div class="anzeige-kopf"><strong>' . $text . '</strong> · '
     . $gruppe($e) . ' · ' . e($e['runde'])
-    . ($e['typ'] === 'auftritt' ? ' · Vortrag ' . e($e['nr']) : ' · Kampf ' . e($e['nr'])) . ' ' . $art($e) . '</div>';
+    . ' · ' . ($e['typ'] === 'auftritt' ? te('Vortrag {nr}', ['nr' => $e['nr']]) : te('Kampf {nr}', ['nr' => $e['nr']])) . ' ' . $art($e) . '</div>';
 ?>
 <div class="tatami-anzeige<?= $vollbild ? ' vollbild' : '' ?>">
-    <h2><?= e($t['tatami']['bezeichnung']) ?><?php if (!empty($t['tatami']['gesperrt_am'])): ?> <span class="tag">🔒 gesperrt</span><?php endif; ?>
+    <h2><?= e($t['tatami']['bezeichnung']) ?><?php if (!empty($t['tatami']['gesperrt_am'])): ?> <span class="tag">🔒 <?= te('gesperrt') ?></span><?php endif; ?>
         <?php if (!$vollbild): ?>
             <span class="knopfleiste">
-                <?= $t['tatami']['stream_url'] ? '<a class="tag info" href="' . e($t['tatami']['stream_url']) . '" target="_blank" rel="noopener">Livestream ↗</a>' : '' ?>
-                <a class="tag" href="<?= e(url("live/$tid/tatami/{$t['tatami']['nummer']}")) ?>" target="_blank" title="Vollbild für einen Bildschirm an der Matte">Vollbild ↗</a>
+                <?= $t['tatami']['stream_url'] ? '<a class="tag info" href="' . e($t['tatami']['stream_url']) . '" target="_blank" rel="noopener">' . te('Livestream') . ' ↗</a>' : '' ?>
+                <a class="tag" href="<?= e(url("live/$tid/tatami/{$t['tatami']['nummer']}")) ?>" target="_blank" title="<?= te('Vollbild für einen Bildschirm an der Matte') ?>"><?= te('Vollbild') ?> ↗</a>
             </span>
         <?php endif; ?>
     </h2>
 
     <?php if ($l): ?>
         <section class="block jetzt">
-            <?= $kopf($l, 'Jetzt tritt an') ?>
+            <?= $kopf($l, te('Jetzt tritt an')) ?>
             <div class="klein leise"><?= e($l['klasse_name']) ?></div>
-            <?php if (!empty($l['unterbrochen'])): ?><div class="unterbrochen-hinweis">⏸ Kampf unterbrochen</div><?php endif; ?>
+            <?php if (!empty($l['unterbrochen'])): ?><div class="unterbrochen-hinweis">⏸ <?= te('Kampf unterbrochen') ?></div><?php endif; ?>
             <?= $paarung($l) ?>
         </section>
     <?php elseif ($t['offen'] === 0 && $t['beendet'] > 0): ?>
-        <p class="leise">Alle Kämpfe und Vorträge dieser Tatami sind beendet.</p>
+        <p class="leise"><?= te('Alle Kämpfe und Vorträge dieser Tatami sind beendet.') ?></p>
     <?php elseif (!$bereit && !$folgeGruppe && !$ausrufLaeuft): ?>
-        <p class="leise">Aufruf folgt</p>
+        <p class="leise"><?= te('Aufruf folgt') ?></p>
     <?php endif; ?>
 
     <?php if ($bereit): ?>
         <section class="block bereit">
-            <?= $kopf($bereit, $l ? 'Bereit machen' : 'Als Nächstes') ?>
+            <?= $kopf($bereit, $l ? te('Bereit machen') : te('Als Nächstes')) ?>
             <?php if (!$l): ?><div class="klein leise"><?= e($bereit['klasse_name']) ?></div><?php endif; ?>
             <?= $paarung($bereit) ?>
         </section>
     <?php endif; ?>
 
     <?php foreach ($ausrufStand as $g): $alleDa = count($g['da']) === count($g['starter']); ?>
-        <div class="ausruf-stand<?= $alleDa ? ' fertig' : '' ?>">📣 Ausruf Gruppe <strong><?= e($g['klasse']) ?></strong> ·
-            <?= $alleDa ? 'alle ' . count($g['starter']) . ' Starter da – gleich geht es los' : count($g['da']) . ' von ' . count($g['starter']) . ' da' ?></div>
+        <div class="ausruf-stand<?= $alleDa ? ' fertig' : '' ?>">📣 <?= th('Ausruf Gruppe <strong>{klasse}</strong>', ['klasse' => $g['klasse']]) ?> ·
+            <?= $alleDa ? te('alle {n} Starter da – gleich geht es los', ['n' => count($g['starter'])]) : te('{da} von {gesamt} da', ['da' => count($g['da']), 'gesamt' => count($g['starter'])]) ?></div>
     <?php endforeach; ?>
     <?php if ($t['aufruf_liste']): ?>
         <section class="block aufruf">
-            <div class="anzeige-kopf"><strong>📣 Bitte zur <?= e($t['tatami']['bezeichnung']) ?></strong> <span class="klein">(<?= count($t['aufruf_liste']) ?>)</span></div>
+            <div class="anzeige-kopf"><strong>📣 <?= te('Bitte zur {tatami}', ['tatami' => $t['tatami']['bezeichnung']]) ?></strong> <span class="klein">(<?= count($t['aufruf_liste']) ?>)</span></div>
             <ul class="aufruf-liste">
                 <?php foreach ($t['aufruf_liste'] as $p): ?>
                     <li<?= $p['fehlt'] ? ' class="fehlt"' : '' ?>><span class="name"><?= e($p['name']) ?></span> <span class="klein"><?= e($p['verein']) ?> · <?= e($p['klasse']) ?></span></li>
@@ -143,7 +143,7 @@ $kopf = static fn (array $e, string $text) => '<div class="anzeige-kopf"><strong
     <?php endif; ?>
 
     <?php if ($weitere && !$vollbild): ?>
-        <div class="klein" style="margin-top:.6rem"><strong>DANACH</strong></div>
+        <div class="klein" style="margin-top:.6rem"><strong><?= te('DANACH') ?></strong></div>
         <ol class="naechste">
             <?php foreach (array_slice($weitere, 0, $anzahlDanach) as $n): ?>
                 <li><?= $gruppe($n, true) ?> · <?= e($n['runde']) ?> <?= $art($n) ?><br>
@@ -151,10 +151,10 @@ $kopf = static fn (array $e, string $text) => '<div class="anzeige-kopf"><strong
                 </li>
             <?php endforeach; ?>
         </ol>
-        <?php if (count($weitere) > $anzahlDanach): ?><p class="klein leise">+ <?= count($weitere) - $anzahlDanach ?> weitere</p><?php endif; ?>
+        <?php if (count($weitere) > $anzahlDanach): ?><p class="klein leise">+ <?= te('{n} weitere', ['n' => count($weitere) - $anzahlDanach]) ?></p><?php endif; ?>
     <?php endif; ?>
     <?php if ($folgeGruppe): ?>
-        <div class="folge-gruppe">Nächste Gruppe <strong><?= e($folgeGruppe['klasse']) ?></strong> <span class="klein"><?= e($folgeGruppe['klasse_name']) ?></span> · <span class="leise">Ausruf folgt</span></div>
+        <div class="folge-gruppe"><?= th('Nächste Gruppe <strong>{klasse}</strong>', ['klasse' => $folgeGruppe['klasse']]) ?> <span class="klein"><?= e($folgeGruppe['klasse_name']) ?></span> · <span class="leise"><?= te('Ausruf folgt') ?></span></div>
     <?php endif; ?>
-    <p class="klein"><?= $t['beendet'] ?> beendet · <?= $t['offen'] ?> offen</p>
+    <p class="klein"><?= te('{n} beendet', ['n' => (int) $t['beendet']]) ?> · <?= te('{n} offen', ['n' => (int) $t['offen']]) ?></p>
 </div>

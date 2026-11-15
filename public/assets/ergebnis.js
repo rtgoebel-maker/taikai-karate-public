@@ -10,7 +10,7 @@
             const werte = [...document.querySelectorAll('[data-flaggen="' + art + '"]')].map((f) => parseInt(f.value || '0', 10));
             const rest = kampfrichter - werte.reduce((a, b) => a + b, 0);
             document.querySelector('[name="' + art + '_unentschieden"]').value = Math.max(0, rest);
-            feld.setCustomValidity(rest < 0 ? 'Mehr Flaggen als Kampfrichter' : '');
+            feld.setCustomValidity(rest < 0 ? Wettkampf.t('Mehr Flaggen als Kampfrichter') : '');
         });
     });
 })();

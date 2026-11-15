@@ -7,36 +7,37 @@
  * @var int|null $vereinId
  * @var string $status Filter
  */
+use Wettkampf\Kern\Sprache;
 use Wettkampf\Turnier\StammdatenService;
 
-$this->layout('layout', ['titel' => 'Teilnehmer', 'turnier' => $turnier, 'aktiv' => 'teilnehmer']);
+$this->layout('layout', ['titel' => t('Teilnehmer'), 'turnier' => $turnier, 'aktiv' => 'teilnehmer']);
 $tid = $turnier['id'];
 $statusTag = ['gemeldet' => '', 'anwesend' => 'ok', 'gesperrt' => 'fehler', 'abgemeldet' => '', 'nicht_erschienen' => 'fehler'];
 ?>
 <div class="titelzeile">
-    <h1>Teilnehmer <span class="leise">(<?= count($teilnehmer) ?>)</span> <?= info('teilnehmer') ?></h1>
-    <a class="knopf" href="<?= e(url("turnier/$tid/import")) ?>">Import (XLSX/CSV)</a>
-    <a class="knopf primaer" href="<?= e(url("turnier/$tid/teilnehmer/neu")) ?>">Teilnehmer erfassen</a>
+    <h1><?= te('Teilnehmer') ?> <span class="leise">(<?= count($teilnehmer) ?>)</span> <?= info('teilnehmer') ?></h1>
+    <a class="knopf" href="<?= e(url("turnier/$tid/import")) ?>"><?= te('Import (XLSX/CSV)') ?></a>
+    <a class="knopf primaer" href="<?= e(url("turnier/$tid/teilnehmer/neu")) ?>"><?= te('Teilnehmer erfassen') ?></a>
 </div>
 <form method="get" class="knopfleiste karte">
-    <input name="q" value="<?= e($suche) ?>" placeholder="Name oder Verein suchen" style="max-width:320px">
+    <input name="q" value="<?= e($suche) ?>" placeholder="<?= te('Name oder Verein suchen') ?>" style="max-width:320px">
     <select name="verein" style="max-width:280px">
-        <option value="">Alle Vereine</option>
+        <option value=""><?= te('Alle Vereine') ?></option>
         <?php foreach ($vereine as $v): ?>
             <option value="<?= $v['id'] ?>"<?= sel($v['id'], $vereinId) ?>><?= e($v['name']) ?></option>
         <?php endforeach; ?>
     </select>
-    <select name="status" style="max-width:200px" aria-label="Status">
-        <option value="">Alle Status</option>
+    <select name="status" style="max-width:200px" aria-label="<?= te('Status') ?>">
+        <option value=""><?= te('Alle Status') ?></option>
         <?php foreach (StammdatenService::STATUS as $wert => $text): ?>
-            <option value="<?= $wert ?>"<?= sel($wert, $status) ?>><?= e($text) ?></option>
+            <option value="<?= $wert ?>"<?= sel($wert, $status) ?>><?= e(Sprache::t($text)) ?></option>
         <?php endforeach; ?>
     </select>
-    <button class="knopf" type="submit">Filtern</button>
+    <button class="knopf" type="submit"><?= te('Filtern') ?></button>
 </form>
 <div class="tabelle-scroll">
 <table class="tabelle">
-    <thead><tr><th>Nr.</th><th>Name</th><th>Verein</th><th>G.</th><th>Alter</th><th>Grad</th><th>Meldung</th><th>Klassen</th><th>Status</th></tr></thead>
+    <thead><tr><th><?= te('Nr.') ?></th><th><?= te('Name') ?></th><th><?= te('Verein') ?></th><th><?= te('G.') ?></th><th><?= te('Alter') ?></th><th><?= te('Grad') ?></th><th><?= te('Meldung') ?></th><th><?= te('Klassen') ?></th><th><?= te('Status') ?></th></tr></thead>
     <tbody>
     <?php foreach ($teilnehmer as $t): ?>
         <tr<?= in_array($t['status'], ['abgemeldet', 'nicht_erschienen'], true) ? ' class="inaktiv"' : '' ?>>
@@ -52,27 +53,27 @@ $statusTag = ['gemeldet' => '', 'anwesend' => 'ok', 'gesperrt' => 'fehler', 'abg
                     <a class="tag info" href="<?= e(url("turnier/$tid/klasse/{$k['id']}")) ?>"><?= e($k['code']) ?></a>
                 <?php endforeach; ?>
                 <?php if ($t['disziplinen'] && !$t['klassen'] && !in_array($t['status'], ['abgemeldet', 'nicht_erschienen'], true)): ?>
-                    <span class="tag warn">keine Klasse</span>
+                    <span class="tag warn"><?= te('keine Klasse') ?></span>
                 <?php endif; ?>
             </td>
             <td>
-                <span class="tag <?= $statusTag[$t['status']] ?? '' ?>"><?= e(str_replace('_', ' ', $t['status'])) ?></span>
+                <span class="tag <?= $statusTag[$t['status']] ?? '' ?>"><?= e(status_text((string) $t['status'])) ?></span>
                 <?php if (!in_array($t['status'], StammdatenService::AUSGEFALLEN, true)): ?>
                     <form method="post" action="<?= e(url("turnier/$tid/teilnehmer/{$t['id']}/nicht-erschienen")) ?>" class="inline"
-                          data-bestaetigen="<?= e("{$t['vorname']} {$t['nachname']} als nicht erschienen kennzeichnen? Alle offenen Kämpfe gehen kampflos (Kiken) an die Gegner.") ?>">
+                          data-bestaetigen="<?= te('{name} als nicht erschienen kennzeichnen? Alle offenen Kämpfe gehen kampflos (Kiken) an die Gegner.', ['name' => "{$t['vorname']} {$t['nachname']}"]) ?>">
                         <?= csrf_feld() ?><input type="hidden" name="zurueck" value="liste"><input type="hidden" name="q" value="<?= e($suche) ?>"><input type="hidden" name="status" value="<?= e($status) ?>">
-                        <button class="knopf klein" type="submit" title="Als nicht erschienen kennzeichnen">nicht erschienen</button>
+                        <button class="knopf klein" type="submit" title="<?= te('Als nicht erschienen kennzeichnen') ?>"><?= te('nicht erschienen') ?></button>
                     </form>
                 <?php endif; ?>
-                <?php if ($t['ausweis_geprueft']): ?><span class="tag ok" title="Ausweis geprüft">✓ Ausweis</span><?php endif; ?>
-                <?php if ($t['nachmeldung']): ?><span class="tag warn">Nachmeldung</span><?php endif; ?>
+                <?php if ($t['ausweis_geprueft']): ?><span class="tag ok" title="<?= te('Ausweis geprüft') ?>">✓ <?= te('Ausweis') ?></span><?php endif; ?>
+                <?php if ($t['nachmeldung']): ?><span class="tag warn"><?= te('Nachmeldung') ?></span><?php endif; ?>
             </td>
         </tr>
     <?php endforeach; ?>
     <?php if (!$teilnehmer): ?>
-        <tr><td colspan="9" class="leise">Keine Teilnehmer gefunden.</td></tr>
+        <tr><td colspan="9" class="leise"><?= te('Keine Teilnehmer gefunden.') ?></td></tr>
     <?php endif; ?>
     </tbody>
 </table>
 </div>
-<p class="klein">* Alter aus der Meldung übernommen (kein Geburtsdatum vorhanden).</p>
+<p class="klein"><?= te('* Alter aus der Meldung übernommen (kein Geburtsdatum vorhanden).') ?></p>

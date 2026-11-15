@@ -37,11 +37,11 @@ final class TurnierleitungController extends Controller
             $benutzerId = $konten->anlegen($request->post, (string) $request->post('passwort', ''), false);
         } else {
             $konto = $konten->perEmail($request->text('email'))
-                ?? throw new FachFehler('Es gibt kein aktives Konto mit dieser E-Mail-Adresse. Unten kann ein neues Konto angelegt werden.');
+                ?? throw new FachFehler(t('Es gibt kein aktives Konto mit dieser E-Mail-Adresse. Unten kann ein neues Konto angelegt werden.'));
             $benutzerId = (int) $konto['id'];
         }
         $konten->turnierleitungHinzufuegen($id, $benutzerId, Session::akteur());
-        $this->erfolg('Zur Turnierleitung ernannt.');
+        $this->erfolg(t('Zur Turnierleitung ernannt.'));
         return $this->weiter("turnier/$id/leitung");
     }
 
@@ -49,7 +49,7 @@ final class TurnierleitungController extends Controller
     {
         $this->turnier($id);
         (new Konten($this->db))->turnierleitungEntfernen($id, $benutzerid, (int) (Session::benutzer()['id'] ?? 0), Session::istAdmin());
-        $this->erfolg('Turnierleitung entzogen.');
+        $this->erfolg(t('Turnierleitung entzogen.'));
         return $this->weiter("turnier/$id/leitung");
     }
 }

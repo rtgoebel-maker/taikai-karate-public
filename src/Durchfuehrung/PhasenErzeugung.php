@@ -44,7 +44,7 @@ final class PhasenErzeugung
     {
         $n = count($starter);
         if ($n === 0) {
-            throw new FachFehler("Klasse {$klasse['code']} hat keine Starter.");
+            throw new FachFehler(t('Klasse {code} hat keine Starter.', ['code' => $klasse['code']]));
         }
         $this->regeln = $this->db->alle('SELECT * FROM klasse_regel WHERE klasse_id = ?', [$klasse['id']]);
         $trennung = (bool) $klasse['dojo_trennung'];
@@ -274,7 +274,19 @@ final class PhasenErzeugung
         return $daten;
     }
 
-    /** Pools mit Buchstaben: Pool A, Pool B, … (ab dem 27. Pool mit Nummer) */
+    /**
+     * Anzeige einer (deutsch gespeicherten) Phasenbezeichnung in der aktuellen Sprache: „Pool A“, „Finalrunde“,
+     * „Finale“, „Vorrunde“, „Jeder gegen jeden“, „Kampflos“, „K.-o.-Runde“ (Katalog); Unbekanntes bleibt.
+     */
+    public static function bezeichnungText(string $bezeichnung): string
+    {
+        if (preg_match('/^Pool (\w+)$/u', $bezeichnung, $m)) {
+            return t('Pool {name}', ['name' => $m[1]]);
+        }
+        return \Wettkampf\Kern\Sprache::t($bezeichnung);
+    }
+
+    /** Pools mit Buchstaben: Pool A, Pool B, … (ab dem 27. Pool mit Nummer) – gespeichert wird Deutsch. */
     public static function poolName(int $index): string
     {
         return 'Pool ' . ($index < 26 ? chr(65 + $index) : (string) ($index + 1));

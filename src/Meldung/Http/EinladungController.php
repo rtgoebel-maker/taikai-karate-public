@@ -49,19 +49,21 @@ final class EinladungController extends Controller
     public function loeschen(Request $request, int $einladungid): Response
     {
         $this->app->einladungen()->widerrufen($einladungid, 'Administration');
-        $this->erfolg('Eintrag gelöscht – diese Adresse erhält keine Einladungen mehr.');
+        $this->erfolg(t('Eintrag gelöscht – diese Adresse erhält keine Einladungen mehr.'));
         return $this->weiter('einladungen');
     }
 
     public function senden(Request $request, int $id): Response
     {
         $turnier = $this->turnier($id);
-        $post = $this->app->postausgang() ?? throw new FachFehler('Für Einladungen bitte zuerst den E-Mail-Versand einrichten (System → E-Mail-Versand).');
+        $post = $this->app->postausgang() ?? throw new FachFehler(t('Für Einladungen bitte zuerst den E-Mail-Versand einrichten (System → E-Mail-Versand).'));
         $schluessel = (new AnmeldungService($this->db))->anmeldeSchluessel($id);
         $ds = (json_decode((string) $turnier['einstellungen'], true) ?: [])['datenschutz'] ?? [];
         $veranstalter = trim(explode("\n", is_array($ds) ? (string) ($ds['verantwortlicher'] ?? '') : '')[0]);
         $anzahl = $this->app->einladungen()->senden($turnier, "melden/$schluessel", "melden/$schluessel/datenschutz", $veranstalter, $post);
-        $this->erfolg("Einladung zu „{$turnier['name']}“ an $anzahl " . ($anzahl === 1 ? 'Adresse' : 'Adressen') . ' in den Versand gegeben.');
+        $this->erfolg($anzahl === 1
+            ? t('Einladung zu „{name}“ an {n} Adresse in den Versand gegeben.', ['name' => $turnier['name'], 'n' => $anzahl])
+            : t('Einladung zu „{name}“ an {n} Adressen in den Versand gegeben.', ['name' => $turnier['name'], 'n' => $anzahl]));
         return $this->weiter('einladungen');
     }
 
@@ -75,7 +77,7 @@ final class EinladungController extends Controller
     {
         $einladungen = $this->app->einladungen();
         if ($einladungen->perToken($einladungid, $token) === null) {
-            throw new NichtGefunden('Dieser Abmeldelink ist ungültig oder die Adresse ist bereits abgemeldet.');
+            throw new NichtGefunden(t('Dieser Abmeldelink ist ungültig oder die Adresse ist bereits abgemeldet.'));
         }
         $einladungen->widerrufen($einladungid, 'Abmeldelink');
         return Response::html($this->app->view->render('einladung/abmelden', ['eintrag' => null, 'erledigt' => true, 'ziel' => '']));

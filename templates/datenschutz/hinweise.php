@@ -1,18 +1,22 @@
 <?php
 /**
  * Öffentliche Datenschutzhinweise eines Turniers (Art. 13/14 DSGVO), erreichbar über den Anmeldelink bzw. die Statusseite.
+ * Auf Englisch mit dem Hinweis, dass die deutsche Fassung vorgeht.
  * @var array<string, mixed> $turnier
  * @var list<array{titel: string, absaetze: list<string>, punkte: list<string>}> $abschnitte
  * @var bool $vollstaendig
  * @var string $zurueck
  */
-$this->layout('layout_einfach', ['titel' => 'Datenschutz · ' . $turnier['name']]);
+$this->layout('layout_einfach', ['titel' => t('Datenschutz · {turnier}', ['turnier' => $turnier['name']])]);
 ?>
 <p class="obertitel"><a href="<?= e($zurueck) ?>"><?= e($turnier['name']) ?></a></p>
-<h1>Datenschutzhinweise zum Turnier</h1>
+<h1><?= te('Datenschutzhinweise zum Turnier') ?></h1>
 <p class="leise"><?= e($turnier['name']) ?> · <?= e(datum_de((string) $turnier['datum'])) ?><?= $turnier['ort'] ? ' · ' . e($turnier['ort']) : '' ?></p>
+<?php if (sprache() === 'en'): ?>
+    <div class="meldung meldung-hinweis"><strong>In case of discrepancies, the German version prevails.</strong></div>
+<?php endif; ?>
 <?php if (!$vollstaendig): ?>
-    <div class="meldung meldung-hinweis">Der Veranstalter hat die Angaben zum Datenschutz noch nicht vollständig eingetragen.</div>
+    <div class="meldung meldung-hinweis"><?= te('Der Veranstalter hat die Angaben zum Datenschutz noch nicht vollständig eingetragen.') ?></div>
 <?php endif; ?>
 <?php foreach ($abschnitte as $a): ?>
     <section class="hinweis-abschnitt">

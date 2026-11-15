@@ -35,17 +35,17 @@ final class Pseudonymisierung
      */
     public function turnier(int $turnierId, string $eigeneInstanz): array
     {
-        $turnier = $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler('Turnier nicht gefunden.');
+        $turnier = $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler(t('Turnier nicht gefunden.'));
         $e = DatenschutzEinstellungen::lesen($turnier);
         if ($e['pseudonymisiert_am'] !== null) {
-            throw new FachFehler('Dieses Turnier ist bereits pseudonymisiert (' . date('d.m.Y', (int) strtotime($e['pseudonymisiert_am'])) . ').');
+            throw new FachFehler(t('Dieses Turnier ist bereits pseudonymisiert ({datum}).', ['datum' => datum_de(date('Y-m-d', (int) strtotime($e['pseudonymisiert_am'])))]));
         }
         if ((string) $turnier['datum'] >= date('Y-m-d')) {
-            throw new FachFehler('Pseudonymisieren geht erst nach dem Turniertag.');
+            throw new FachFehler(t('Pseudonymisieren geht erst nach dem Turniertag.'));
         }
         $fuehrung = (string) ($turnier['fuehrung_instanz'] ?? '');
         if ($fuehrung !== '' && !hash_equals($eigeneInstanz, $fuehrung)) {
-            throw new FachFehler('Das Turnier wird gerade von einer anderen Installation geführt (Hallen-Laptop) – erst nach der Rückgabe pseudonymisieren.');
+            throw new FachFehler(t('Das Turnier wird gerade von einer anderen Installation geführt (Hallen-Laptop) – erst nach der Rückgabe pseudonymisieren.'));
         }
 
         return $this->db->transaktion(function () use ($turnierId, $e): array {
@@ -184,7 +184,7 @@ final class Pseudonymisierung
             $this->db->update('athlet', $felder, ['id' => $athletId]);
             return;
         }
-        $a = $this->db->eine('SELECT * FROM athlet WHERE id = ?', [$athletId]) ?? throw new FachFehler('Teilnehmer nicht gefunden.');
+        $a = $this->db->eine('SELECT * FROM athlet WHERE id = ?', [$athletId]) ?? throw new FachFehler(t('Teilnehmer nicht gefunden.'));
         $neu = $this->db->insert('athlet', $felder + [
             'uuid' => Uuid::v4(),
             'vorname' => $a['vorname'], 'nachname' => $a['nachname'],

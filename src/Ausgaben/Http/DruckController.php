@@ -38,9 +38,9 @@ final class DruckController extends Controller
         $turnier = $this->turnier($id);
         $ansicht = (new KlassenAnsicht($this->db))->laden($klasseid);
         if ((int) $ansicht['klasse']['turnier_id'] !== $id) {
-            throw new NichtGefunden('Klasse nicht gefunden.');
+            throw new NichtGefunden(t('Klasse nicht gefunden.'));
         }
-        return $this->druck('druck/baeume', 'Turnierbaum ' . $ansicht['klasse']['code'], $turnier, ['klassen' => [$ansicht]]);
+        return $this->druck('druck/baeume', t('Turnierbaum {code}', ['code' => $ansicht['klasse']['code']]), $turnier, ['klassen' => [$ansicht]]);
     }
 
     /** Bäume aller (oder ausgewählter) ausgeloster Klassen. */
@@ -62,7 +62,7 @@ final class DruckController extends Controller
                 $klassen[] = $k;
             }
         }
-        return $this->druck('druck/baeume', 'Turnierbäume', $turnier, ['klassen' => $klassen]);
+        return $this->druck('druck/baeume', t('Turnierbäume'), $turnier, ['klassen' => $klassen]);
     }
 
     /**
@@ -81,7 +81,7 @@ final class DruckController extends Controller
             }
             $saetze[] = ['k' => $k, 'bloecke' => $bloecke];
         }
-        return $this->druck('druck/notfall', 'Notfall-Satz (' . count($saetze) . ' Klassen)', $turnier, ['saetze' => $saetze]);
+        return $this->druck('druck/notfall', t('Notfall-Satz ({n} Klassen)', ['n' => count($saetze)]), $turnier, ['saetze' => $saetze]);
     }
 
     /** Aushang: Bäume und Pool-Listen groß, je Klasse ein Blatt – ersetzt die Statusseite. */
@@ -89,7 +89,7 @@ final class DruckController extends Controller
     {
         $turnier = $this->turnier($id);
         $format = $request->get('format') === 'a3' ? 'a3' : 'a4';
-        return $this->druck('druck/baeume', 'Aushang', $turnier, ['klassen' => $this->ausgewaehlteKlassen($request, $id), 'aushang' => $format]);
+        return $this->druck('druck/baeume', t('Aushang'), $turnier, ['klassen' => $this->ausgewaehlteKlassen($request, $id), 'aushang' => $format]);
     }
 
     /** @return list<array<string, mixed>> Lesemodelle der gewählten (sonst aller ausgelosten) Klassen */
@@ -142,7 +142,7 @@ final class DruckController extends Controller
                 }
             }
         }
-        return $this->druck('druck/kampfliste', 'Kampfliste ' . $tatami['bezeichnung'], $turnier, ['tatami' => $tatami, 'bloecke' => $bloecke]);
+        return $this->druck('druck/kampfliste', t('Kampfliste {tatami}', ['tatami' => $tatami['bezeichnung']]), $turnier, ['tatami' => $tatami, 'bloecke' => $bloecke]);
     }
 
     public function ergebnisse(Request $request, int $id): Response
@@ -153,7 +153,7 @@ final class DruckController extends Controller
             static fn($kid) => $ansicht->laden((int) $kid),
             $this->db->spalte("SELECT id FROM klasse WHERE turnier_id = ? AND status IN ('laeuft', 'beendet', 'bestaetigt') ORDER BY sortierung, code", [$id]),
         );
-        return $this->druck('druck/ergebnisse', 'Ergebnisliste', $turnier, ['klassen' => $klassen]);
+        return $this->druck('druck/ergebnisse', t('Ergebnisliste'), $turnier, ['klassen' => $klassen]);
     }
 
     public function siegerliste(Request $request, int $id): Response
@@ -175,7 +175,7 @@ final class DruckController extends Controller
             );
             $klassen[] = $k;
         }
-        return $this->druck('druck/siegerliste', 'Siegerliste', $turnier, ['klassen' => $klassen, 'alle' => $alle]);
+        return $this->druck('druck/siegerliste', t('Siegerliste'), $turnier, ['klassen' => $klassen, 'alle' => $alle]);
     }
 
     /**
@@ -210,8 +210,8 @@ final class DruckController extends Controller
             }
         }
         if ($klasseId && $urkunden === []) {
-            $klasse = $this->db->eine('SELECT code, status FROM klasse WHERE id = ? AND turnier_id = ?', [$klasseId, $id]) ?? throw new NichtGefunden('Klasse nicht gefunden.');
-            throw new \Wettkampf\Domain\FachFehler("Für Klasse {$klasse['code']} gibt es noch keine Urkunden – bitte zuerst die Platzierungen bestätigen.");
+            $klasse = $this->db->eine('SELECT code, status FROM klasse WHERE id = ? AND turnier_id = ?', [$klasseId, $id]) ?? throw new NichtGefunden(t('Klasse nicht gefunden.'));
+            throw new \Wettkampf\Domain\FachFehler(t('Für Klasse {code} gibt es noch keine Urkunden – bitte zuerst die Platzierungen bestätigen.', ['code' => $klasse['code']]));
         }
         $einstellungen = $this->urkundenEinstellungen($turnier);
         $logos = [];
@@ -227,11 +227,11 @@ final class DruckController extends Controller
         ]);
         return Response::html($this->app->view->render('druck/layout', [
             'inhalt' => $inhalt,
-            'titel' => 'Urkunden (' . count($urkunden) . ')',
+            'titel' => t('Urkunden ({n})', ['n' => count($urkunden)]),
             'turnier' => $turnier,
             'zusatz' => $request->get('vordruck') === '1'
-                ? '<a href="' . e(url("turnier/$id/druck/urkunden", array_filter(['klasse' => $klasseId]))) . '">mit Gestaltung</a>'
-                : '<a href="' . e(url("turnier/$id/druck/urkunden", array_filter(['klasse' => $klasseId, 'vordruck' => 1]))) . '">nur Text (Vordruck)</a>',
+                ? '<a href="' . e(url("turnier/$id/druck/urkunden", array_filter(['klasse' => $klasseId]))) . '">' . te('mit Gestaltung') . '</a>'
+                : '<a href="' . e(url("turnier/$id/druck/urkunden", array_filter(['klasse' => $klasseId, 'vordruck' => 1]))) . '">' . te('nur Text (Vordruck)') . '</a>',
         ]));
     }
 
@@ -239,7 +239,7 @@ final class DruckController extends Controller
     public function logo(Request $request, int $id, string $art): Response
     {
         $this->turnier($id);
-        $bild = (new LogoService($this->db))->bild($id, $art) ?? throw new NichtGefunden('Logo nicht gefunden.');
+        $bild = (new LogoService($this->db))->bild($id, $art) ?? throw new NichtGefunden(t('Logo nicht gefunden.'));
         return new Response($bild['inhalt'], 200, [
             'Content-Type' => $bild['mime'],
             'Cache-Control' => 'private, max-age=86400',
@@ -264,15 +264,17 @@ final class DruckController extends Controller
             $datei = $request->files["logo_$art"] ?? null;
             if (is_array($datei) && ($datei['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
                 $logos->speichern($id, $art, (string) $datei['tmp_name']);
-                $geaendert[] = $name;
+                $geaendert[] = \Wettkampf\Kern\Sprache::t($name);
             } elseif (is_array($datei) && in_array($datei['error'] ?? 0, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)) {
-                throw new \Wettkampf\Domain\FachFehler("$name: Datei ist zu groß (max. " . intdiv(LogoService::maxBytes($art), 1024 * 1024) . ' MB bzw. die Grenze des Servers).');
+                throw new \Wettkampf\Domain\FachFehler(t('{name}: Datei ist zu groß (max. {mb} MB bzw. die Grenze des Servers).', [
+                    'name' => \Wettkampf\Kern\Sprache::t($name), 'mb' => intdiv(LogoService::maxBytes($art), 1024 * 1024),
+                ]));
             } elseif (in_array($art, (array) $request->post('logo_entfernen', []), true)) {
                 $logos->entfernen($id, $art);
-                $geaendert[] = "$name entfernt";
+                $geaendert[] = t('{name} entfernt', ['name' => \Wettkampf\Kern\Sprache::t($name)]);
             }
         }
-        $this->erfolg('Urkunden gespeichert.' . ($geaendert ? ' ' . implode(', ', $geaendert) . '.' : ''));
+        $this->erfolg(t('Urkunden gespeichert.') . ($geaendert ? ' ' . implode(', ', $geaendert) . '.' : ''));
         return $this->weiter("turnier/$id/druck");
     }
 
@@ -285,8 +287,8 @@ final class DruckController extends Controller
         $u = (json_decode((string) ($turnier['einstellungen'] ?? ''), true) ?: [])['urkunde'] ?? [];
         return [
             'untertitel' => (string) ($u['untertitel'] ?? ''),
-            'unterschrift_links' => (string) (($u['unterschrift_links'] ?? '') ?: 'Wettkampfleitung'),
-            'unterschrift_rechts' => (string) (($u['unterschrift_rechts'] ?? '') ?: 'Veranstalter'),
+            'unterschrift_links' => (string) (($u['unterschrift_links'] ?? '') ?: t('Wettkampfleitung')),
+            'unterschrift_rechts' => (string) (($u['unterschrift_rechts'] ?? '') ?: t('Veranstalter')),
         ];
     }
 
@@ -296,17 +298,17 @@ final class DruckController extends Controller
         $turnier = $this->turnier($id);
         $vereine = [];
         foreach ($this->db->alle(
-            "SELECT t.startnummer, a.vorname, a.nachname, a.graduierung, COALESCE(v.name, 'ohne Verein') AS verein,
+            "SELECT t.startnummer, a.vorname, a.nachname, a.graduierung, COALESCE(v.name, ?) AS verein,
                     (SELECT GROUP_CONCAT(k.code) FROM start s JOIN klasse k ON k.id = s.klasse_id
                       WHERE s.teilnahme_id = t.id AND s.status <> 'zurueckgezogen') AS klassen
                FROM teilnahme t JOIN athlet a ON a.id = t.athlet_id LEFT JOIN verein v ON v.id = a.verein_id
               WHERE t.turnier_id = ? AND t.status NOT IN ('abgemeldet', 'nicht_erschienen')
               ORDER BY verein, a.nachname, a.vorname",
-            [$id],
+            [t('ohne Verein'), $id],
         ) as $z) {
             $vereine[$z['verein']][] = $z;
         }
-        return $this->druck('druck/vereine', 'Starter nach Verein', $turnier, ['vereine' => $vereine]);
+        return $this->druck('druck/vereine', t('Starter nach Verein'), $turnier, ['vereine' => $vereine]);
     }
 
     /** @param array<string, mixed> $turnier @param array<string, mixed> $daten */

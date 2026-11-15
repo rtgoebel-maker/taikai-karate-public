@@ -108,7 +108,7 @@ final class CoachService
                 return $t;
             }
         }
-        throw new NichtGefunden('Turnier nicht gefunden oder im Coaching-Portal nicht freigegeben.');
+        throw new NichtGefunden(t('Turnier nicht gefunden oder im Coaching-Portal nicht freigegeben.'));
     }
 
     /**
@@ -208,7 +208,7 @@ final class CoachService
         );
         return $a === null ? null : [
             'typ' => 'auftritt', 'id' => (int) $a['id'], 'tatami_id' => $a['tatami_id'] === null ? null : (int) $a['tatami_id'],
-            'tatami' => $a['tatami'], 'runde' => $a['phase'] . ' · Vortrag ' . $a['reihenfolge'], 'status' => 'offen', 'gegner' => null, 'seite' => 'starter',
+            'tatami' => $a['tatami'], 'runde' => t('{runde} · Vortrag {nr}', ['runde' => $a['phase'], 'nr' => $a['reihenfolge']]), 'status' => 'offen', 'gegner' => null, 'seite' => 'starter',
         ];
     }
 
@@ -301,7 +301,7 @@ final class CoachService
         ) as $a) {
             $kaempfe[] = $nachId[(int) $a['start_id']] + [
                 'runde' => $a['phase'], 'seite' => 'starter', 'gegner' => null, 'sieg' => null,
-                'ergebnis' => $a['kata'] === 'Kiken' ? 'Kiken' : str_replace('.', ',', sprintf('%.1f', (float) $a['gesamt'])) . ' Punkte' . ($a['kata'] ? ' · ' . $a['kata'] : ''),
+                'ergebnis' => $a['kata'] === 'Kiken' ? 'Kiken' : t('{punkte} Punkte', ['punkte' => self::zahl((float) $a['gesamt'])]) . ($a['kata'] ? ' · ' . $a['kata'] : ''),
                 'am' => $a['beendet_am'],
             ];
         }
@@ -319,15 +319,24 @@ final class CoachService
     {
         $gegner = $seite === 'aka' ? 'shiro' : 'aka';
         return match (true) {
-            in_array($entscheidung, ['kiken', 'hansoku', 'shikkaku'], true) => ucfirst($entscheidung) . (($w['gegen'] ?? '') === $seite ? ' gegen uns' : ' des Gegners'),
-            isset($w['summe']) => sprintf('%d : %d Einzelsiege', $w['summe'][$seite]['siege'] ?? 0, $w['summe'][$gegner]['siege'] ?? 0),
+            in_array($entscheidung, ['kiken', 'hansoku', 'shikkaku'], true) => ($w['gegen'] ?? '') === $seite
+                ? t('{entscheidung} gegen uns', ['entscheidung' => ucfirst($entscheidung)])
+                : t('{entscheidung} des Gegners', ['entscheidung' => ucfirst($entscheidung)]),
+            isset($w['summe']) => t('{a} : {b} Einzelsiege', ['a' => (int) ($w['summe'][$seite]['siege'] ?? 0), 'b' => (int) ($w['summe'][$gegner]['siege'] ?? 0)]),
             isset($w[$seite]['ippon']) => self::kumiteText($w[$seite]) . ' : ' . self::kumiteText($w[$gegner] ?? [])
                 . (!empty($w['saishiai']) ? ' (Saishiai)' : '')
                 . (isset($w['flaggen']) ? sprintf(' · Hantei %d : %d', $w['flaggen'][$seite] ?? 0, $w['flaggen'][$gegner] ?? 0) : ''),
-            isset($w[$seite]['werte']) => str_replace('.', ',', sprintf('%.1f : %.1f Punkte', $w[$seite]['gesamt'] ?? 0, $w[$gegner]['gesamt'] ?? 0)),
-            isset($w['flaggen']) => sprintf('%d : %d Flaggen', $w['flaggen'][$seite] ?? 0, $w['flaggen'][$gegner] ?? 0),
+            isset($w[$seite]['werte']) => t('{a} : {b} Punkte', ['a' => self::zahl((float) ($w[$seite]['gesamt'] ?? 0)), 'b' => self::zahl((float) ($w[$gegner]['gesamt'] ?? 0))]),
+            isset($w['flaggen']) => t('{a} : {b} Flaggen', ['a' => (int) ($w['flaggen'][$seite] ?? 0), 'b' => (int) ($w['flaggen'][$gegner] ?? 0)]),
             default => $entscheidung,
         };
+    }
+
+    /** Punktzahl mit einer Nachkommastelle: 7,5 bzw. 7.5 */
+    private static function zahl(float $wert): string
+    {
+        $text = sprintf('%.1f', $wert);
+        return \Wettkampf\Kern\Sprache::aktuell() === 'en' ? $text : str_replace('.', ',', $text);
     }
 
     /**
@@ -371,20 +380,20 @@ final class CoachService
         $begruendung = trim((string) ($daten['begruendung'] ?? ''));
         $teilnahme = (int) ($daten['teilnahme_id'] ?? 0);
         if (!isset(self::ANTRAG_ARTEN[$art])) {
-            throw new FachFehler('Bitte die Art der Korrektur wählen.');
+            throw new FachFehler(t('Bitte die Art der Korrektur wählen.'));
         }
         if ($neu === '' || mb_strlen($neu) > 200) {
-            throw new FachFehler('Bitte die gewünschte Korrektur angeben (höchstens 200 Zeichen).');
+            throw new FachFehler(t('Bitte die gewünschte Korrektur angeben (höchstens 200 Zeichen).'));
         }
         if ($begruendung === '' || mb_strlen($begruendung) > 500) {
-            throw new FachFehler('Bitte eine Begründung angeben (höchstens 500 Zeichen).');
+            throw new FachFehler(t('Bitte eine Begründung angeben (höchstens 500 Zeichen).'));
         }
         // nur eigene Teilnehmer dieses Turniers (BOLA)
         if ($teilnahme !== 0 && !in_array($teilnahme, array_column($this->teilnehmer($turnierId, $vereinId), 'id'), true)) {
-            throw new NichtGefunden('Teilnehmer nicht gefunden.');
+            throw new NichtGefunden(t('Teilnehmer nicht gefunden.'));
         }
         if ($teilnahme === 0 && $art !== 'sonstiges') {
-            throw new FachFehler('Bitte den Teilnehmer wählen.');
+            throw new FachFehler(t('Bitte den Teilnehmer wählen.'));
         }
         // höchstens MAX_ANTRAEGE_JE_STUNDE je Dojo (OWASP A06); gezählt wird nur, was gespeichert wurde
         $drossel = new Drossel($this->db);
@@ -428,10 +437,10 @@ final class CoachService
     public function antragBearbeiten(int $turnierId, int $antragId, string $status, string $antwort, string $von): void
     {
         if ($this->db->wert('SELECT id FROM korrekturantrag WHERE id = ? AND turnier_id = ?', [$antragId, $turnierId]) === null) {
-            throw new NichtGefunden('Antrag nicht gefunden.');
+            throw new NichtGefunden(t('Antrag nicht gefunden.'));
         }
         if (!in_array($status, ['angenommen', 'abgelehnt', 'offen'], true)) {
-            throw new FachFehler('Ungültiger Status.');
+            throw new FachFehler(t('Ungültiger Status.'));
         }
         $this->db->update('korrekturantrag', [
             'status' => $status,

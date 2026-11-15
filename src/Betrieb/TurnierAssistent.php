@@ -6,6 +6,7 @@ namespace Wettkampf\Betrieb;
 
 use Wettkampf\Domain\TurnierPhase;
 use Wettkampf\Kern\Db\Database;
+use Wettkampf\Kern\Sprache;
 use Wettkampf\Meldung\AnmeldungService;
 use Wettkampf\Meldung\RechnungService;
 
@@ -16,7 +17,7 @@ use Wettkampf\Meldung\RechnungService;
  */
 final class TurnierAssistent
 {
-    /** Schritt => [Titel, Kurzbeschreibung] */
+    /** Schritt => [Titel, Kurzbeschreibung] (deutsch; übersetzt beim Anzeigen mit t(), Einträge in lang/en/turnier.php) */
     public const SCHRITTE = [
         'grunddaten' => ['Grunddaten', 'Name, Datum, Ort, Tatamis, Meldeschluss'],
         'klassen' => ['Klassen', 'Altersklassen und Disziplinen aus einer Vorlage'],
@@ -67,28 +68,28 @@ final class TurnierAssistent
         $phase = TurnierPhase::von($turnier);
 
         return [
-            'grunddaten' => ['erledigt' => true, 'text' => (string) ($turnier['name'] ?? '') . ' · ' . (int) ($turnier['anzahl_tatamis'] ?? 0) . ' Tatamis'
-                . (!empty($turnier['meldeschluss']) ? ' · Meldeschluss ' . date('d.m.Y', (int) strtotime($turnier['meldeschluss'])) : ' · ohne Meldeschluss')],
-            'klassen' => ['erledigt' => $klassen > 0, 'text' => $klassen > 0 ? "$klassen Klassen" : 'noch keine Klassen'],
+            'grunddaten' => ['erledigt' => true, 'text' => (string) ($turnier['name'] ?? '') . ' · ' . t('{n} Tatamis', ['n' => (int) ($turnier['anzahl_tatamis'] ?? 0)])
+                . (!empty($turnier['meldeschluss']) ? ' · ' . t('Meldeschluss {datum}', ['datum' => Sprache::datum(date('Y-m-d', (int) strtotime($turnier['meldeschluss'])))]) : ' · ' . t('ohne Meldeschluss'))],
+            'klassen' => ['erledigt' => $klassen > 0, 'text' => $klassen > 0 ? t('{n} Klassen', ['n' => $klassen]) : t('noch keine Klassen')],
             'tatamis' => [
                 'erledigt' => $ohnePin === 0 && $tatamis !== [] && !empty($turnier['leitung_pin_hash']),
-                'text' => ($ohnePin === 0 ? 'alle Tatami-PINs gesetzt' : "$ohnePin Tatami(s) ohne PIN") . ' · ' . (empty($turnier['leitung_pin_hash']) ? 'Leitungs-PIN fehlt' : 'Leitungs-PIN gesetzt'),
+                'text' => ($ohnePin === 0 ? t('alle Tatami-PINs gesetzt') : t('{n} Tatami(s) ohne PIN', ['n' => $ohnePin])) . ' · ' . (empty($turnier['leitung_pin_hash']) ? t('Leitungs-PIN fehlt') : t('Leitungs-PIN gesetzt')),
             ],
             'anmeldung' => [
                 'erledigt' => isset($e['anmeldung']),
-                'text' => isset($e['anmeldung']) ? ($mitStartgeld ? 'Startgeld festgelegt' : 'ohne Startgeld') : 'noch nicht eingestellt',
+                'text' => isset($e['anmeldung']) ? ($mitStartgeld ? t('Startgeld festgelegt') : t('ohne Startgeld')) : t('noch nicht eingestellt'),
             ],
             'zahlung' => [
                 'erledigt' => $mitStartgeld ? ($zahlung['absender'] !== '' && $zahlung['bank'] !== '') : null,
-                'text' => !$mitStartgeld ? 'entfällt (kein Startgeld)' : ($zahlung['bank'] !== '' ? 'Bankverbindung hinterlegt' : 'Bankverbindung fehlt'),
+                'text' => !$mitStartgeld ? t('entfällt (kein Startgeld)') : ($zahlung['bank'] !== '' ? t('Bankverbindung hinterlegt') : t('Bankverbindung fehlt')),
             ],
             'portal' => [
                 'erledigt' => $coach !== null,
-                'text' => $coach === null ? 'noch nicht eingestellt' : (!empty($coach['aktiv']) ? 'freigegeben' : 'ausgeschaltet'),
+                'text' => $coach === null ? t('noch nicht eingestellt') : (!empty($coach['aktiv']) ? t('freigegeben') : t('ausgeschaltet')),
             ],
             'fertig' => [
                 'erledigt' => $phase !== TurnierPhase::VORBEREITUNG,
-                'text' => 'Phase: ' . TurnierPhase::text($phase),
+                'text' => t('Phase: {phase}', ['phase' => TurnierPhase::text($phase)]),
             ],
         ];
     }

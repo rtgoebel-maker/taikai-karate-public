@@ -14,11 +14,11 @@
         <h1><?= e($ueberschrift) ?></h1>
     </div>
     <?php if (!empty($tatamiFeld)): ?>
-        <div class="tatami-feld">Tatami<span class="feld-linie"></span><?php if (!empty($plan)): ?><span class="plan">laut Plan: <?= e($plan) ?></span><?php endif; ?></div>
+        <div class="tatami-feld"><?= te('Tatami') ?><span class="feld-linie"></span><?php if (!empty($plan)): ?><span class="plan"><?= te('laut Plan: {plan}', ['plan' => $plan]) ?></span><?php endif; ?></div>
     <?php endif; ?>
     <div class="rechts">
         <?= e(datum_de($turnier['datum'])) ?><?= $turnier['ort'] ? ' · ' . e($turnier['ort']) : '' ?><br>
         <?= e($zusatz ?? '') ?><br>
-        <span class="klein">Stand: <?= date('d.m.Y H:i') ?></span>
+        <span class="klein"><?= te('Stand: {zeit}', ['zeit' => date('d.m.Y H:i')]) ?></span>
     </div>
 </div>

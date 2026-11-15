@@ -20,8 +20,8 @@ final class TabellenLeser
         return match ($endung) {
             'csv', 'txt' => self::csv((string) file_get_contents($pfad)),
             'xlsx' => self::xlsx($pfad),
-            'xls' => throw new FachFehler('Das alte Excel-Format .xls wird nicht unterstützt. Bitte als .xlsx oder .csv speichern.'),
-            default => throw new FachFehler('Bitte eine CSV- oder XLSX-Datei hochladen.'),
+            'xls' => throw new FachFehler(t('Das alte Excel-Format .xls wird nicht unterstützt. Bitte als .xlsx oder .csv speichern.')),
+            default => throw new FachFehler(t('Bitte eine CSV- oder XLSX-Datei hochladen.')),
         };
     }
 
@@ -65,17 +65,17 @@ final class TabellenLeser
     public static function xlsx(string $pfad): array
     {
         if (!class_exists(ZipArchive::class)) {
-            throw new FachFehler('Für XLSX-Dateien wird die PHP-Erweiterung „zip“ benötigt. Alternativ als CSV speichern.');
+            throw new FachFehler(t('Für XLSX-Dateien wird die PHP-Erweiterung „zip“ benötigt. Alternativ als CSV speichern.'));
         }
         $zip = new ZipArchive();
         if ($zip->open($pfad) !== true) {
-            throw new FachFehler('Die XLSX-Datei konnte nicht geöffnet werden.');
+            throw new FachFehler(t('Die XLSX-Datei konnte nicht geöffnet werden.'));
         }
         try {
             $strings = self::sharedStrings($zip->getFromName('xl/sharedStrings.xml') ?: null);
             $blatt = $zip->getFromName(self::erstesBlatt($zip));
             if ($blatt === false) {
-                throw new FachFehler('In der XLSX-Datei wurde keine Tabelle gefunden.');
+                throw new FachFehler(t('In der XLSX-Datei wurde keine Tabelle gefunden.'));
             }
             return self::blattLesen($blatt, $strings);
         } finally {
@@ -176,7 +176,7 @@ final class TabellenLeser
     {
         $xml = simplexml_load_string($inhalt, \SimpleXMLElement::class, LIBXML_NONET);
         if ($xml === false) {
-            throw new FachFehler('Die Datei enthält ungültiges XML.');
+            throw new FachFehler(t('Die Datei enthält ungültiges XML.'));
         }
         return $xml;
     }

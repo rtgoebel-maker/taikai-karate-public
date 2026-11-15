@@ -4,9 +4,10 @@
  * @var string $html
  * @var string $version
  */
-$this->layout('layout', ['titel' => 'Changelog', 'aktiv' => 'ueber']);
+$this->layout('layout', ['titel' => t('Changelog'), 'aktiv' => 'ueber']);
 ?>
-<p class="obertitel"><a href="<?= e(url('ueber')) ?>">Über diese Software</a> · installiert: <code><?= e($version) ?></code></p>
+<p class="obertitel"><a href="<?= e(url('ueber')) ?>"><?= te('Über diese Software') ?></a> · <?= te('installiert:') ?> <code><?= e($version) ?></code></p>
+<?php if (sprache() !== 'de'): ?><div class="meldung meldung-hinweis"><?= te('Der Changelog ist nur auf Deutsch verfügbar.') ?></div><?php endif; ?>
 <article class="karte markdown">
     <?= $html ?>
 </article>

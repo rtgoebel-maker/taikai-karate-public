@@ -41,18 +41,18 @@ final class RechnungService
     /** @param array<string, mixed> $daten */
     public function einstellungenSpeichern(int $turnierId, array $daten): void
     {
-        $turnier = $this->db->eine('SELECT einstellungen FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler('Turnier nicht gefunden.');
+        $turnier = $this->db->eine('SELECT einstellungen FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler(t('Turnier nicht gefunden.'));
         $datum = trim((string) ($daten['datum'] ?? ''));
         if ($datum !== '' && (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $datum) || strtotime($datum) === false)) {
-            throw new FachFehler('Ungültiges Rechnungsdatum.');
+            throw new FachFehler(t('Ungültiges Rechnungsdatum.'));
         }
         $ziel = (int) ($daten['zahlungsziel'] ?? 14);
         if ($ziel < 0 || $ziel > 365) {
-            throw new FachFehler('Das Zahlungsziel muss zwischen 0 und 365 Tagen liegen.');
+            throw new FachFehler(t('Das Zahlungsziel muss zwischen 0 und 365 Tagen liegen.'));
         }
         $praefix = trim((string) ($daten['praefix'] ?? ''));
         if (!preg_match('/^[A-Za-z0-9 ._\/-]{0,20}$/', $praefix)) {
-            throw new FachFehler('Das Präfix der Rechnungsnummer darf nur Buchstaben, Ziffern und . _ / - enthalten (höchstens 20 Zeichen).');
+            throw new FachFehler(t('Das Präfix der Rechnungsnummer darf nur Buchstaben, Ziffern und . _ / - enthalten (höchstens 20 Zeichen).'));
         }
         $neu = [
             'absender' => mb_substr(trim((string) ($daten['absender'] ?? '')), 0, 500),
@@ -125,7 +125,7 @@ final class RechnungService
             ];
         }
         if ($vereinId !== null && $liste === []) {
-            throw new FachFehler('Für dieses Dojo gibt es in diesem Turnier keine Starts.');
+            throw new FachFehler(t('Für dieses Dojo gibt es in diesem Turnier keine Starts.'));
         }
         return $liste;
     }
@@ -155,7 +155,7 @@ final class RechnungService
     {
         $anmeldungen = new AnmeldungService($this->db);
         if ($anmeldung['status'] === 'abgelehnt' || (int) $anmeldung['aufforderung_cent'] <= 0) {
-            throw new FachFehler('Für diese Anmeldung gibt es keine Rechnung (abgelehnt bzw. kein Startgeld).');
+            throw new FachFehler(t('Für diese Anmeldung gibt es keine Rechnung (abgelehnt bzw. kein Startgeld).'));
         }
         $bezahltVoll = $anmeldungen->stand($anmeldung, $turnier)['bezahlt_voll'];
         $e = $this->einstellungen($turnier);
@@ -200,6 +200,6 @@ final class RechnungService
     /** @return array<string, mixed> */
     private function turnier(int $turnierId): array
     {
-        return $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler('Turnier nicht gefunden.');
+        return $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler(t('Turnier nicht gefunden.'));
     }
 }

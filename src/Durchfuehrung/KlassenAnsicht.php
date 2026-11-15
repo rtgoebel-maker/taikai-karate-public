@@ -31,7 +31,7 @@ final class KlassenAnsicht
             [$klasseId],
         );
         if ($klasse === null) {
-            throw new \Wettkampf\Kern\Http\NichtGefunden('Klasse nicht gefunden.');
+            throw new \Wettkampf\Kern\Http\NichtGefunden(t('Klasse nicht gefunden.'));
         }
         $this->namenLaden($klasseId);
         $this->nummern = self::kampfNummern($this->db, $klasseId);
@@ -109,10 +109,10 @@ final class KlassenAnsicht
         $b['shiro_platzhalter'] = $this->platzhalter($b['shiro_quelle']);
         $b['wertung_daten'] = json_decode((string) $b['wertung'], true) ?: [];
         $b['runden_name'] = $b['art'] === 'jgj'
-            ? 'Runde ' . $b['runde']
+            ? t('Runde {n}', ['n' => $b['runde']])
             : KoBaum::rundenName((int) ($phase['baum_groesse'] ?: 2), (int) $b['runde'], $b['art']);
         if ($phase['typ'] === 'pool' && $b['art'] === 'ko') {
-            $b['runden_name'] = 'Pool-Runde ' . $b['runde'];
+            $b['runden_name'] = t('Pool-Runde {n}', ['n' => $b['runde']]);
         }
         return $b;
     }
@@ -123,13 +123,13 @@ final class KlassenAnsicht
             return '';
         }
         if ($quelle === 'F') {
-            return 'Freilos';
+            return t('Freilos');
         }
         [$typ, $id] = explode(':', $quelle) + [1 => ''];
         $nr = $this->nummern[(int) $id] ?? '?';
         return match ($typ) {
-            'W' => 'Sieger Kampf ' . $nr,
-            'L' => 'Verlierer Kampf ' . $nr,
+            'W' => t('Sieger Kampf {nr}', ['nr' => $nr]),
+            'L' => t('Verlierer Kampf {nr}', ['nr' => $nr]),
             default => '',
         };
     }

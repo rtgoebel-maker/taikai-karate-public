@@ -26,7 +26,7 @@ final class SicherungService
     /** @return array<string, mixed> */
     public function exportieren(int $turnierId): array
     {
-        $turnier = $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler('Turnier nicht gefunden.');
+        $turnier = $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler(t('Turnier nicht gefunden.'));
         $in = static fn(array $ids) => $ids === [] ? '0' : implode(',', array_map('intval', $ids));
 
         $teilnahmen = $this->db->alle('SELECT * FROM teilnahme WHERE turnier_id = ?', [$turnierId]);
@@ -91,7 +91,7 @@ final class SicherungService
             $neu = function (string $tabelle, array $zeile, array $ersetzen = []) use (&$map): int {
                 foreach (array_keys($zeile) as $spalte) {
                     if (!is_string($spalte) || !preg_match('/^[a-z_][a-z0-9_]{0,63}$/', $spalte)) {
-                        throw new FachFehler("Die Sicherung enthält eine ungültige Spalte in $tabelle.");
+                        throw new FachFehler(t('Die Sicherung enthält eine ungültige Spalte in {tabelle}.', ['tabelle' => $tabelle]));
                     }
                 }
                 $altId = (int) $zeile['id'];
@@ -103,7 +103,7 @@ final class SicherungService
                 }
                 foreach ($ersetzen as $spalte => $ziel) {
                     if ($zeile[$spalte] !== null && $zeile[$spalte] !== '') {
-                        $zeile[$spalte] = $map[$ziel][(int) $zeile[$spalte]] ?? throw new FachFehler("Ungültiger Verweis $tabelle.$spalte in der Sicherung.");
+                        $zeile[$spalte] = $map[$ziel][(int) $zeile[$spalte]] ?? throw new FachFehler(t('Ungültiger Verweis {feld} in der Sicherung.', ['feld' => "$tabelle.$spalte"]));
                     }
                 }
                 $id = $this->db->insert($tabelle, $zeile);
@@ -241,7 +241,7 @@ final class SicherungService
     public function sqliteKopie(string $ziel): void
     {
         if ($this->db->driver() !== 'sqlite') {
-            throw new FachFehler('Die Datenbank-Sicherung als Datei gibt es nur für SQLite. Bitte den Turnier-Export verwenden.');
+            throw new FachFehler(t('Die Datenbank-Sicherung als Datei gibt es nur für SQLite. Bitte den Turnier-Export verwenden.'));
         }
         if (is_file($ziel)) {
             unlink($ziel);
@@ -257,7 +257,7 @@ final class SicherungService
         }
         [$typ, $id] = explode(':', $quelle, 2);
         $tabelle = $typ === 'S' ? 'start' : 'begegnung';
-        $neueId = $map[$tabelle][(int) $id] ?? throw new FachFehler("Ungültige Baum-Quelle $quelle in der Sicherung.");
+        $neueId = $map[$tabelle][(int) $id] ?? throw new FachFehler(t('Ungültige Baum-Quelle {quelle} in der Sicherung.', ['quelle' => $quelle]));
         return "$typ:$neueId";
     }
 

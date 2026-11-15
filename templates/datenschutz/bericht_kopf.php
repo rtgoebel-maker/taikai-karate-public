@@ -5,7 +5,7 @@
  * @var string $json Link zum JSON-Download
  */
 ?><!doctype html>
-<html lang="de">
+<html lang="<?= e(sprache()) ?>">
 <head>
     <meta charset="utf-8">
     <title><?= e($titel) ?></title>
@@ -15,7 +15,7 @@
 <body>
 <div class="werkzeug">
     <strong><?= e($titel) ?></strong>
-    <button type="button" data-drucken>Drucken / als PDF speichern</button>
-    <a href="<?= e($json) ?>">Als JSON herunterladen</a>
-    <a href="<?= e(url('datenschutz/auskunft')) ?>">Zur Suche</a>
+    <button type="button" data-drucken><?= te('Drucken / als PDF speichern') ?></button>
+    <a href="<?= e($json) ?>"><?= te('Als JSON herunterladen') ?></a>
+    <a href="<?= e(url('datenschutz/auskunft')) ?>"><?= te('Zur Suche') ?></a>
 </div>

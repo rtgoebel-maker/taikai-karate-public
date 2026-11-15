@@ -27,18 +27,20 @@ final class HalleService
         $summe = $paket['pruefsumme'] ?? null;
         $block = $paket['uebergabe'] ?? null;
         if (!is_array($summe) || ($summe['verfahren'] ?? null) !== UebergabeService::VERFAHREN || !is_string($summe['wert'] ?? null)) {
-            throw new FachFehler('Das ist keine Übergabe-Datei (normale Sicherungen bitte unter „Sicherung“ importieren).');
+            throw new FachFehler(t('Das ist keine Übergabe-Datei (normale Sicherungen bitte unter „Sicherung“ importieren).'));
         }
         if (!hash_equals(Turnierpaket::pruefsummeBerechnen($paket, Uebergabecode::dateiSchluessel($code)), $summe['wert'])) {
-            throw new FachFehler('Übergabe-Code passt nicht zur Datei (oder die Datei wurde verändert).');
+            throw new FachFehler(t('Übergabe-Code passt nicht zur Datei (oder die Datei wurde verändert).'));
         }
         if (!is_array($block) || !is_int($block['nr'] ?? null) || !is_string($block['schluessel'] ?? null)
             || !preg_match('/^[0-9a-f]{64}$/', $block['schluessel']) || !is_string($block['online_url'] ?? null)) {
-            throw new FachFehler('Die Übergabe-Datei ist unvollständig.');
+            throw new FachFehler(t('Die Übergabe-Datei ist unvollständig.'));
         }
         if (($block['protokoll'] ?? null) !== Version::SYNC_PROTOKOLL) {
-            throw new FachFehler('Dieser Laptop (Version ' . Version::aktuell() . ') passt nicht zur Programmversion des Online-Servers ('
-                . (is_string($block['programm'] ?? null) ? mb_substr($block['programm'], 0, 40) : 'älter') . '). Bitte die Software auf dem Laptop aktualisieren.');
+            throw new FachFehler(t('Dieser Laptop (Version {version}) passt nicht zur Programmversion des Online-Servers ({online}). Bitte die Software auf dem Laptop aktualisieren.', [
+                'version' => Version::aktuell(),
+                'online' => is_string($block['programm'] ?? null) ? mb_substr($block['programm'], 0, 40) : t('älter'),
+            ]));
         }
         $url = self::onlineUrl($onlineUrl ?? $block['online_url']);
         $uuid = (string) ($paket['turnier']['uuid'] ?? '');
@@ -49,7 +51,7 @@ final class HalleService
             $vorhanden = $this->db->eine('SELECT t.id, t.uebergabe_nr, a.id AS auftrag FROM turnier t LEFT JOIN sync_auftrag a ON a.turnier_id = t.id WHERE t.uuid = ?', [$uuid]);
             if ($vorhanden !== null) {
                 if ($vorhanden['auftrag'] === null || (int) $vorhanden['uebergabe_nr'] >= $block['nr']) {
-                    throw new FachFehler('Dieses Turnier ist hier schon vorhanden (Übergabe Nr. ' . (int) $vorhanden['uebergabe_nr'] . '). Eingespielt werden kann nur eine neuere Übergabe.');
+                    throw new FachFehler(t('Dieses Turnier ist hier schon vorhanden (Übergabe Nr. {nr}). Eingespielt werden kann nur eine neuere Übergabe.', ['nr' => (int) $vorhanden['uebergabe_nr']]));
                 }
                 (new StammdatenService($this->db))->turnierLoeschen((int) $vorhanden['id']);
             }
@@ -80,8 +82,8 @@ final class HalleService
         $antwort = $transport->post($url . '/api/v1/sync/uebergabe', (string) json_encode(['email' => $email, 'passwort' => $passwort, 'code' => $code]));
         $daten = json_decode($antwort['body'], true);
         if ($antwort['status'] !== 200 || !is_array($daten)) {
-            $fehler = is_array($daten) && is_string($daten['fehler'] ?? null) ? $daten['fehler'] : 'Antwort ' . $antwort['status'];
-            throw new FachFehler('Abholen nicht möglich: ' . mb_substr($fehler, 0, 300));
+            $fehler = is_array($daten) && is_string($daten['fehler'] ?? null) ? $daten['fehler'] : t('Antwort {status}', ['status' => $antwort['status']]);
+            throw new FachFehler(t('Abholen nicht möglich: {fehler}', ['fehler' => mb_substr($fehler, 0, 300)]));
         }
         return $this->einspielen($daten, $code, 'online', $url);
     }
@@ -100,7 +102,7 @@ final class HalleService
         $lokal = in_array($teile['host'] ?? '', ['localhost', '127.0.0.1', '::1'], true);
         if (!is_array($teile) || !isset($teile['host']) || isset($teile['user']) || isset($teile['query']) || isset($teile['fragment'])
             || !(($teile['scheme'] ?? '') === 'https' || (($teile['scheme'] ?? '') === 'http' && $lokal))) {
-            throw new FachFehler('Bitte die Online-Adresse mit https:// angeben, z. B. https://turnier.example.de');
+            throw new FachFehler(t('Bitte die Online-Adresse mit https:// angeben, z. B. https://turnier.example.de'));
         }
         return $url;
     }
@@ -127,12 +129,14 @@ final class HalleService
         ) as $t) {
             $fuehrend = (string) ($t['fuehrung_instanz'] ?? '');
             [$status, $art, $aktion] = match (true) {
-                $t['auftrag_id'] !== null && hash_equals($ich, $fuehrend) => ['Dieser Laptop führt das Turnier', 'ok', 'An Online zurückgeben …'],
-                $t['auftrag_id'] !== null && $t['zurueckgegeben_am'] !== null => ['An Online zurückgegeben – hier nur lesend', '', 'Ansehen …'],
-                $t['auftrag_id'] !== null && $t['entzogen_am'] !== null => ['Führung von Online zurückgenommen – hier nur lesend', 'fehler', 'Ansehen …'],
-                $fuehrend === '' && (int) $t['offen'] > 0 => ['Übergabe vorbereitet – Laptop hat noch nicht abgeholt', 'warn', 'Übergabe ansehen …'],
-                $fuehrend === '' || hash_equals($ich, $fuehrend) => ['Diese Installation führt', 'info', 'An die Halle übergeben …'],
-                default => ['An Hallen-Laptop übergeben' . (($t['fuehrung_name'] ?? '') !== '' ? ' („' . $t['fuehrung_name'] . '“)' : '') . ' – hier nur lesend', 'warn', 'Übergabe ansehen …'],
+                $t['auftrag_id'] !== null && hash_equals($ich, $fuehrend) => [t('Dieser Laptop führt das Turnier'), 'ok', t('An Online zurückgeben …')],
+                $t['auftrag_id'] !== null && $t['zurueckgegeben_am'] !== null => [t('An Online zurückgegeben – hier nur lesend'), '', t('Ansehen …')],
+                $t['auftrag_id'] !== null && $t['entzogen_am'] !== null => [t('Führung von Online zurückgenommen – hier nur lesend'), 'fehler', t('Ansehen …')],
+                $fuehrend === '' && (int) $t['offen'] > 0 => [t('Übergabe vorbereitet – Laptop hat noch nicht abgeholt'), 'warn', t('Übergabe ansehen …')],
+                $fuehrend === '' || hash_equals($ich, $fuehrend) => [t('Diese Installation führt'), 'info', t('An die Halle übergeben …')],
+                default => [($t['fuehrung_name'] ?? '') !== ''
+                    ? t('An Hallen-Laptop übergeben („{name}“) – hier nur lesend', ['name' => $t['fuehrung_name']])
+                    : t('An Hallen-Laptop übergeben – hier nur lesend'), 'warn', t('Übergabe ansehen …')],
             };
             $liste[] = ['id' => (int) $t['id'], 'name' => (string) $t['name'], 'datum' => (string) $t['datum'], 'status' => $status, 'art' => $art, 'aktion' => $aktion, 'auftrag' => $t['auftrag_id'] !== null];
         }

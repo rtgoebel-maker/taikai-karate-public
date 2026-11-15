@@ -28,11 +28,11 @@ final class FeedbackService
     {
         $art = (string) ($daten['art'] ?? '');
         if (!isset(self::ARTEN[$art])) {
-            throw new FachFehler('Bitte wählen: Fehler, Verbesserungsvorschlag oder Frage.');
+            throw new FachFehler(t('Bitte wählen: Fehler, Verbesserungsvorschlag oder Frage.'));
         }
         $beschreibung = trim((string) ($daten['beschreibung'] ?? ''));
         if ($beschreibung === '') {
-            throw new FachFehler('Bitte beschreiben, was aufgefallen ist.');
+            throw new FachFehler(t('Bitte beschreiben, was aufgefallen ist.'));
         }
         $seite = self::einzeilig((string) ($daten['seite'] ?? ''), 500);
         if (!str_starts_with($seite, '/') || str_starts_with($seite, '//') || str_contains($seite, '\\')) {
@@ -60,7 +60,7 @@ final class FeedbackService
         $felder = ['geaendert_am' => date('Y-m-d H:i:s')];
         if ($status !== null) {
             if (!isset(self::STATUS[$status])) {
-                throw new FachFehler('Unbekannter Status.');
+                throw new FachFehler(t('Unbekannter Status.'));
             }
             $felder['status'] = $status;
         }
@@ -137,7 +137,7 @@ final class FeedbackService
     public function exportZip(): string
     {
         if (!class_exists(\ZipArchive::class)) {
-            throw new FachFehler('ZIP-Export ist auf diesem Server nicht verfügbar (PHP-Erweiterung zip) – bitte den JSON-Export nutzen.');
+            throw new FachFehler(t('ZIP-Export ist auf diesem Server nicht verfügbar (PHP-Erweiterung zip) – bitte den JSON-Export nutzen.'));
         }
         $datei = (string) tempnam(sys_get_temp_dir(), 'fb');
         $zip = new \ZipArchive();
@@ -171,7 +171,7 @@ final class FeedbackService
     /** @return array<string, mixed> */
     private function laden(int $id): array
     {
-        return $this->db->eine('SELECT id FROM feedback WHERE id = ?', [$id]) ?? throw new FachFehler('Feedback nicht gefunden.');
+        return $this->db->eine('SELECT id FROM feedback WHERE id = ?', [$id]) ?? throw new FachFehler(t('Feedback nicht gefunden.'));
     }
 
     /**
@@ -185,15 +185,15 @@ final class FeedbackService
             return [null, null];
         }
         if (!is_string($dataUrl) || !preg_match('#^data:image/(png|jpeg);base64,([A-Za-z0-9+/=]+)$#', $dataUrl, $t)) {
-            throw new FachFehler('Der Screenshot ist kein gültiges Bild.');
+            throw new FachFehler(t('Der Screenshot ist kein gültiges Bild.'));
         }
         $inhalt = base64_decode($t[2], true);
         if ($inhalt === false || strlen($inhalt) > self::MAX_BILD_BYTES) {
-            throw new FachFehler('Der Screenshot ist zu groß (max. 4 MB).');
+            throw new FachFehler(t('Der Screenshot ist zu groß (max. 4 MB).'));
         }
         $info = @getimagesizefromstring($inhalt);
         if ($info === false || !isset(self::MIME[$info[2]])) {
-            throw new FachFehler('Der Screenshot ist kein gültiges Bild.');
+            throw new FachFehler(t('Der Screenshot ist kein gültiges Bild.'));
         }
         return [base64_encode($inhalt), self::MIME[$info[2]]];
     }

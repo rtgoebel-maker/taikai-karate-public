@@ -1,7 +1,7 @@
 /* Online-Anmeldung: Teilnehmerzeilen und Teams hinzufügen/entfernen, Team-Auswahl und Startgeld live aktualisieren. */
 'use strict';
 
-document.addEventListener('DOMContentLoaded', () => {
+((Wettkampf) => document.addEventListener('DOMContentLoaded', () => {
     const link = document.getElementById('bearbeitungslink');
     if (link) { link.value = new URL(link.value, location.href).href; }
 
@@ -10,9 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabelle = document.querySelector('#teilnehmer tbody');
     const teams = document.getElementById('teams');
     const preise = JSON.parse(formular.dataset.preise || '{}');
-    const POSTEN = [['preis_kata', 'Kata Einzel'], ['preis_kumite', 'Kumite Einzel'], ['preis_kata_team', 'Kata Team'], ['preis_kumite_team', 'Kumite Team']];
+    const POSTEN = [['preis_kata', Wettkampf.t('Kata Einzel')], ['preis_kumite', Wettkampf.t('Kumite Einzel')], ['preis_kata_team', Wettkampf.t('Kata Team')], ['preis_kumite_team', Wettkampf.t('Kumite Team')]];
     const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    const euro = (cent) => (cent / 100).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+    const euro = (cent) => (document.documentElement.lang === 'en'
+        ? '€' + (cent / 100).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        : (cent / 100).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €');
     const feld = (zeile, name) => zeile.querySelector(`[name$="[${name}]"]`);
 
     /** Zeilen mit Inhalt (leere Zeilen werden beim Absenden ignoriert). */
@@ -68,13 +70,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         teams.querySelectorAll('[data-team]').forEach((t) => {
             const d = t.querySelector('[name$="[disziplin]"]').value;
-            t.querySelector('[data-team-preis]').textContent = d ? `· Startgeld ${euro(preise['preis_' + d] || 0)}` : '';
+            t.querySelector('[data-team-preis]').textContent = d ? '· ' + Wettkampf.t('Startgeld {betrag}', { betrag: euro(preise['preis_' + d] || 0) }) : '';
         });
         document.getElementById('preis').innerHTML = `<table class="tabelle preis-tabelle">
-            <thead><tr><th>Posten</th><th class="rechts">Anzahl</th><th class="rechts">Einzelpreis</th><th class="rechts">Summe</th></tr></thead>
-            <tbody>${posten.length ? posten.map((p) => `<tr><td>${p.text}</td><td class="rechts">${p.anzahl}</td><td class="rechts">${euro(p.einzel)}</td><td class="rechts">${euro(p.summe)}</td></tr>`).join('')
-                : '<tr><td colspan="4" class="leise">Noch keine Starts eingetragen.</td></tr>'}</tbody>
-            <tfoot><tr><th colspan="3">Gesamtpreis</th><th class="rechts">${euro(summe)}</th></tr></tfoot></table>`;
+            <thead><tr><th>${esc(Wettkampf.t('Posten'))}</th><th class="rechts">${esc(Wettkampf.t('Anzahl'))}</th><th class="rechts">${esc(Wettkampf.t('Einzelpreis'))}</th><th class="rechts">${esc(Wettkampf.t('Summe'))}</th></tr></thead>
+            <tbody>${posten.length ? posten.map((p) => `<tr><td>${esc(p.text)}</td><td class="rechts">${p.anzahl}</td><td class="rechts">${euro(p.einzel)}</td><td class="rechts">${euro(p.summe)}</td></tr>`).join('')
+                : `<tr><td colspan="4" class="leise">${esc(Wettkampf.t('Noch keine Starts eingetragen.'))}</td></tr>`}</tbody>
+            <tfoot><tr><th colspan="3">${esc(Wettkampf.t('Gesamtpreis'))}</th><th class="rechts">${euro(summe)}</th></tr></tfoot></table>`;
     }
 
     formular.addEventListener('click', (ev) => {
@@ -103,4 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     formular.addEventListener('change', preisBerechnen);
     mitgliederAktualisieren();
     preisBerechnen();
+}))(typeof Wettkampf !== 'undefined' ? Wettkampf : {
+    // ohne app.js (z. B. Anmeldeformular, Einblendung, Offlinekopie): Katalog aus sprache/texte.js, sonst Deutsch
+    t: (de, werte = {}) => ((window.WettkampfTexte && window.WettkampfTexte[de]) || de).replace(/\{(\w+)\}/g, (alles, name) => (name in werte ? String(werte[name]) : alles)),
 });

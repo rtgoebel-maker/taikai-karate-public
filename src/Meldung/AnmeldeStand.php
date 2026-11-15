@@ -43,52 +43,52 @@ final class AnmeldeStand
         $euro = static fn(int $c) => AnmeldungService::euro($c);
 
         $schritte = [[
-            'schluessel' => 'eingegangen', 'titel' => 'Anmeldung eingegangen', 'zustand' => self::ERLEDIGT,
-            'text' => !empty($a['geaendert_am']) ? 'zuletzt geändert am ' . self::datum((string) $a['geaendert_am']) : '',
+            'schluessel' => 'eingegangen', 'titel' => t('Anmeldung eingegangen'), 'zustand' => self::ERLEDIGT,
+            'text' => !empty($a['geaendert_am']) ? t('zuletzt geändert am {datum}', ['datum' => self::datum((string) $a['geaendert_am'])]) : '',
             'datum' => (string) $a['eingereicht_am'],
         ]];
 
         if (!$mitGeld) {
-            $schritte[] = ['schluessel' => 'aufforderung', 'titel' => 'Zahlungsaufforderung', 'zustand' => self::ENTFAELLT, 'text' => 'kein Startgeld zu zahlen', 'datum' => null];
-            $schritte[] = ['schluessel' => 'zahlung', 'titel' => 'Zahlung', 'zustand' => self::ENTFAELLT, 'text' => '', 'datum' => null];
+            $schritte[] = ['schluessel' => 'aufforderung', 'titel' => t('Zahlungsaufforderung'), 'zustand' => self::ENTFAELLT, 'text' => t('kein Startgeld zu zahlen'), 'datum' => null];
+            $schritte[] = ['schluessel' => 'zahlung', 'titel' => t('Zahlung'), 'zustand' => self::ENTFAELLT, 'text' => '', 'datum' => null];
         } else {
             $schritte[] = [
-                'schluessel' => 'aufforderung', 'titel' => 'Zahlungsaufforderung erstellt', 'zustand' => self::ERLEDIGT,
-                'text' => 'über ' . $euro($betrag) . ($version > 1 ? " · Version $version (nach Änderung der Anmeldung)" : ''),
+                'schluessel' => 'aufforderung', 'titel' => t('Zahlungsaufforderung erstellt'), 'zustand' => self::ERLEDIGT,
+                'text' => t('über {betrag}', ['betrag' => $euro($betrag)]) . ($version > 1 ? t(' · Version {version} (nach Änderung der Anmeldung)', ['version' => $version]) : ''),
                 'datum' => $a['aufforderung_am'] ?? null,
             ];
             $schritte[] = match (true) {
                 $bezahltVoll => [
-                    'schluessel' => 'zahlung', 'titel' => 'Zahlung eingegangen', 'zustand' => self::ERLEDIGT,
-                    'text' => $euro($bezahlt) . ($offen < 0 ? ' · Guthaben ' . $euro(-$offen) . ' (wird verrechnet bzw. erstattet)' : ''),
+                    'schluessel' => 'zahlung', 'titel' => t('Zahlung eingegangen'), 'zustand' => self::ERLEDIGT,
+                    'text' => $euro($bezahlt) . ($offen < 0 ? t(' · Guthaben {betrag} (wird verrechnet bzw. erstattet)', ['betrag' => $euro(-$offen)]) : ''),
                     'datum' => $a['bezahlt_am'] ?? null,
                 ],
-                $status === 'abgelehnt' => ['schluessel' => 'zahlung', 'titel' => 'Zahlung', 'zustand' => self::ENTFAELLT, 'text' => '', 'datum' => null],
+                $status === 'abgelehnt' => ['schluessel' => 'zahlung', 'titel' => t('Zahlung'), 'zustand' => self::ENTFAELLT, 'text' => '', 'datum' => null],
                 $bezahlt > 0 => [
-                    'schluessel' => 'zahlung', 'titel' => 'Warte auf Restzahlung', 'zustand' => self::AKTIV,
-                    'text' => 'bereits ' . $euro($bezahlt) . ' erhalten, noch ' . $euro($offen) . ' offen', 'datum' => $a['bezahlt_am'] ?? null,
+                    'schluessel' => 'zahlung', 'titel' => t('Warte auf Restzahlung'), 'zustand' => self::AKTIV,
+                    'text' => t('bereits {bezahlt} erhalten, noch {offen} offen', ['bezahlt' => $euro($bezahlt), 'offen' => $euro($offen)]), 'datum' => $a['bezahlt_am'] ?? null,
                 ],
-                default => ['schluessel' => 'zahlung', 'titel' => 'Warte auf Zahlung', 'zustand' => self::AKTIV, 'text' => $euro($offen) . ' offen', 'datum' => null],
+                default => ['schluessel' => 'zahlung', 'titel' => t('Warte auf Zahlung'), 'zustand' => self::AKTIV, 'text' => t('{betrag} offen', ['betrag' => $euro($offen)]), 'datum' => null],
             };
         }
 
         $schritte[] = match ($status) {
-            'freigegeben' => ['schluessel' => 'freigabe', 'titel' => 'Teilnehmer und Dojo freigegeben', 'zustand' => self::ERLEDIGT, 'text' => 'Die Teilnehmer sind den Klassen zugeordnet.', 'datum' => $a['freigegeben_am'] ?? null],
-            'abgelehnt' => ['schluessel' => 'freigabe', 'titel' => 'Anmeldung abgelehnt', 'zustand' => self::ABGELEHNT, 'text' => (string) ($a['grund'] ?? ''), 'datum' => null],
+            'freigegeben' => ['schluessel' => 'freigabe', 'titel' => t('Teilnehmer und Dojo freigegeben'), 'zustand' => self::ERLEDIGT, 'text' => t('Die Teilnehmer sind den Klassen zugeordnet.'), 'datum' => $a['freigegeben_am'] ?? null],
+            'abgelehnt' => ['schluessel' => 'freigabe', 'titel' => t('Anmeldung abgelehnt'), 'zustand' => self::ABGELEHNT, 'text' => (string) ($a['grund'] ?? ''), 'datum' => null],
             default => [
-                'schluessel' => 'freigabe', 'titel' => 'Freigabe durch die Wettkampfleitung',
+                'schluessel' => 'freigabe', 'titel' => t('Freigabe durch die Wettkampfleitung'),
                 'zustand' => $mitGeld && $zahlungVorFreigabe && !$bezahltVoll ? self::OFFEN : self::AKTIV,
-                'text' => $mitGeld && $zahlungVorFreigabe && !$bezahltVoll ? 'nach Zahlungseingang' : 'Prüfung der Anmeldung',
+                'text' => $mitGeld && $zahlungVorFreigabe && !$bezahltVoll ? t('nach Zahlungseingang') : t('Prüfung der Anmeldung'),
                 'datum' => null,
             ],
         };
 
         [$kurz, $art] = match (true) {
-            $status === 'abgelehnt' => ['abgelehnt', 'fehler'],
-            $status === 'freigegeben' && (!$mitGeld || $bezahltVoll) => ['freigegeben', 'ok'],
-            $status === 'freigegeben' => ['freigegeben · Zahlung offen', 'warn'],
-            $mitGeld && !$bezahltVoll => [$bezahlt > 0 ? 'Restzahlung offen' : 'warte auf Zahlung', 'warn'],
-            default => ['in Prüfung', 'info'],
+            $status === 'abgelehnt' => [t('abgelehnt'), 'fehler'],
+            $status === 'freigegeben' && (!$mitGeld || $bezahltVoll) => [t('freigegeben'), 'ok'],
+            $status === 'freigegeben' => [t('freigegeben · Zahlung offen'), 'warn'],
+            $mitGeld && !$bezahltVoll => [$bezahlt > 0 ? t('Restzahlung offen') : t('warte auf Zahlung'), 'warn'],
+            default => [t('in Prüfung'), 'info'],
         };
 
         return [
@@ -116,6 +116,7 @@ final class AnmeldeStand
 
     private static function datum(string $zeit): string
     {
-        return date('d.m.Y H:i', (int) strtotime($zeit));
+        $ts = (int) strtotime($zeit);
+        return \Wettkampf\Kern\Sprache::datum(date('Y-m-d', $ts)) . ' ' . date('H:i', $ts);
     }
 }

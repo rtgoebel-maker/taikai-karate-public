@@ -122,6 +122,7 @@ details.begriffe dd { margin: 0; color: var(--leise); }
 .marke.ausruf-bereit { background: #e6f4ea; color: var(--ok); }
 .marke.ausruf-fehlt { background: #fdeaea; color: #8e1b1b; }
 a.knopf-leise { text-decoration: none; }
+.leiste .sprache-klein { font-size: .85rem; white-space: nowrap; }
 
 /* Gruppen-Abschluss und Übergang zur nächsten Gruppe */
 .abschluss, .uebergang { display: grid; gap: .6rem; }

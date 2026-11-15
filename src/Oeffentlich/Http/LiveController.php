@@ -15,6 +15,7 @@ use Wettkampf\Kern\Http\Request;
 use Wettkampf\Kern\Http\Response;
 use Wettkampf\Kern\Http\Session;
 use Wettkampf\Kern\Http\Controller;
+use Wettkampf\Kern\Sprache;
 
 /**
  * Öffentliche Statusseite für Besucher: nur lesend, ohne Login,
@@ -51,7 +52,7 @@ final class LiveController extends Controller
     public function tatami(Request $request, int $id, string $nummer): Response
     {
         $turnier = $this->oeffentlich($id);
-        $tatamiId = $this->db->wert('SELECT id FROM tatami WHERE turnier_id = ? AND nummer = ?', [$id, (int) $nummer]) ?? throw new NichtGefunden('Tatami nicht gefunden.');
+        $tatamiId = $this->db->wert('SELECT id FROM tatami WHERE turnier_id = ? AND nummer = ?', [$id, (int) $nummer]) ?? throw new NichtGefunden(t('Tatami nicht gefunden.'));
         if (!TurnierPhase::gestartet($turnier)) {
             return $this->live('live/tatamis', $turnier, 'tatamis', ['tatamis' => [], 'zahlen' => null]);
         }
@@ -66,7 +67,7 @@ final class LiveController extends Controller
     public function einblendung(Request $request, int $id, string $nummer): Response
     {
         $turnier = $this->oeffentlich($id);
-        $tatami = $this->db->eine('SELECT nummer, bezeichnung FROM tatami WHERE turnier_id = ? AND nummer = ?', [$id, (int) $nummer]) ?? throw new NichtGefunden('Tatami nicht gefunden.');
+        $tatami = $this->db->eine('SELECT nummer, bezeichnung FROM tatami WHERE turnier_id = ? AND nummer = ?', [$id, (int) $nummer]) ?? throw new NichtGefunden(t('Tatami nicht gefunden.'));
         return Response::html($this->app->view->render('live/einblendung', [
             'turnier' => $turnier,
             'tatami' => $tatami,
@@ -100,7 +101,10 @@ final class LiveController extends Controller
             'turnier' => $turnier, 'aktiv' => 'starterlisten', 'tatamis' => $tatamis, 'offline' => true, 'logos' => $this->statusLogos($id, true),
             'css' => (string) file_get_contents($this->app->wurzel . '/public/assets/app.css')
                 . (string) file_get_contents($this->app->wurzel . '/public/assets/baum.css'),
-            'js' => (string) file_get_contents($this->app->wurzel . '/public/assets/starterlisten.js'),
+            // Texte der Skripte in der Sprache der Person, die die Kopie lädt (ohne Server kein sprache/texte.js)
+            'js' => (Sprache::aktuell() === Sprache::STANDARD ? '' : 'window.WettkampfTexte = '
+                    . json_encode((object) Sprache::katalog(Sprache::aktuell()), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE) . ";\n")
+                . (string) file_get_contents($this->app->wurzel . '/public/assets/starterlisten.js'),
         ]);
         $name = 'Starterlisten_' . preg_replace('/[^A-Za-z0-9_-]+/', '_', $turnier['name']) . '_' . date('Y-m-d_Hi') . '.html';
         return Response::download($html, $name, 'text/html; charset=utf-8');
@@ -119,7 +123,7 @@ final class LiveController extends Controller
         $this->bereichPruefen('starterlisten');
         $this->oeffentlich($id);
         $uuid = $this->db->wert('SELECT uuid FROM klasse WHERE id = ? AND turnier_id = ?', [$klasseid, $id])
-            ?? throw new NichtGefunden('Klasse nicht gefunden.');
+            ?? throw new NichtGefunden(t('Klasse nicht gefunden.'));
         return Response::weiterleiten(\Wettkampf\Kern\Http\Url::zu("live/$id/starterlisten") . '#' . StarterlistenAnsicht::anker((string) $uuid));
     }
 
@@ -184,7 +188,7 @@ final class LiveController extends Controller
     private function bereichPruefen(string $bereich): void
     {
         if (!((new SystemEinstellungen($this->db))->statusBereiche()[$bereich] ?? true)) {
-            throw new NichtGefunden('Dieser Bereich der Statusseite ist ausgeblendet.');
+            throw new NichtGefunden(t('Dieser Bereich der Statusseite ist ausgeblendet.'));
         }
     }
 
@@ -193,7 +197,7 @@ final class LiveController extends Controller
     {
         $t = $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$id]);
         if ($t === null || (!(int) $t['oeffentlich'] && !Session::leitet($id))) {
-            throw new NichtGefunden('Diese Statusseite ist nicht öffentlich.');
+            throw new NichtGefunden(t('Diese Statusseite ist nicht öffentlich.'));
         }
         return $t;
     }
@@ -212,9 +216,9 @@ final class LiveController extends Controller
     {
         $this->oeffentlich($id);
         if (!in_array($art, (new SystemEinstellungen($this->db))->statusLogos(), true)) {
-            throw new NichtGefunden('Logo nicht gefunden.');
+            throw new NichtGefunden(t('Logo nicht gefunden.'));
         }
-        $bild = (new LogoService($this->db))->bild($id, $art) ?? throw new NichtGefunden('Logo nicht gefunden.');
+        $bild = (new LogoService($this->db))->bild($id, $art) ?? throw new NichtGefunden(t('Logo nicht gefunden.'));
         return new Response($bild['inhalt'], 200, ['Content-Type' => $bild['mime'], 'Cache-Control' => 'public, max-age=3600', 'X-Content-Type-Options' => 'nosniff']);
     }
 

@@ -142,7 +142,7 @@ final class StammdatenService
     public function tatamisAnpassen(int $turnierId, int $anzahl): void
     {
         if ($anzahl < 1 || $anzahl > 20) {
-            throw new FachFehler('Die Anzahl der Tatamis muss zwischen 1 und 20 liegen.');
+            throw new FachFehler(t('Die Anzahl der Tatamis muss zwischen 1 und 20 liegen.'));
         }
         $vorhanden = $this->db->alle('SELECT * FROM tatami WHERE turnier_id = ? ORDER BY nummer', [$turnierId]);
         for ($nr = count($vorhanden) + 1; $nr <= $anzahl; $nr++) {
@@ -151,7 +151,7 @@ final class StammdatenService
         foreach (array_slice($vorhanden, $anzahl) as $tatami) {
             $belegt = (int) $this->db->wert('SELECT COUNT(*) FROM phase WHERE tatami_id = ?', [$tatami['id']]);
             if ($belegt > 0) {
-                throw new FachFehler("{$tatami['bezeichnung']} ist im Tatami-Plan belegt und kann nicht entfernt werden.");
+                throw new FachFehler(t('{tatami} ist im Tatami-Plan belegt und kann nicht entfernt werden.', ['tatami' => $tatami['bezeichnung']]));
             }
             $this->db->delete('tatami', ['id' => $tatami['id']]);
         }
@@ -166,10 +166,10 @@ final class StammdatenService
         $name = trim((string) ($daten['name'] ?? ''));
         $datum = (string) ($daten['datum'] ?? '');
         if ($name === '') {
-            throw new FachFehler('Bitte einen Turniernamen angeben.');
+            throw new FachFehler(t('Bitte einen Turniernamen angeben.'));
         }
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $datum)) {
-            throw new FachFehler('Bitte ein gültiges Turnierdatum angeben.');
+            throw new FachFehler(t('Bitte ein gültiges Turnierdatum angeben.'));
         }
         return [
             'name' => $name,
@@ -215,19 +215,19 @@ final class StammdatenService
         $alter = ($daten['alter_manuell'] ?? '') === '' || $daten['alter_manuell'] === null ? null : (int) $daten['alter_manuell'];
 
         if ($vorname === '' || $nachname === '') {
-            throw new FachFehler('Vor- und Nachname sind Pflichtfelder.');
+            throw new FachFehler(t('Vor- und Nachname sind Pflichtfelder.'));
         }
         if (!in_array($geschlecht, ['w', 'm', 'd'], true)) {
-            throw new FachFehler("Bitte das Geschlecht angeben ($vorname $nachname).");
+            throw new FachFehler(t('Bitte das Geschlecht angeben ({name}).', ['name' => "$vorname $nachname"]));
         }
         if (!is_numeric($grad) || (int) $grad < Graduierung::MIN || (int) $grad > Graduierung::MAX) {
-            throw new FachFehler("Bitte eine gültige Graduierung angeben ($vorname $nachname).");
+            throw new FachFehler(t('Bitte eine gültige Graduierung angeben ({name}).', ['name' => "$vorname $nachname"]));
         }
         if ($geburt === null && $alter === null) {
-            throw new FachFehler("Bitte Geburtsdatum oder Alter angeben ($vorname $nachname).");
+            throw new FachFehler(t('Bitte Geburtsdatum oder Alter angeben ({name}).', ['name' => "$vorname $nachname"]));
         }
         if ($geburt !== null && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $geburt)) {
-            throw new FachFehler("Ungültiges Geburtsdatum ($vorname $nachname).");
+            throw new FachFehler(t('Ungültiges Geburtsdatum ({name}).', ['name' => "$vorname $nachname"]));
         }
 
         $vereinId = isset($daten['verein_id']) && $daten['verein_id'] !== '' ? (int) $daten['verein_id'] : null;
@@ -262,7 +262,7 @@ final class StammdatenService
             if ($teilnahmeId !== null) {
                 $alt = $this->db->eine('SELECT * FROM teilnahme WHERE id = ? AND turnier_id = ?', [$teilnahmeId, $turnierId]);
                 if ($alt === null) {
-                    throw new FachFehler('Teilnehmer nicht gefunden.');
+                    throw new FachFehler(t('Teilnehmer nicht gefunden.'));
                 }
                 $athletId = (int) $alt['athlet_id'];
                 // Athleten gehören zu genau einem Turnier: teilt sich diese Teilnahme den Athleten noch mit
@@ -295,7 +295,7 @@ final class StammdatenService
         $this->db->transaktion(function () use ($turnierId, $teilnahmeId) {
             // zuerst die Zugehörigkeit zum Turnier – sonst verriete die Meldung unten etwas über fremde Turniere (OWASP A01)
             $teilnahme = $this->db->eine('SELECT * FROM teilnahme WHERE id = ? AND turnier_id = ?', [$teilnahmeId, $turnierId])
-                ?? throw new NichtGefunden('Teilnehmer nicht gefunden.');
+                ?? throw new NichtGefunden(t('Teilnehmer nicht gefunden.'));
             $hatErgebnis = (int) $this->db->wert(
                 "SELECT COUNT(*) FROM start s
                    JOIN begegnung b ON b.aka_start_id = s.id OR b.shiro_start_id = s.id
@@ -303,7 +303,7 @@ final class StammdatenService
                 [$teilnahmeId],
             );
             if ($hatErgebnis > 0) {
-                throw new FachFehler('Der Teilnehmer hat bereits Ergebnisse. Bitte stattdessen auf „abgemeldet“ oder „nicht erschienen“ setzen.');
+                throw new FachFehler(t('Der Teilnehmer hat bereits Ergebnisse. Bitte stattdessen auf „abgemeldet“ oder „nicht erschienen“ setzen.'));
             }
             $this->db->delete('teilnahme', ['id' => $teilnahmeId]);
             // Athlet nur löschen, wenn er an keinem anderen Turnier teilnimmt

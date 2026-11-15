@@ -38,20 +38,20 @@ final class SmtpDiagnose
         // 1. Umgebung
         $deaktiviert = array_map('trim', explode(',', (string) ini_get('disable_functions')));
         $socketOk = function_exists('stream_socket_client') && !in_array('stream_socket_client', $deaktiviert, true);
-        $this->schritt('PHP-Umgebung', extension_loaded('openssl') && $socketOk, 'PHP ' . PHP_VERSION
-            . ' · OpenSSL ' . (extension_loaded('openssl') ? (string) OPENSSL_VERSION_TEXT : 'FEHLT – für TLS/SSL nötig, beim Hoster aktivieren')
-            . ' · Netzwerkverbindungen ' . ($socketOk ? 'erlaubt' : 'vom Hoster gesperrt (disable_functions)'));
+        $this->schritt(t('PHP-Umgebung'), extension_loaded('openssl') && $socketOk, 'PHP ' . PHP_VERSION
+            . ' · OpenSSL ' . (extension_loaded('openssl') ? (string) OPENSSL_VERSION_TEXT : t('FEHLT – für TLS/SSL nötig, beim Hoster aktivieren'))
+            . ' · ' . t('Netzwerkverbindungen') . ' ' . ($socketOk ? t('erlaubt') : t('vom Hoster gesperrt (disable_functions)')));
 
         // 2. DNS
         if ($host === '') {
-            $this->schritt('SMTP-Server', false, 'Kein SMTP-Server eingetragen.');
+            $this->schritt(t('SMTP-Server'), false, t('Kein SMTP-Server eingetragen.'));
             return $this->ergebnis([]);
         }
         $ips = filter_var($host, FILTER_VALIDATE_IP) ? [$host] : (gethostbynamel($host) ?: []);
         $ipv6 = !filter_var($host, FILTER_VALIDATE_IP) && function_exists('dns_get_record') ? (@dns_get_record($host, DNS_AAAA) ?: []) : [];
-        $this->schritt('Namensauflösung (DNS)', $ips !== [], $ips !== []
-            ? "$host → " . implode(', ', $ips) . ($ipv6 !== [] ? ' (zusätzlich IPv6: ' . implode(', ', array_column($ipv6, 'ipv6')) . ')' : '')
-            : "„{$host}“ lässt sich nicht auflösen – Schreibweise des Servernamens prüfen (Angabe des Mail-Anbieters).");
+        $this->schritt(t('Namensauflösung (DNS)'), $ips !== [], $ips !== []
+            ? "$host → " . implode(', ', $ips) . ($ipv6 !== [] ? ' ' . t('(zusätzlich IPv6: {adressen})', ['adressen' => implode(', ', array_column($ipv6, 'ipv6'))]) : '')
+            : t('„{host}“ lässt sich nicht auflösen – Schreibweise des Servernamens prüfen (Angabe des Mail-Anbieters).', ['host' => $host]));
         if ($ips === []) {
             return $this->ergebnis([]);
         }
@@ -63,14 +63,13 @@ final class SmtpDiagnose
         }
         $offen = array_keys(array_filter($ports, static fn($o) => $o === true));
         if ($ports[$port] !== true) {
-            $this->schritt("Verbindung zu Port $port", false, "Keine Verbindung zu {$ips[0]}:$port (" . $this->letzterFehler . '). '
+            $this->schritt(t('Verbindung zu Port {port}', ['port' => $port]), false, t('Keine Verbindung zu {ziel} ({fehler}).', ['ziel' => "{$ips[0]}:$port", 'fehler' => $this->letzterFehler]) . ' '
                 . ($offen !== []
-                    ? 'Erreichbar sind aber Port ' . implode(', ', $offen) . ' – Port und Verschlüsselung entsprechend umstellen (465 = SSL/TLS, 587 = STARTTLS).'
-                    : 'Auch die anderen Mail-Ports sind nicht erreichbar: Der Webhoster blockiert vermutlich ausgehende Verbindungen zu fremden Mailservern. '
-                        . 'Abhilfe: den Mailserver des eigenen Hosters verwenden (z. B. das Postfach in Plesk unter „E-Mail“ – Servername steht dort) oder beim Hoster die Freigabe erfragen.'));
+                    ? t('Erreichbar sind aber Port {ports} – Port und Verschlüsselung entsprechend umstellen (465 = SSL/TLS, 587 = STARTTLS).', ['ports' => implode(', ', $offen)])
+                    : t('Auch die anderen Mail-Ports sind nicht erreichbar: Der Webhoster blockiert vermutlich ausgehende Verbindungen zu fremden Mailservern. Abhilfe: den Mailserver des eigenen Hosters verwenden (z. B. das Postfach in Plesk unter „E-Mail“ – Servername steht dort) oder beim Hoster die Freigabe erfragen.')));
             return $this->ergebnis($ports);
         }
-        $this->schritt("Verbindung zu Port $port", true, "{$ips[0]}:$port erreichbar." . (count($offen) > 1 ? ' Ebenfalls offen: ' . implode(', ', array_diff($offen, [$port])) . '.' : ''));
+        $this->schritt(t('Verbindung zu Port {port}', ['port' => $port]), true, t('{ziel} erreichbar.', ['ziel' => "{$ips[0]}:$port"]) . (count($offen) > 1 ? ' ' . t('Ebenfalls offen: {ports}.', ['ports' => implode(', ', array_diff($offen, [$port]))]) : ''));
 
         // 4.–6. SMTP: Begrüßung, TLS, Anmeldung (PHPMailer, Protokoll ohne Zugangsdaten)
         $smtp = new SMTP();
@@ -81,11 +80,11 @@ final class SmtpDiagnose
         $smtp->Timeout = $this->timeout;
         $ziel = ($art === 'ssl' ? 'ssl://' : '') . $host;
         if (!$smtp->connect($ziel, $port, $this->timeout)) {
-            $this->schritt($art === 'ssl' ? 'TLS-Verbindung (SSL) und Begrüßung' : 'SMTP-Begrüßung', false, $this->fehler($smtp)
-                . ($art === 'ssl' ? ' – passt die Verschlüsselung zum Port? 465 = SSL/TLS, 587 = STARTTLS. Ggf. ist das Zertifikat des Servers ungültig bzw. passt nicht zum Namen.' : ''));
+            $this->schritt($art === 'ssl' ? t('TLS-Verbindung (SSL) und Begrüßung') : t('SMTP-Begrüßung'), false, $this->fehler($smtp)
+                . ($art === 'ssl' ? ' – ' . t('passt die Verschlüsselung zum Port? 465 = SSL/TLS, 587 = STARTTLS. Ggf. ist das Zertifikat des Servers ungültig bzw. passt nicht zum Namen.') : ''));
             return $this->ergebnis($ports);
         }
-        $this->schritt($art === 'ssl' ? 'TLS-Verbindung (SSL) und Begrüßung' : 'SMTP-Begrüßung', true, 'Der Mailserver antwortet.');
+        $this->schritt($art === 'ssl' ? t('TLS-Verbindung (SSL) und Begrüßung') : t('SMTP-Begrüßung'), true, t('Der Mailserver antwortet.'));
         $name = gethostname() ?: 'localhost';
         if (!$smtp->hello($name)) {
             $this->schritt('EHLO', false, $this->fehler($smtp));
@@ -94,20 +93,20 @@ final class SmtpDiagnose
         }
         if ($art === 'tls') {
             if (!$smtp->startTLS() || !$this->erneutBegruessen($smtp, $name)) {
-                $this->schritt('STARTTLS', false, $this->fehler($smtp) . ' – Server bietet kein STARTTLS bzw. Zertifikat ungültig. Für Port 465 „SSL/TLS“ wählen.');
+                $this->schritt('STARTTLS', false, $this->fehler($smtp) . ' – ' . t('Server bietet kein STARTTLS bzw. Zertifikat ungültig. Für Port 465 „SSL/TLS“ wählen.'));
                 $smtp->close();
                 return $this->ergebnis($ports);
             }
-            $this->schritt('STARTTLS', true, 'Verbindung verschlüsselt.');
+            $this->schritt('STARTTLS', true, t('Verbindung verschlüsselt.'));
         }
         if (($this->c['benutzer'] ?? '') === '') {
-            $this->schritt('Anmeldung', null, 'Kein Benutzername eingetragen – ohne Anmeldung nehmen die meisten Server keine Mails an.');
+            $this->schritt(t('Anmeldung||Login'), null, t('Kein Benutzername eingetragen – ohne Anmeldung nehmen die meisten Server keine Mails an.'));
         } elseif (!$smtp->authenticate((string) $this->c['benutzer'], (string) ($this->c['passwort'] ?? ''))) {
-            $this->schritt('Anmeldung', false, $this->fehler($smtp) . ' – Benutzername oder Passwort des Postfachs prüfen (Benutzername oft die volle Adresse bzw. die Kennung des Anbieters).');
+            $this->schritt(t('Anmeldung||Login'), false, $this->fehler($smtp) . ' – ' . t('Benutzername oder Passwort des Postfachs prüfen (Benutzername oft die volle Adresse bzw. die Kennung des Anbieters).'));
             $smtp->close();
             return $this->ergebnis($ports);
         } else {
-            $this->schritt('Anmeldung', true, 'Anmeldung am Postfach erfolgreich. Ein Versand kann jetzt nur noch an der Absenderadresse scheitern (muss meist zum Postfach gehören) – „Testmail an mich senden“ prüft das.');
+            $this->schritt(t('Anmeldung||Login'), true, t('Anmeldung am Postfach erfolgreich. Ein Versand kann jetzt nur noch an der Absenderadresse scheitern (muss meist zum Postfach gehören) – „Testmail an mich senden“ prüft das.'));
         }
         $smtp->quit();
         $smtp->close();
@@ -127,7 +126,7 @@ final class SmtpDiagnose
         $ziel = (str_contains($ip, ':') ? "[$ip]" : $ip) . ":$port";
         $verbindung = @stream_socket_client("tcp://$ziel", $nr, $text, $timeout);
         if ($verbindung === false) {
-            $this->letzterFehler = trim(($text !== '' ? $text : 'Zeitüberschreitung') . ($nr ? " #$nr" : ''));
+            $this->letzterFehler = trim(($text !== '' ? $text : t('Zeitüberschreitung')) . ($nr ? " #$nr" : ''));
             return false;
         }
         fclose($verbindung);
@@ -138,7 +137,7 @@ final class SmtpDiagnose
     {
         $f = $smtp->getError();
         $text = trim(($f['error'] ?? '') . ' ' . ($f['detail'] ?? '') . ' ' . ($f['smtp_code'] ?? '') . ' ' . ($f['smtp_code_ex'] ?? ''));
-        return $this->maskieren($text !== '' ? $text : 'unbekannter Fehler');
+        return $this->maskieren($text !== '' ? $text : t('unbekannter Fehler'));
     }
 
     private bool $nachAuth = false;
@@ -155,7 +154,7 @@ final class SmtpDiagnose
                 $this->nachAuth = true;
                 $z = (string) preg_replace('/(AUTH\s+\S+).*/i', '$1 ***', $z); // AUTH PLAIN enthält die Zugangsdaten direkt
             } elseif ($client && $this->nachAuth) {
-                $z = 'CLIENT -> SERVER: *** (Zugangsdaten ausgeblendet)';
+                $z = 'CLIENT -> SERVER: *** ' . t('(Zugangsdaten ausgeblendet)');
             } elseif (!$client && preg_match('/SERVER -> CLIENT:\s*(235|5\d\d)/', $z)) {
                 $this->nachAuth = false;
             }

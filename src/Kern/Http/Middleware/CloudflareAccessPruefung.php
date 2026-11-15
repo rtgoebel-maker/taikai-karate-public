@@ -40,6 +40,6 @@ final class CloudflareAccessPruefung implements MiddlewareInterface
         if ($pruefer->pruefen($token === '' ? null : $token) !== null) {
             return $handler->handle($request);
         }
-        return PsrBruecke::antwort(Response::html('Zugriff nur über Cloudflare Access.', 403));
+        return PsrBruecke::antwort(Response::html(e(t('Zugriff nur über Cloudflare Access.')), 403));
     }
 }

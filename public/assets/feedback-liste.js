@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const anzeige = zeile.querySelector('.fb-gespeichert');
         try {
             await Wettkampf.post(tabelle.dataset.speichern + '/' + zeile.dataset.feedback, daten);
-            anzeige.textContent = 'gespeichert ✓';
+            anzeige.textContent = Wettkampf.t('gespeichert ✓');
         } catch (e) {
             anzeige.textContent = e.message;
         }

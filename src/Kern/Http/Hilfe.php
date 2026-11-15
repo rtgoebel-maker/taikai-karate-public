@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Wettkampf\Kern\Http;
 
+use Wettkampf\Kern\Sprache;
+
 /**
  * Kurztexte der Info-Knöpfe (ⓘ) für die Wettkampfleitung. Jeder Schlüssel ist
  * zugleich der Anker des passenden Abschnitts auf der Hilfeseite (/hilfe#…).
@@ -52,9 +54,12 @@ final class Hilfe
         if (!isset(self::TEXTE[$schluessel])) {
             return '';
         }
-        [$titel, $text] = self::TEXTE[$schluessel];
-        return '<details class="info"><summary aria-label="Hilfe: ' . e($titel) . '" title="Hilfe: ' . e($titel) . '">i</summary>'
+        // Titel und Text sind deutsche Katalogschlüssel (Einträge in lang/en/hilfe.php)
+        $titel = Sprache::t(self::TEXTE[$schluessel][0]);
+        $text = Sprache::t(self::TEXTE[$schluessel][1]);
+        $beschriftung = Sprache::t('Hilfe: {titel}', ['titel' => $titel]);
+        return '<details class="info"><summary aria-label="' . e($beschriftung) . '" title="' . e($beschriftung) . '">i</summary>'
             . '<div class="info-text"><strong>' . e($titel) . '</strong><p>' . e($text) . '</p>'
-            . '<a href="' . e(url('hilfe') . '#' . $schluessel) . '">Mehr in der Hilfe →</a></div></details>';
+            . '<a href="' . e(url('hilfe') . '#' . $schluessel) . '">' . e(Sprache::t('Mehr in der Hilfe →')) . '</a></div></details>';
     }
 }

@@ -49,7 +49,7 @@ final class TeamController extends Controller
         $service = new TeamService($this->db);
         $teamId = $service->teamSpeichern($id, $request->text('name'), $request->text('disziplin'), $request->zahl('verein_id'), $request->zahl('team_id'));
         $hinweise = (new ZuordnungService($this->db))->teamZuordnen($id, $teamId);
-        $this->erfolg('Team gespeichert.' . ($hinweise ? ' ' . implode(' ', $hinweise) : ''));
+        $this->erfolg(t('Team gespeichert.') . ($hinweise ? ' ' . implode(' ', $hinweise) : ''));
         return $this->weiter("turnier/$id/teams");
     }
 
@@ -58,7 +58,7 @@ final class TeamController extends Controller
         $this->turnier($id);
         (new TeamService($this->db))->mitgliedHinzufuegen($id, $teamid, (int) $request->zahl('teilnahme_id'), $request->text('rolle', 'stamm'), $request->zahl('verein_id'));
         $hinweise = (new ZuordnungService($this->db))->teamZuordnen($id, $teamid);
-        $this->erfolg('Mitglied hinzugefügt.' . ($hinweise ? ' ' . implode(' ', $hinweise) : ''));
+        $this->erfolg(t('Mitglied hinzugefügt.') . ($hinweise ? ' ' . implode(' ', $hinweise) : ''));
         return $this->weiter("turnier/$id/teams");
     }
 
@@ -66,14 +66,14 @@ final class TeamController extends Controller
     {
         (new TeamService($this->db))->mitgliedEntfernen($id, $teamid, $mitgliedid);
         (new ZuordnungService($this->db))->teamZuordnen($id, $teamid);
-        $this->erfolg('Mitglied entfernt.');
+        $this->erfolg(t('Mitglied entfernt.'));
         return $this->weiter("turnier/$id/teams");
     }
 
     public function loeschen(Request $request, int $id, int $teamid): Response
     {
         (new TeamService($this->db))->teamLoeschen($id, $teamid);
-        $this->erfolg('Team gelöscht.');
+        $this->erfolg(t('Team gelöscht.'));
         return $this->weiter("turnier/$id/teams");
     }
 }

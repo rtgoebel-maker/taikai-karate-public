@@ -13,7 +13,7 @@ $rolle = static fn (string $wer, string $text) => '<h2 class="fl-rolle"><span>' 
     <header class="fl-held">
         <div class="fl-marke"><img src="<?= e(asset('logo/taikai-logo.svg')) ?>" alt="Taikai – Karate" width="188" height="60"><span>taikai-karate.de</span></div>
         <h1>Turniere organisieren –<br>von der Anmeldung bis zur Urkunde</h1>
-        <p class="fl-unterzeile">Für Kata, Kumite, Kata-Team und Kumite-Team nach der DJKB-Wettkampfordnung 2024. Im Browser auf PC, Tablet und Handy – keine App, keine Installation auf den Geräten.</p>
+        <p class="fl-unterzeile">Für Kata, Kumite, Kata-Team und Kumite-Team nach der DJKB-Wettkampfordnung 2024. Im Browser auf PC, Tablet und Handy – keine App, keine Installation auf den Geräten. Auf Deutsch und Englisch.</p>
     </header>
 
     <?= $bild('flyer-status.jpg', 'Am Turniertag: Statusseite live – wer ist auf welcher Tatami dran, wer macht sich bereit, wer wird aufgerufen', 'fl-gross') ?>
@@ -49,7 +49,8 @@ $rolle = static fn (string $wer, string $text) => '<h2 class="fl-rolle"><span>' 
             <tr><td><strong>Kampfuhr am Tablet</strong></td><td>an/aus, Kampfzeit und Finalzeit, Signalton</td></tr>
             <tr><td><strong>Tatami-Verteilung</strong></td><td>dynamisch (freie Tatami holt die nächste Gruppe) oder fester Plan; Kata und Kumite getrennt</td></tr>
             <tr><td><strong>Hallen-Laptop</strong></td><td>nur bei Bedarf: Turnier für den Tag an einen Laptop in der Halle übergeben</td></tr>
-            <tr><td><strong>Weiteres</strong></td><td>Seite von AKA am Tisch, eigene Farbe, Feedback-Knopf, Demo-Modus</td></tr>
+            <tr><td><strong>Datenschutz</strong></td><td>Datenschutzhinweise je Turnier, Löschfristen mit Pseudonymisierung, Buchhaltungsexport, freiwillige Einladungen zu künftigen Turnieren</td></tr>
+            <tr><td><strong>Weiteres</strong></td><td>Deutsch/Englisch je Person, Seite von AKA am Tisch, eigene Farbe, Feedback-Knopf, Demo-Modus</td></tr>
         </table>
     </div>
 </div>
@@ -78,7 +79,8 @@ $rolle = static fn (string $wer, string $text) => '<h2 class="fl-rolle"><span>' 
             <ul>
                 <li>Teilnehmer, Disziplinen und Teams in <strong>einem Formular</strong>; das Startgeld wird bei jeder Eingabe sofort berechnet.</li>
                 <li>Die <strong>Klasse ergibt sich automatisch</strong> aus Geschlecht, Alter am Turniertag und Graduierung.</li>
-                <li>Die Leitung prüft jede Meldung und gibt sie frei – erst dann werden die Teilnehmer übernommen.</li>
+                <li><strong>Zahlungsaufforderung</strong> mit Überweisungs-QR-Code; die Leitung erfasst den Zahlungseingang, prüft jede Meldung und gibt sie frei – erst dann werden die Teilnehmer übernommen.</li>
+                <li>Mit Link auf die <strong>Datenschutzhinweise</strong> des Turniers und Bestätigung des Dojos, dass die Starter informiert sind.</li>
                 <li>Alternativ <strong>Excel/CSV-Import</strong> mit Vorschau und Fehlerprüfung oder Erfassung von Hand.</li>
             </ul>
         </div>
@@ -128,6 +130,7 @@ $rolle = static fn (string $wer, string $text) => '<h2 class="fl-rolle"><span>' 
         <li><strong>Kampfuhr</strong> mit Hajime/Yame und Ato shibaraku (wenn eingeschaltet).</li>
         <li><strong>Kata</strong> mit Wertungstafeln 0,0–9,9 (Streichwertung) oder Flaggen; <em>77</em> = 7,7.</li>
         <li><strong>Falsch eingegeben?</strong> Vor dem Senden ändern, danach nur mit Leitungs-PIN korrigieren oder neu austragen.</li>
+        <li><strong>Geräte per QR-Code koppeln</strong>, Freigabe durch die Leitung; Tablet und Handy auf Wunsch im Vollbild bzw. als App ohne Browserleisten.</li>
     </ul>
 
     <?= $rolle('Ausrufer', 'Starter aufrufen per Handy') ?>
@@ -179,6 +182,7 @@ $rolle = static fn (string $wer, string $text) => '<h2 class="fl-rolle"><span>' 
         <div>
             <?= $bild('flyer-vereinswertung.jpg', 'Vereinswertung') ?>
             <p><strong>Urkunden</strong> mit Logos und Unterschriften oder als Text für Vordrucke, Siegerliste, Ergebnislisten, Starter je Verein.</p>
+            <p><strong>Datenschutz</strong>: Buchhaltungsexport zum Archivieren, Statusseite nach wenigen Tagen offline, Starter nach der Löschfrist pseudonymisiert – die Statistik bleibt.</p>
         </div>
     </div>
 </div>
@@ -191,7 +195,7 @@ $rolle = static fn (string $wer, string $text) => '<h2 class="fl-rolle"><span>' 
         <p>Die Software verwaltet Daten von Kindern und Jugendlichen – Sicherheit ist von Anfang an eingebaut:</p>
         <div class="fl-zwei">
             <ul>
-                <li>Geprüft nach den <strong>OWASP Top 10</strong> (2025), dem Standard für Web-Sicherheit; über 300 automatische Tests</li>
+                <li>Geprüft nach den <strong>OWASP Top 10</strong> (2025), dem Standard für Web-Sicherheit; über 400 automatische Tests, Sicherheitsprüfung bei jeder Auslieferung</li>
                 <li><strong>Rechte je Rolle und Turnier</strong>: Turnierleiter nur für ihre Turniere, Coaches nur für ihr Dojo, Tischbesatzung nur für ihre Tatami</li>
                 <li>Passwörter und PINs nur <strong>verschlüsselt</strong> (gehasht) gespeichert</li>
                 <li><strong>Sperre nach Fehlversuchen</strong> bei Login und PIN, Drosselung gegen Massenanfragen</li>
@@ -199,7 +203,7 @@ $rolle = static fn (string $wer, string $text) => '<h2 class="fl-rolle"><span>' 
             <ul>
                 <li>Schutz vor <strong>Formular-Fälschung</strong> (CSRF) und <strong>eingeschleusten Skripten</strong> (Content-Security-Policy)</li>
                 <li>Korrekturen am Tablet nur mit <strong>Leitungs-PIN</strong>; jede Änderung im <strong>Verlauf</strong>: wer, wann, was</li>
-                <li>Öffentlich nur <strong>Name und Verein</strong>, keine Geburtsdaten</li>
+                <li>Öffentlich nur <strong>Name und Verein</strong>, keine Geburtsdaten; <strong>DSGVO-Werkzeuge</strong>: Hinweise, Löschfristen, Auskunft</li>
                 <li><strong>Signierte Übertragung</strong> zwischen Halle und Online, Sicherungen mit Prüfsumme</li>
             </ul>
         </div>
@@ -212,7 +216,7 @@ $rolle = static fn (string $wer, string $text) => '<h2 class="fl-rolle"><span>' 
             <tr><td><strong>WLAN kurz weg</strong></td><td>Das Tablet zeigt „offline“ und behält die Eingabe; sobald es wieder „online“ ist, wird erneut gesendet.</td></tr>
             <tr><td><strong>Kein Internet in der Halle</strong></td><td>Der Hallen-Laptop führt das Turnier im eigenen Hallen-WLAN; online bleibt alles sichtbar und wird nachgezogen.</td></tr>
             <tr><td><strong>Laptop fällt aus</strong></td><td>Online übernimmt die Führung wieder; der letzte übertragene Stand ist dort vorhanden.</td></tr>
-            <tr><td><strong>Ein Tablet streikt</strong></td><td>Jedes andere Gerät mit Browser meldet sich mit derselben Tatami-PIN an, oder die Leitung trägt am PC ein.</td></tr>
+            <tr><td><strong>Ein Tablet streikt</strong></td><td>Jedes andere Gerät mit Browser wird per QR-Code gekoppelt (oder mit der Tatami-PIN angemeldet), oder die Leitung trägt am PC ein.</td></tr>
             <tr><td><strong>Technik fällt ganz aus</strong></td><td>Der vorab gedruckte <strong>Notfall-Satz</strong> (Bäume und Kampflisten zum Weiterschreiben, ◯ Ippon / △ Wazaari) liegt an jedem Tisch, dazu Aushang A4/A3 statt Statusseite; die Ergebnisse werden später am PC nachgetragen.</td></tr>
             <tr><td><strong>Daten sichern</strong></td><td>Export des ganzen Turniers mit Prüfsumme, Datenbank-Download – auch zum Umzug zwischen Rechner und Online.</td></tr>
         </table>
@@ -231,7 +235,7 @@ $rolle = static fn (string $wer, string $text) => '<h2 class="fl-rolle"><span>' 
         <div>
             <h2>Hilfe und Schulung</h2>
             <ul>
-                <li><strong>Handbuch</strong> und Hilfe in der Software</li>
+                <li><strong>Handbuch</strong> (Deutsch und Englisch) und Hilfe in der Software</li>
                 <li><strong>Handouts</strong> für Tisch, Ausruf und Leitung – mit „Falsch eingegeben – was tun?“</li>
                 <li><strong>Demo-Modus</strong> zum Üben</li>
                 <li><strong>Feedback-Knopf</strong> mit Screenshot</li>

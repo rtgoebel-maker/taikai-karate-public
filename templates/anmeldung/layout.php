@@ -6,14 +6,15 @@
  */
 use Wettkampf\Kern\Http\Session;
 ?><!doctype html>
-<html lang="de">
+<html lang="<?= e(sprache()) ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Anmeldung · <?= e($turnier['name']) ?></title>
+    <title><?= te('Anmeldung') ?> · <?= e($turnier['name']) ?></title>
     <?= $this->teil('teile/icons') ?>
     <link rel="stylesheet" href="<?= e(asset('app.css')) ?>">
     <?= $this->teil('teile/farben') ?>
+    <?= $this->teil('teile/sprache_skript') ?>
     <script src="<?= e(asset('verhalten.js')) ?>" defer></script>
     <script src="<?= e(asset('anmeldung.js')) ?>" defer></script>
 </head>
@@ -22,7 +23,7 @@ use Wettkampf\Kern\Http\Session;
     <span class="marke"><?= e($turnier['name']) ?></span>
     <span class="kopf-turnier"><?= e(datum_de($turnier['datum'])) ?><?= $turnier['ort'] ? ' · ' . e($turnier['ort']) : '' ?></span>
     <?php if (Session::coachVerein() !== null): ?>
-        <nav class="kopf-rechts"><a href="<?= e(url('coach')) ?>">Meine Meldungen</a></nav>
+        <nav class="kopf-rechts"><a href="<?= e(url('coach')) ?>"><?= te('Meine Meldungen') ?></a></nav>
     <?php endif; ?>
 </header>
 <main class="inhalt anmeldung-inhalt">

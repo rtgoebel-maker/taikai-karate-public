@@ -2,6 +2,25 @@
 'use strict';
 
 const Wettkampf = {
+    /**
+     * Übersetzen wie t() in PHP: deutscher Text als Schlüssel, Platzhalter {name}. Katalog aus sprache/texte.js
+     * (teile/sprache_skript, nur wenn nicht Deutsch). Schlüssel immer in einfachen Anführungszeichen (Katalogtest).
+     */
+    t(de, werte = {}) {
+        const text = (window.WettkampfTexte && window.WettkampfTexte[de]) || de;
+        return text.replace(/\{(\w+)\}/g, (alles, name) => (name in werte ? String(werte[name]) : alles));
+    },
+
+    /** Runden- bzw. Phasenname aus der Tisch-API (deutsch, z. B. „Halbfinale“, „Pool B“, „Runde 2“) in der Sprache der Oberfläche. */
+    runde(text) {
+        const t = String(text || '');
+        const pool = /^Pool (\w+)$/.exec(t);
+        if (pool) { return Wettkampf.t('Pool {name}', { name: pool[1] }); }
+        const runde = /^Runde (\d+)$/.exec(t);
+        if (runde) { return Wettkampf.t('Runde {n}', { n: runde[1] }); }
+        return t === '' ? '' : Wettkampf.t(t);
+    },
+
     csrf() {
         return document.body.dataset.csrf || '';
     },
@@ -13,7 +32,7 @@ const Wettkampf = {
      * @returns {Promise<boolean|string|null>} true/false, bei Eingabe der Text bzw. null
      */
     dialog(text, optionen = {}) {
-        const o = { titel: '', ja: 'OK', nein: 'Abbrechen', art: '', symbol: '', eingabe: null, ...optionen };
+        const o = { titel: '', ja: Wettkampf.t('OK'), nein: Wettkampf.t('Abbrechen'), art: '', symbol: '', eingabe: null, ...optionen };
         const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         return new Promise((fertig) => {
             const vorher = document.activeElement;
@@ -82,16 +101,16 @@ const Wettkampf = {
                 continue; // keine Antwort: wiederholen (nur mit Befehls-ID)
             }
             if (id && [409, 502, 503, 504].includes(antwort.status)) {
-                letzterFehler = new Error(`Fehler ${antwort.status}`);
+                letzterFehler = new Error(Wettkampf.t('Fehler {status}', { status: antwort.status }));
                 continue;
             }
             const json = await antwort.json().catch(() => ({}));
             if (!antwort.ok) {
-                throw new Error(json.fehler || `Fehler ${antwort.status}`);
+                throw new Error(json.fehler || Wettkampf.t('Fehler {status}', { status: antwort.status }));
             }
             return json;
         }
-        const fehler = new Error('Keine Antwort vom Server' + (letzterFehler && letzterFehler.message ? ` (${letzterFehler.message})` : ''));
+        const fehler = new Error(letzterFehler && letzterFehler.message ? Wettkampf.t('Keine Antwort vom Server ({grund})', { grund: letzterFehler.message }) : Wettkampf.t('Keine Antwort vom Server'));
         fehler.unklar = true;
         throw fehler;
     },
@@ -126,15 +145,15 @@ const Wettkampf = {
                     box.hidden = !box.children.length;
                 } catch (e) {
                     knopf.disabled = false;
-                    Wettkampf.hinweis(e.message, { titel: 'Fehler', art: 'gefahr' });
+                    Wettkampf.hinweis(e.message, { titel: Wettkampf.t('Fehler'), art: 'gefahr' });
                 }
             });
         }
         const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         box.innerHTML = (liste || []).map((n) => `<div class="nachricht">
             <span class="nachricht-symbol">✉</span>
-            <div class="nachricht-text"><strong>${esc(n.text)}</strong><span>Wettkampfleitung · ${esc(String(n.erstellt_am).slice(11, 16))} Uhr</span></div>
-            ${nurLesen ? '<span class="nachricht-offen">wartet auf Bestätigung am Tisch</span>' : `<button type="button" data-nachricht="${n.id}">✓ Gelesen</button>`}
+            <div class="nachricht-text"><strong>${esc(n.text)}</strong><span>${esc(Wettkampf.t('Wettkampfleitung · {zeit} Uhr', { zeit: String(n.erstellt_am).slice(11, 16) }))}</span></div>
+            ${nurLesen ? `<span class="nachricht-offen">${esc(Wettkampf.t('wartet auf Bestätigung am Tisch'))}</span>` : `<button type="button" data-nachricht="${n.id}">${esc(Wettkampf.t('✓ Gelesen'))}</button>`}
         </div>`).join('');
         box.hidden = !box.children.length;
     },
@@ -170,7 +189,7 @@ document.addEventListener('submit', (ereignis) => {
     if (!text || form.dataset.bestaetigt === '1') { return; }
     ereignis.preventDefault();
     const absender = ereignis.submitter;
-    Wettkampf.frage(text, { ja: form.dataset.bestaetigenJa || 'OK' }).then((ok) => {
+    Wettkampf.frage(text, { ja: form.dataset.bestaetigenJa || Wettkampf.t('OK') }).then((ok) => {
         if (!ok) { return; }
         form.dataset.bestaetigt = '1';
         form.requestSubmit(absender && absender.form === form ? absender : undefined);
@@ -208,9 +227,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!knoepfe.length || !anfordern || alsApp || !(document.fullscreenEnabled || document.webkitFullscreenEnabled)) { return; }
     const anzeigen = () => knoepfe.forEach((k) => {
         k.classList.toggle('an', !!aktiv());
-        k.title = aktiv() ? 'Vollbild beenden' : 'Vollbild: Adress- und Tableiste ausblenden';
+        k.title = aktiv() ? Wettkampf.t('Vollbild beenden') : Wettkampf.t('Vollbild: Adress- und Tableiste ausblenden');
         // Knopf mit Text (Tablet): auch die Beschriftung umstellen, damit klar ist, wie man zurückkommt
-        if (k.dataset.text) { k.textContent = aktiv() ? '✕ Vollbild beenden' : k.dataset.text; }
+        if (k.dataset.text) { k.textContent = aktiv() ? Wettkampf.t('✕ Vollbild beenden') : k.dataset.text; }
     });
     knoepfe.forEach((k) => {
         if (k.textContent.trim().length > 1) { k.dataset.text = k.textContent; }

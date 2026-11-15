@@ -38,14 +38,14 @@ final class NachrichtService
     {
         $text = trim((string) preg_replace('/\s+/u', ' ', $text));
         if ($text === '') {
-            throw new FachFehler('Bitte einen Nachrichtentext eingeben.');
+            throw new FachFehler(t('Bitte einen Nachrichtentext eingeben.'));
         }
         $tatamis = array_map('intval', $this->db->spalte(
             'SELECT id FROM tatami WHERE turnier_id = ?' . ($tatamiId === null ? '' : ' AND id = ?') . ' ORDER BY nummer',
             $tatamiId === null ? [$turnierId] : [$turnierId, $tatamiId],
         ));
         if ($tatamis === []) {
-            throw new FachFehler('Tatami nicht gefunden.');
+            throw new FachFehler(t('Tatami nicht gefunden.'));
         }
         return $this->db->transaktion(function () use ($turnierId, $tatamis, $text, $von) {
             foreach ($tatamis as $t) {
@@ -72,7 +72,7 @@ final class NachrichtService
     public function bestaetigen(int $turnierId, int $tatamiId, int $nachrichtId, string $von): void
     {
         $n = $this->db->eine('SELECT id, bestaetigt_am FROM tatami_nachricht WHERE id = ? AND tatami_id = ? AND turnier_id = ?', [$nachrichtId, $tatamiId, $turnierId])
-            ?? throw new FachFehler('Nachricht nicht gefunden.');
+            ?? throw new FachFehler(t('Nachricht nicht gefunden.'));
         if ($n['bestaetigt_am'] !== null) {
             return;
         }

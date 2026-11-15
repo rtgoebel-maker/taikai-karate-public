@@ -7,7 +7,7 @@
  */
 use Wettkampf\Kern\Http\Session;
 ?><!doctype html>
-<html lang="de">
+<html lang="<?= e(sprache()) ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

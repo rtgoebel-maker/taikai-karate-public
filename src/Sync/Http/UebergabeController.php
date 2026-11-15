@@ -43,7 +43,7 @@ final class UebergabeController extends Controller
         $this->turnier($id);
         $ergebnis = $this->service()->uebergeben($id, Session::akteur());
         Session::merken("uebergabe:$id", $ergebnis['code']);
-        $this->erfolg("Übergabe Nr. {$ergebnis['nr']} angelegt – das Turnier ist hier jetzt nur lesend. Code notieren und Datei herunterladen bzw. am Laptop abholen.");
+        $this->erfolg(t('Übergabe Nr. {nr} angelegt – das Turnier ist hier jetzt nur lesend. Code notieren und Datei herunterladen bzw. am Laptop abholen.', ['nr' => $ergebnis['nr']]));
         return $this->weiter("turnier/$id/halle");
     }
 
@@ -51,7 +51,7 @@ final class UebergabeController extends Controller
     {
         $turnier = $this->turnier($id);
         $code = Session::gemerkt("uebergabe:$id")
-            ?? throw new FachFehler('Die Übergabe-Datei gibt es nur direkt nach dem Übergeben in derselben Sitzung. Sonst Übergabe zurücknehmen und neu übergeben – oder am Laptop online abholen.');
+            ?? throw new FachFehler(t('Die Übergabe-Datei gibt es nur direkt nach dem Übergeben in derselben Sitzung. Sonst Übergabe zurücknehmen und neu übergeben – oder am Laptop online abholen.'));
         $paket = $this->service()->paket($id, $code, self::onlineUrl($request));
         $name = 'Uebergabe_' . preg_replace('/[^A-Za-z0-9_-]+/', '_', $turnier['name']) . '_Nr' . $paket['uebergabe']['nr'] . '.json';
         return Response::download(Turnierpaket::kodieren($paket), $name, 'application/json; charset=utf-8');
@@ -62,7 +62,7 @@ final class UebergabeController extends Controller
         $this->turnier($id);
         $this->service()->zuruecknehmen($id, Session::akteur());
         Session::merken("uebergabe:$id", null);
-        $this->erfolg('Übergabe zurückgenommen – das Turnier wird wieder hier geführt. Sendungen der bisherigen Halle werden abgewiesen.');
+        $this->erfolg(t('Übergabe zurückgenommen – das Turnier wird wieder hier geführt. Sendungen der bisherigen Halle werden abgewiesen.'));
         return $this->weiter("turnier/$id/halle");
     }
 
@@ -71,7 +71,7 @@ final class UebergabeController extends Controller
     {
         $this->turnier($id);
         (new RueckgabeService($this->db, $this->app->instanz()))->zurueckgeben($id, HalleController::$transport ?? new HttpTransport());
-        $this->erfolg('Turnier an Online zurückgegeben – dort wird jetzt weitergearbeitet. Dieser Laptop ist nur noch lesend; bei Bedarf Sicherung herunterladen und das Turnier hier löschen.');
+        $this->erfolg(t('Turnier an Online zurückgegeben – dort wird jetzt weitergearbeitet. Dieser Laptop ist nur noch lesend; bei Bedarf Sicherung herunterladen und das Turnier hier löschen.'));
         return $this->weiter("turnier/$id/halle");
     }
 
@@ -80,7 +80,7 @@ final class UebergabeController extends Controller
     {
         $this->turnier($id);
         (new RueckgabeService($this->db, $this->app->instanz()))->loeschen($id);
-        $this->erfolg('Turnier auf diesem Laptop gelöscht.');
+        $this->erfolg(t('Turnier auf diesem Laptop gelöscht.'));
         return $this->weiter('halle');
     }
 

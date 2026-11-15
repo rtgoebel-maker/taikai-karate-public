@@ -10,12 +10,12 @@
  */
 $tid = (int) $turnier['id'];
 ?><!doctype html>
-<html lang="de">
+<html lang="<?= e(sprache()) ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
-    <title>Einblendung <?= e($tatami['bezeichnung']) ?> · <?= e($turnier['name']) ?></title>
+    <title><?= te('Einblendung') ?> <?= e($tatami['bezeichnung']) ?> · <?= e($turnier['name']) ?></title>
     <link rel="stylesheet" href="<?= e(asset('einblendung.css')) ?>">
 </head>
 <body class="<?= $oben ? 'oben' : 'unten' ?><?= $gruen ? ' gruen' : '' ?>"
@@ -30,6 +30,7 @@ $tid = (int) $turnier['id'];
     <div class="einzel"><span class="name" id="starter-name"></span><span class="verein" id="starter-verein"></span></div>
     <div class="sieger" id="sieger"><span class="titel" id="sieger-titel"></span><span class="name" id="sieger-name"></span><span class="verein" id="sieger-verein"></span><span class="text" id="sieger-text"></span></div>
 </div>
+<?= $this->teil('teile/sprache_skript') ?>
 <script src="<?= e(asset('einblendung.js')) ?>" defer></script>
 </body>
 </html>

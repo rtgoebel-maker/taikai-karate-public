@@ -31,7 +31,7 @@ final class RechnungController extends Controller
     {
         $this->turnier($id);
         (new RechnungService($this->db))->einstellungenSpeichern($id, $request->post);
-        $this->erfolg('Zahlungs- und Rechnungsangaben gespeichert.');
+        $this->erfolg(t('Zahlungs- und Rechnungsangaben gespeichert.'));
         return $this->weiterNach($request, "turnier/$id/rechnungen");
     }
 

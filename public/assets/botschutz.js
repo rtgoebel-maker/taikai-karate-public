@@ -2,7 +2,7 @@
    SHA-256("<aufgabe>:<n>") mit data-bits Null-Bits beginnt – und trägt n ins Feld ein. Wird das Formular vorher
    abgeschickt, wartet es kurz. Eigenes SHA-256 (eine Blockrunde genügt: Eingabe < 56 Byte), damit es auch ohne
    HTTPS im Hallennetz funktioniert (crypto.subtle gibt es dort nicht). */
-(() => {
+((Wettkampf) => {
     const K = new Uint32Array([
         0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
         0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
@@ -63,11 +63,14 @@
             ereignis.preventDefault();
             ereignis.stopImmediatePropagation();
             const knopf = ereignis.submitter;
-            if (knopf) { knopf.disabled = true; knopf.dataset.text = knopf.textContent; knopf.textContent = 'Einen Moment …'; }
+            if (knopf) { knopf.disabled = true; knopf.dataset.text = knopf.textContent; knopf.textContent = Wettkampf.t('Einen Moment …'); }
             bereit.then(() => {
                 if (knopf) { knopf.disabled = false; knopf.textContent = knopf.dataset.text; }
                 formular.requestSubmit(knopf || undefined);
             });
         }, true);
     });
-})();
+})(typeof Wettkampf !== 'undefined' ? Wettkampf : {
+    // ohne app.js (z. B. Anmeldeformular, Einblendung, Offlinekopie): Katalog aus sprache/texte.js, sonst Deutsch
+    t: (de, werte = {}) => ((window.WettkampfTexte && window.WettkampfTexte[de]) || de).replace(/\{(\w+)\}/g, (alles, name) => (name in werte ? String(werte[name]) : alles)),
+});

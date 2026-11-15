@@ -84,7 +84,7 @@ final class VerlaufAnsicht
         foreach ($daten as $schluessel => $wert) {
             $text = match (true) {
                 $wert === null => '–',
-                is_bool($wert) => $wert ? 'ja' : 'nein',
+                is_bool($wert) => $wert ? t('ja') : t('nein'),
                 is_scalar($wert) => (string) $wert,
                 default => (string) json_encode($wert, JSON_UNESCAPED_UNICODE),
             };

@@ -59,11 +59,11 @@ final class AusrufService
     public function markieren(int $turnierId, string $typ, int $id, string $seite, ?string $status): void
     {
         if ($status !== null && !in_array($status, self::STATUS, true)) {
-            throw new FachFehler('Ungültiger Ausruf-Status.');
+            throw new FachFehler(t('Ungültiger Ausruf-Status.'));
         }
         [$tabelle, $spalten] = $this->ziel($turnierId, $typ, $id);
         if (!isset($spalten[$seite])) {
-            throw new FachFehler('Ungültige Seite.');
+            throw new FachFehler(t('Ungültige Seite.'));
         }
         $this->db->update($tabelle, [$spalten[$seite] => $status, 'aufruf_am' => null], ['id' => $id]);
         $this->protokoll->revisionErhoehen($turnierId);
@@ -76,10 +76,12 @@ final class AusrufService
     public function gruppeAufrufen(int $turnierId, int $klasseId, bool $an, ?int $tatamiId = null): void
     {
         $k = $this->db->eine('SELECT id, code FROM klasse WHERE id = ? AND turnier_id = ?', [$klasseId, $turnierId])
-            ?? throw new FachFehler('Gruppe nicht gefunden.');
+            ?? throw new FachFehler(t('Gruppe nicht gefunden.'));
         if ($an && ($konflikte = $this->konflikte($turnierId, $klasseId)) !== []) {
-            throw new FachFehler("Gruppe {$k['code']} kann noch nicht aufgerufen werden – noch im Wettkampf auf einer anderen Tatami: "
-                . implode(', ', array_map(static fn($c) => "{$c['name']} ({$c['klasse']}, {$c['tatami']})", $konflikte)) . '.');
+            throw new FachFehler(t('Gruppe {code} kann noch nicht aufgerufen werden – noch im Wettkampf auf einer anderen Tatami: {liste}.', [
+                'code' => $k['code'],
+                'liste' => implode(', ', array_map(static fn($c) => "{$c['name']} ({$c['klasse']}, {$c['tatami']})", $konflikte)),
+            ]));
         }
         $this->phasenSetzen($klasseId, $tatamiId, ['ausruf_am' => $an ? date('Y-m-d H:i:s') : null]);
         $this->protokoll->eintragen($turnierId, 'klasse', (int) $k['id'], $an ? 'gruppe_aufgerufen' : 'gruppe_aufruf_beendet');
@@ -157,7 +159,7 @@ final class AusrufService
     public function freigeben(int $turnierId, int $klasseId, bool $an, ?int $tatamiId = null): void
     {
         $k = $this->db->eine('SELECT id FROM klasse WHERE id = ? AND turnier_id = ?', [$klasseId, $turnierId])
-            ?? throw new FachFehler('Gruppe nicht gefunden.');
+            ?? throw new FachFehler(t('Gruppe nicht gefunden.'));
         $jetzt = date('Y-m-d H:i:s');
         $schonAufgerufen = $this->db->wert(
             'SELECT MAX(ausruf_am) FROM phase WHERE klasse_id = ?' . ($tatamiId === null ? '' : ' AND tatami_id = ?'),
@@ -177,11 +179,11 @@ final class AusrufService
     public function starterMarkieren(int $turnierId, int $klasseId, int $startId, ?string $status): void
     {
         if ($status !== null && !in_array($status, self::STATUS, true)) {
-            throw new FachFehler('Ungültiger Ausruf-Status.');
+            throw new FachFehler(t('Ungültiger Ausruf-Status.'));
         }
         $this->gruppe($turnierId, $klasseId);
         if ($this->db->wert('SELECT id FROM start WHERE id = ? AND klasse_id = ?', [$startId, $klasseId]) === null) {
-            throw new FachFehler('Starter gehört nicht zu dieser Gruppe.');
+            throw new FachFehler(t('Starter gehört nicht zu dieser Gruppe.'));
         }
         $phasen = 'SELECT id FROM phase WHERE klasse_id = ?';
         foreach (['aka', 'shiro'] as $seite) {
@@ -241,7 +243,7 @@ final class AusrufService
             $offen = count(array_filter($begegnungen, static fn($b) => $b['status'] !== 'laeuft' && ($b['aufruf_aka'] === null || $b['aufruf_shiro'] === null)))
                 + count(array_filter($auftritte, static fn($a) => $a['aufruf_starter'] === null && !$aufDerMatte($a)));
             if ($offen > 0) {
-                throw new FachFehler("Gruppe {$k['code']}: bitte zuerst alle Starter abhaken (noch $offen Kämpfe/Vorträge offen).");
+                throw new FachFehler(t('Gruppe {code}: bitte zuerst alle Starter abhaken (noch {n} Kämpfe/Vorträge offen).', ['code' => $k['code'], 'n' => $offen]));
             }
             $jetzt = date('Y-m-d H:i:s');
             foreach ($begegnungen as $b) {
@@ -274,7 +276,7 @@ final class AusrufService
     private function gruppe(int $turnierId, int $klasseId): array
     {
         return $this->db->eine('SELECT id, code FROM klasse WHERE id = ? AND turnier_id = ?', [$klasseId, $turnierId])
-            ?? throw new FachFehler('Gruppe nicht gefunden.');
+            ?? throw new FachFehler(t('Gruppe nicht gefunden.'));
     }
 
     /**
@@ -324,7 +326,7 @@ final class AusrufService
         $stand = [];
         foreach ($spalten as $seite => $spalte) {
             if ($zeile[$spalte] === null) {
-                throw new FachFehler('Bitte zuerst bei ' . ($seite === 'starter' ? 'dem Starter' : strtoupper($seite)) . ' „da“ oder „fehlt“ wählen.');
+                throw new FachFehler(t('Bitte zuerst bei {wer} „da“ oder „fehlt“ wählen.', ['wer' => $seite === 'starter' ? t('dem Starter') : strtoupper($seite)]));
             }
             $stand[$seite] = $zeile[$spalte];
         }
@@ -375,7 +377,7 @@ final class AusrufService
             $nummern = KlassenAnsicht::kampfNummern($this->db, (int) $b['klasse_id']);
             foreach (['aka', 'shiro'] as $seite) {
                 if ($b["aufruf_$seite"] === 'fehlt') {
-                    $liste[] = $this->meldung('begegnung', $b, $seite, (int) $b["{$seite}_start_id"], 'Kampf ' . ($nummern[(int) $b['id']] ?? '?'));
+                    $liste[] = $this->meldung('begegnung', $b, $seite, (int) $b["{$seite}_start_id"], t('Kampf {nr}', ['nr' => $nummern[(int) $b['id']] ?? '?']));
                 }
             }
         }
@@ -386,7 +388,7 @@ final class AusrufService
               ORDER BY a.aufruf_am",
             [$turnierId],
         ) as $a) {
-            $liste[] = $this->meldung('auftritt', $a, 'starter', (int) $a['start_id'], 'Vortrag ' . $a['reihenfolge']);
+            $liste[] = $this->meldung('auftritt', $a, 'starter', (int) $a['start_id'], t('Vortrag {nr}', ['nr' => $a['reihenfolge']]));
         }
         return $liste;
     }
@@ -405,10 +407,10 @@ final class AusrufService
         return $this->db->transaktion(function () use ($turnierId, $typ, $id, $seite, $aktion) {
             [$tabelle, $spalten, $zeile] = $this->ziel($turnierId, $typ, $id);
             if (!isset($spalten[$seite]) || $zeile[$spalten[$seite]] !== 'fehlt') {
-                throw new FachFehler('Diese Meldung ist nicht mehr aktuell – bitte neu laden.');
+                throw new FachFehler(t('Diese Meldung ist nicht mehr aktuell – bitte neu laden.'));
             }
             $startId = (int) ($tabelle === 'auftritt' ? $zeile['start_id'] : $zeile["{$seite}_start_id"]);
-            $start = $this->db->eine('SELECT * FROM start WHERE id = ?', [$startId]) ?? throw new FachFehler('Starter nicht gefunden.');
+            $start = $this->db->eine('SELECT * FROM start WHERE id = ?', [$startId]) ?? throw new FachFehler(t('Starter nicht gefunden.'));
             $name = (new KlassenAnsicht($this->db))->person($startId)['name'];
             $ergebnis = new ErgebnisService($this->db);
 
@@ -416,19 +418,19 @@ final class AusrufService
                 case 'da':
                     $this->db->update($tabelle, [$spalten[$seite] => 'da'], ['id' => $id]);
                     $this->protokoll->revisionErhoehen($turnierId);
-                    return "$name ist da – Meldung erledigt.";
+                    return t('{name} ist da – Meldung erledigt.', ['name' => $name]);
                 case 'kiken':
                     if ($tabelle === 'auftritt') {
                         $ergebnis->auftrittEintragen($turnierId, $id, ['entscheidung' => 'kiken'], true);
                     } else {
                         $ergebnis->begegnungEintragen($turnierId, $id, ['entscheidung' => 'kiken', 'gegen' => $seite, 'grund' => 'nicht erschienen (Ausruf)'], true);
                     }
-                    return "$name: Kiken in diesem " . ($tabelle === 'auftritt' ? 'Vortrag' : 'Kampf') . '.';
+                    return $tabelle === 'auftritt' ? t('{name}: Kiken in diesem Vortrag.', ['name' => $name]) : t('{name}: Kiken in diesem Kampf.', ['name' => $name]);
                 case 'zurueckziehen':
                 case 'neu_auslosen':
                     return $this->zurueckziehen($turnierId, $start, $name, $aktion === 'neu_auslosen', $ergebnis);
                 default:
-                    throw new FachFehler('Unbekannte Aktion.');
+                    throw new FachFehler(t('Unbekannte Aktion.'));
             }
         });
     }
@@ -439,7 +441,7 @@ final class AusrufService
         $klasseId = (int) $start['klasse_id'];
         $auslosung = new AuslosungService($this->db);
         if ($neuAuslosen && $auslosung->hatErgebnisse($klasseId)) {
-            throw new FachFehler('In dieser Klasse gibt es schon Ergebnisse – neu auslosen ist nicht mehr möglich. Bitte „aus allen Wettkämpfen“ wählen.');
+            throw new FachFehler(t('In dieser Klasse gibt es schon Ergebnisse – neu auslosen ist nicht mehr möglich. Bitte „aus allen Wettkämpfen“ wählen.'));
         }
         if ($start['teilnahme_id'] !== null) {
             return $this->teilnehmerNichtErschienen($turnierId, (int) $start['teilnahme_id'], 'Ausruf', $neuAuslosen ? [$klasseId] : []);
@@ -447,15 +449,15 @@ final class AusrufService
             $this->db->update('start', ['status' => 'zurueckgezogen'], ['id' => $start['id']]);
             $this->protokoll->eintragen($turnierId, 'start', (int) $start['id'], 'nicht_erschienen');
         }
-        $text = "$name: als nicht erschienen gewertet";
+        $text = t('{name}: als nicht erschienen gewertet', ['name' => $name]);
         if ($neuAuslosen) {
             $auslosung->auslosen($turnierId, $klasseId);
-            $text .= ', Klasse ' . $this->db->wert('SELECT code FROM klasse WHERE id = ?', [$klasseId]) . ' ohne den Starter neu ausgelost';
+            $text .= t(', Klasse {code} ohne den Starter neu ausgelost', ['code' => $this->db->wert('SELECT code FROM klasse WHERE id = ?', [$klasseId])]);
         }
         // Einzelstarter sind oben schon zurückgegeben; hier geht es nur noch um Team-Starts
         $kampflos = $this->teamAusfall($turnierId, (int) $start['id'], $ergebnis);
         $this->protokoll->revisionErhoehen($turnierId);
-        return $text . ($kampflos > 0 ? ", $kampflos offene Kämpfe/Vorträge kampflos (Kiken)." : '.');
+        return $text . ($kampflos > 0 ? t(', {n} offene Kämpfe/Vorträge kampflos (Kiken).', ['n' => $kampflos]) : '.');
     }
 
     /**
@@ -472,7 +474,7 @@ final class AusrufService
             $t = $this->db->eine(
                 'SELECT t.*, a.vorname, a.nachname FROM teilnahme t JOIN athlet a ON a.id = t.athlet_id WHERE t.id = ? AND t.turnier_id = ?',
                 [$teilnahmeId, $turnierId],
-            ) ?? throw new FachFehler('Teilnehmer nicht gefunden.');
+            ) ?? throw new FachFehler(t('Teilnehmer nicht gefunden.'));
             $vermerk = trim(($t['vermerk'] ?? '') . " · nicht erschienen ($quelle " . date('H:i') . ')', ' ·');
             $this->db->update('teilnahme', ['status' => 'nicht_erschienen', 'vermerk' => mb_substr($vermerk, 0, 500)], ['id' => $teilnahmeId]);
             $this->protokoll->eintragen($turnierId, 'teilnahme', $teilnahmeId, 'nicht_erschienen', ['quelle' => $quelle]);
@@ -489,9 +491,9 @@ final class AusrufService
             }
             $kampflos = (new ErgebnisService($this->db))->ausfaelleVerarbeiten($turnierId, $teilnahmeId);
             $this->protokoll->revisionErhoehen($turnierId);
-            return "{$t['vorname']} {$t['nachname']}: als nicht erschienen gekennzeichnet"
-                . ($neu ? ', ' . implode(', ', $neu) . ' ohne ihn/sie neu ausgelost' : '')
-                . ($kampflos > 0 ? ", $kampflos offene Kämpfe/Vorträge kampflos (Kiken)." : '.');
+            return t('{name}: als nicht erschienen gekennzeichnet', ['name' => "{$t['vorname']} {$t['nachname']}"])
+                . ($neu ? t(', {klassen} ohne ihn/sie neu ausgelost', ['klassen' => implode(', ', $neu)]) : '')
+                . ($kampflos > 0 ? t(', {n} offene Kämpfe/Vorträge kampflos (Kiken).', ['n' => $kampflos]) : '.');
         });
     }
 
@@ -554,9 +556,9 @@ final class AusrufService
         $zeile = $this->db->eine(
             "SELECT x.* FROM $tabelle x JOIN phase p ON p.id = x.phase_id JOIN klasse k ON k.id = p.klasse_id WHERE x.id = ? AND k.turnier_id = ?",
             [$id, $turnierId],
-        ) ?? throw new FachFehler('Eintrag nicht gefunden.');
+        ) ?? throw new FachFehler(t('Eintrag nicht gefunden.'));
         if ($zeile['status'] === 'beendet') {
-            throw new FachFehler('Dieser Kampf ist bereits beendet.');
+            throw new FachFehler(t('Dieser Kampf ist bereits beendet.'));
         }
         $spalten = $tabelle === 'auftritt'
             ? ['starter' => 'aufruf_starter']

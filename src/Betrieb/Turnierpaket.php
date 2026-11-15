@@ -80,35 +80,35 @@ final class Turnierpaket
     public static function pruefen(array $paket): void
     {
         if (($paket['format'] ?? null) !== self::FORMAT || !is_array($paket['turnier'] ?? null)) {
-            throw new FachFehler('Die Datei ist keine Turnier-Sicherung dieser Software.');
+            throw new FachFehler(t('Die Datei ist keine Turnier-Sicherung dieser Software.'));
         }
         if (!is_int($paket['version'] ?? null) || $paket['version'] < 1) {
-            throw new FachFehler('Die Sicherung hat keine gültige Versionsangabe.');
+            throw new FachFehler(t('Die Sicherung hat keine gültige Versionsangabe.'));
         }
         if ($paket['version'] > self::VERSION) {
-            throw new FachFehler('Die Sicherung stammt aus einer neueren Programmversion. Bitte zuerst aktualisieren.');
+            throw new FachFehler(t('Die Sicherung stammt aus einer neueren Programmversion. Bitte zuerst aktualisieren.'));
         }
         foreach ($paket as $schluessel => $inhalt) {
             if (in_array($schluessel, self::KOPF, true)) {
                 continue;
             }
             if (!isset(self::SPALTEN[$schluessel])) {
-                throw new FachFehler('Die Sicherung enthält einen unbekannten Bereich: ' . self::kurz((string) $schluessel) . '.');
+                throw new FachFehler(t('Die Sicherung enthält einen unbekannten Bereich: {bereich}.', ['bereich' => self::kurz((string) $schluessel)]));
             }
             $zeilen = $schluessel === 'turnier' ? [$inhalt] : $inhalt;
             if (!is_array($zeilen) || !array_is_list($zeilen)) {
-                throw new FachFehler("Die Sicherung ist im Bereich $schluessel beschädigt.");
+                throw new FachFehler(t('Die Sicherung ist im Bereich {bereich} beschädigt.', ['bereich' => $schluessel]));
             }
             foreach ($zeilen as $zeile) {
                 if (!is_array($zeile) || !isset($zeile['id'])) {
-                    throw new FachFehler("Die Sicherung ist im Bereich $schluessel beschädigt.");
+                    throw new FachFehler(t('Die Sicherung ist im Bereich {bereich} beschädigt.', ['bereich' => $schluessel]));
                 }
                 foreach ($zeile as $spalte => $wert) {
                     if (!in_array($spalte, self::SPALTEN[$schluessel], true)) {
-                        throw new FachFehler("Die Sicherung enthält eine unbekannte Spalte $schluessel." . self::kurz((string) $spalte) . '.');
+                        throw new FachFehler(t('Die Sicherung enthält eine unbekannte Spalte {spalte}.', ['spalte' => "$schluessel." . self::kurz((string) $spalte)]));
                     }
                     if (!is_scalar($wert) && $wert !== null) {
-                        throw new FachFehler("Die Sicherung enthält einen ungültigen Wert in $schluessel.$spalte.");
+                        throw new FachFehler(t('Die Sicherung enthält einen ungültigen Wert in {feld}.', ['feld' => "$schluessel.$spalte"]));
                     }
                 }
             }
@@ -147,13 +147,13 @@ final class Turnierpaket
             return self::OHNE;
         }
         if (!is_array($summe) || ($summe['verfahren'] ?? null) !== 'HMAC-SHA256' || !is_string($summe['wert'] ?? null) || !is_string($summe['instanz'] ?? null)) {
-            throw new FachFehler('Die Prüfsumme der Sicherung ist beschädigt.');
+            throw new FachFehler(t('Die Prüfsumme der Sicherung ist beschädigt.'));
         }
         if ($instanz === null || !hash_equals($instanz->id(), $summe['instanz'])) {
             return self::FREMD;
         }
         if (!hash_equals(self::pruefsummeBerechnen($paket, $instanz->schluessel()), $summe['wert'])) {
-            throw new FachFehler('Die Sicherung wurde nach dem Export verändert (Prüfsumme stimmt nicht) und wird nicht importiert.');
+            throw new FachFehler(t('Die Sicherung wurde nach dem Export verändert (Prüfsumme stimmt nicht) und wird nicht importiert.'));
         }
         return self::EIGENE;
     }

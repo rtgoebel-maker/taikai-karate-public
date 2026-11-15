@@ -5,12 +5,12 @@
  */
 ?>
 <div class="blatt">
-    <?= $this->teil('druck/kopf', ['turnier' => $turnier, 'ueberschrift' => 'Starter nach Verein', 'zusatz' => count($vereine) . ' Vereine']) ?>
+    <?= $this->teil('druck/kopf', ['turnier' => $turnier, 'ueberschrift' => t('Starter nach Verein'), 'zusatz' => t('{n} Vereine', ['n' => count($vereine)])]) ?>
     <?php foreach ($vereine as $verein => $starter): ?>
         <div class="keinumbruch">
             <h2><?= e($verein) ?> <span class="klein">(<?= count($starter) ?>)</span></h2>
             <table>
-                <thead><tr><th style="width:12mm">Nr.</th><th>Name</th><th style="width:22mm">Grad</th><th>Klassen</th></tr></thead>
+                <thead><tr><th style="width:12mm"><?= te('Nr.') ?></th><th><?= te('Name') ?></th><th style="width:22mm"><?= te('Grad') ?></th><th><?= te('Klassen') ?></th></tr></thead>
                 <tbody>
                 <?php foreach ($starter as $s): ?>
                     <tr><td><?= e($s['startnummer']) ?></td><td><?= e($s['nachname'] . ', ' . $s['vorname']) ?></td><td><?= e(grad((int) $s['graduierung'])) ?></td><td><?= e(str_replace(',', ', ', (string) $s['klassen'])) ?></td></tr>

@@ -42,8 +42,9 @@ final class TurnierPhase
         return isset(self::ALLE[$status]) ? $status : self::VORBEREITUNG; // auch alte Werte wie „planung“
     }
 
+    /** Bezeichnung in der aktuellen Sprache (Katalog: lang/en/durchfuehrung.php). */
     public static function text(string $phase): string
     {
-        return self::ALLE[$phase] ?? self::ALLE[self::VORBEREITUNG];
+        return t(self::ALLE[$phase] ?? self::ALLE[self::VORBEREITUNG]);
     }
 }

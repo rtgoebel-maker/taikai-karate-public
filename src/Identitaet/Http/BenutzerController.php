@@ -40,7 +40,7 @@ final class BenutzerController extends Controller
     public function bearbeiten(Request $request, int $id): Response
     {
         $this->konten()->aendern($id, $request->post);
-        $this->erfolg('Konto gespeichert.');
+        $this->erfolg(t('Konto gespeichert.'));
         return $this->weiter('benutzer');
     }
 
@@ -54,7 +54,7 @@ final class BenutzerController extends Controller
         $konten = $this->konten();
         $neu = (string) $request->post('passwort', '');
         if ($neu !== (string) $request->post('passwort2', '')) {
-            throw new FachFehler('Die beiden Eingaben des neuen Passworts stimmen nicht überein.');
+            throw new FachFehler(t('Die beiden Eingaben des neuen Passworts stimmen nicht überein.'));
         }
         Konten::passwortPruefen($neu);
         if ($id === $this->ich()) {
@@ -64,12 +64,12 @@ final class BenutzerController extends Controller
             $schutz->pruefen($ziel, $ip);
             if (!$konten->passwortStimmt($id, (string) $request->post('bisheriges_passwort', ''))) {
                 $schutz->fehlschlag($ziel, $ip);
-                throw new FachFehler('Das bisherige Passwort ist falsch.');
+                throw new FachFehler(t('Das bisherige Passwort ist falsch.'));
             }
             $schutz->erfolg($ziel, $ip);
         }
         $konten->passwortSetzen($id, $neu);
-        $this->erfolg('Passwort geändert.');
+        $this->erfolg(t('Passwort geändert.'));
         return $this->weiter('benutzer');
     }
 
@@ -78,7 +78,7 @@ final class BenutzerController extends Controller
     {
         $this->app->authenticatorApp()->entfernen($id, 'administration');
         (new KontoVertrauen($this->db))->widerrufen($id);
-        $this->erfolg('Authenticator-App zurückgesetzt – bei der nächsten Anmeldung Code per E-Mail bzw. neue Einrichtung der App.');
+        $this->erfolg(t('Authenticator-App zurückgesetzt – bei der nächsten Anmeldung Code per E-Mail bzw. neue Einrichtung der App.'));
         return $this->weiter('benutzer');
     }
 
@@ -87,28 +87,28 @@ final class BenutzerController extends Controller
     {
         (new KontoVertrauen($this->db))->widerrufen($id);
         (new Protokoll($this->db))->eintragen(null, 'benutzer', $id, 'vertraute_geraete_zurueckgesetzt');
-        $this->erfolg('Vertraute Geräte zurückgesetzt – beim nächsten Login ist wieder der Code nötig.');
+        $this->erfolg(t('Vertraute Geräte zurückgesetzt – beim nächsten Login ist wieder der Code nötig.'));
         return $this->weiter('benutzer');
     }
 
     public function aktivUmschalten(Request $request, int $id): Response
     {
         $this->konten()->aktivUmschalten($id, $this->ich());
-        $this->erfolg('Konto geändert.');
+        $this->erfolg(t('Konto geändert.'));
         return $this->weiter('benutzer');
     }
 
     public function loeschen(Request $request, int $id): Response
     {
         $this->konten()->loeschen($id, $this->ich(), $request->text('bestaetigung'));
-        $this->erfolg('Konto endgültig gelöscht – die E-Mail-Adresse ist wieder frei.');
+        $this->erfolg(t('Konto endgültig gelöscht – die E-Mail-Adresse ist wieder frei.'));
         return $this->weiter('benutzer');
     }
 
     public function adminUmschalten(Request $request, int $id): Response
     {
         $this->konten()->adminSetzen($id, $request->post('admin') === '1', $this->ich());
-        $this->erfolg('Administrationsrecht geändert.');
+        $this->erfolg(t('Administrationsrecht geändert.'));
         return $this->weiter('benutzer');
     }
 

@@ -37,18 +37,18 @@ final class LogoService
     /** Speichert (bzw. ersetzt) ein Logo aus einer hochgeladenen Datei. */
     public function speichern(int $turnierId, string $art, string $pfad): void
     {
-        $name = (self::ARTEN + self::UNTERSCHRIFTEN + self::HINTERGRUND)[$art] ?? throw new FachFehler('Unbekannte Logo-Art.');
+        $name = (self::ARTEN + self::UNTERSCHRIFTEN + self::HINTERGRUND)[$art] ?? throw new FachFehler(t('Unbekannte Logo-Art.'));
         $max = self::maxBytes($art);
         $groesse = is_file($pfad) ? (int) filesize($pfad) : 0;
         if ($groesse === 0) {
-            throw new FachFehler($name . ': Datei ist leer oder fehlt.');
+            throw new FachFehler(t('{name}: Datei ist leer oder fehlt.', ['name' => t($name)]));
         }
         if ($groesse > $max) {
-            throw new FachFehler($name . ': Datei ist zu groß (max. ' . intdiv($max, 1024 * 1024) . ' MB).');
+            throw new FachFehler(t('{name}: Datei ist zu groß (max. {mb} MB).', ['name' => t($name), 'mb' => intdiv($max, 1024 * 1024)]));
         }
         $info = @getimagesize($pfad);
         if ($info === false || !isset(self::MIME[$info[2]])) {
-            throw new FachFehler($name . ': bitte ein Bild als PNG, JPG, WebP oder GIF hochladen.');
+            throw new FachFehler(t('{name}: bitte ein Bild als PNG, JPG, WebP oder GIF hochladen.', ['name' => t($name)]));
         }
         $felder = [
             'mime' => self::MIME[$info[2]],

@@ -44,14 +44,14 @@ final class HalleController extends Controller
     {
         $datei = $request->files['datei'] ?? null;
         if (!is_array($datei) || (int) ($datei['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            throw new FachFehler('Bitte die Übergabe-Datei (.json) auswählen.');
+            throw new FachFehler(t('Bitte die Übergabe-Datei (.json) auswählen.'));
         }
         $paket = json_decode((string) file_get_contents($datei['tmp_name']), true);
         if (!is_array($paket)) {
-            throw new FachFehler('Die Datei enthält kein gültiges JSON.');
+            throw new FachFehler(t('Die Datei enthält kein gültiges JSON.'));
         }
         $id = $this->service()->einspielen($paket, $request->text('code'), 'datei');
-        $this->erfolg('Übergabe eingespielt – dieser Laptop führt jetzt das Turnier.');
+        $this->erfolg(t('Übergabe eingespielt – dieser Laptop führt jetzt das Turnier.'));
         return $this->weiter("turnier/$id");
     }
 
@@ -64,7 +64,7 @@ final class HalleController extends Controller
             $request->text('code'),
             self::$transport ?? new HttpTransport(),
         );
-        $this->erfolg('Übergabe online abgeholt und eingespielt – dieser Laptop führt jetzt das Turnier.');
+        $this->erfolg(t('Übergabe online abgeholt und eingespielt – dieser Laptop führt jetzt das Turnier.'));
         return $this->weiter("turnier/$id");
     }
 

@@ -125,7 +125,7 @@ final class Konten
     {
         $this->konto($id);
         if (!$admin && $id === $ich) {
-            throw new FachFehler('Die eigenen Administrationsrechte können nicht entzogen werden.');
+            throw new FachFehler(t('Die eigenen Administrationsrechte können nicht entzogen werden.'));
         }
         $this->db->transaktion(function () use ($id, $admin) {
             $this->db->update('benutzer', ['ist_admin' => $admin ? 1 : 0, 'rolle' => $admin ? 'admin' : 'konto'], ['id' => $id]);
@@ -138,7 +138,7 @@ final class Konten
     {
         $this->konto($id);
         if ($id === $ich) {
-            throw new FachFehler('Das eigene Konto kann nicht deaktiviert werden.');
+            throw new FachFehler(t('Das eigene Konto kann nicht deaktiviert werden.'));
         }
         $this->db->transaktion(function () use ($id) {
             $this->db->query('UPDATE benutzer SET aktiv = 1 - aktiv WHERE id = ?', [$id]);
@@ -158,13 +158,13 @@ final class Konten
         $this->konto($id);
         $konto = $this->db->eine('SELECT * FROM benutzer WHERE id = ?', [$id]) ?? [];
         if ($id === $ich) {
-            throw new FachFehler('Das eigene Konto kann nicht gelöscht werden.');
+            throw new FachFehler(t('Das eigene Konto kann nicht gelöscht werden.'));
         }
         if ((int) $konto['aktiv']) {
-            throw new FachFehler('Bitte das Konto zuerst deaktivieren – gelöscht werden nur deaktivierte Konten.');
+            throw new FachFehler(t('Bitte das Konto zuerst deaktivieren – gelöscht werden nur deaktivierte Konten.'));
         }
         if (self::email($bestaetigung) === '' || self::email($bestaetigung) !== self::email((string) ($konto['email'] ?? $konto['login']))) {
-            throw new FachFehler('Zur Bestätigung bitte die E-Mail-Adresse des Kontos eingeben – nichts gelöscht.');
+            throw new FachFehler(t('Zur Bestätigung bitte die E-Mail-Adresse des Kontos eingeben – nichts gelöscht.'));
         }
         $this->db->transaktion(function () use ($id, $konto) {
             $this->db->delete('turnier_rolle', ['benutzer_id' => $id]);
@@ -187,7 +187,7 @@ final class Konten
             [$turnierId, $benutzerId, self::ROLLE_LEITUNG],
         );
         if ($vorhanden !== null) {
-            throw new FachFehler('Dieses Konto gehört schon zur Turnierleitung.');
+            throw new FachFehler(t('Dieses Konto gehört schon zur Turnierleitung.'));
         }
         $this->db->insert('turnier_rolle', [
             'turnier_id' => $turnierId, 'benutzer_id' => $benutzerId, 'rolle' => self::ROLLE_LEITUNG,
@@ -200,12 +200,12 @@ final class Konten
     public function turnierleitungEntfernen(int $turnierId, int $benutzerId, int $ich, bool $ichAdmin): void
     {
         if ($benutzerId === $ich && !$ichAdmin) {
-            throw new FachFehler('Die eigene Turnierleitung kann nur die Administration entziehen.');
+            throw new FachFehler(t('Die eigene Turnierleitung kann nur die Administration entziehen.'));
         }
         $this->db->transaktion(function () use ($turnierId, $benutzerId) {
             $anzahl = $this->db->delete('turnier_rolle', ['turnier_id' => $turnierId, 'benutzer_id' => $benutzerId, 'rolle' => self::ROLLE_LEITUNG]);
             if ($anzahl === 0) {
-                throw new FachFehler('Dieses Konto gehört nicht zur Turnierleitung.');
+                throw new FachFehler(t('Dieses Konto gehört nicht zur Turnierleitung.'));
             }
             (new Protokoll($this->db))->eintragen($turnierId, 'benutzer', $benutzerId, 'turnierleitung_entzogen');
         });
@@ -285,10 +285,10 @@ final class Konten
     public static function passwortPruefen(string $passwort): void
     {
         if (mb_strlen($passwort) < self::MIN_PASSWORT) {
-            throw new FachFehler('Das Passwort muss mindestens ' . self::MIN_PASSWORT . ' Zeichen lang sein.');
+            throw new FachFehler(t('Das Passwort muss mindestens {min} Zeichen lang sein.', ['min' => self::MIN_PASSWORT]));
         }
         if (strlen($passwort) > 72) {
-            throw new FachFehler('Das Passwort darf höchstens 72 Byte lang sein.'); // bcrypt wertet nur 72 Byte aus
+            throw new FachFehler(t('Das Passwort darf höchstens 72 Byte lang sein.')); // bcrypt wertet nur 72 Byte aus
         }
     }
 
@@ -303,23 +303,23 @@ final class Konten
         $text = static fn(string $feld, int $max) => mb_substr(trim((string) ($daten[$feld] ?? '')), 0, $max);
         $email = self::email((string) ($daten['email'] ?? ''));
         if ($email === '' || strlen($email) > 190 || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-            throw new FachFehler('Bitte eine gültige E-Mail-Adresse angeben.');
+            throw new FachFehler(t('Bitte eine gültige E-Mail-Adresse angeben.'));
         }
         if ($this->db->wert('SELECT id FROM benutzer WHERE email = ? AND id <> ?', [$email, $id ?? 0]) !== null) {
-            throw new FachFehler('Für diese E-Mail-Adresse gibt es schon ein Konto.');
+            throw new FachFehler(t('Für diese E-Mail-Adresse gibt es schon ein Konto.'));
         }
         $vorname = $text('vorname', 100);
         $nachname = $text('nachname', 100);
         if ($vorname === '' || $nachname === '') {
-            throw new FachFehler('Bitte Vor- und Nachname angeben.');
+            throw new FachFehler(t('Bitte Vor- und Nachname angeben.'));
         }
         $telefon = $text('telefon', 50);
         if ($telefon !== '' && !preg_match('/^\+?[0-9 ()\/\-]{4,50}$/', $telefon)) {
-            throw new FachFehler('Die Telefonnummer darf nur Ziffern, Leerzeichen und + ( ) / - enthalten.');
+            throw new FachFehler(t('Die Telefonnummer darf nur Ziffern, Leerzeichen und + ( ) / - enthalten.'));
         }
         $vereinId = (int) ($daten['verein_id'] ?? 0);
         if ($vereinId > 0 && $this->db->wert('SELECT id FROM verein WHERE id = ?', [$vereinId]) === null) {
-            throw new FachFehler('Das gewählte Dojo gibt es nicht.');
+            throw new FachFehler(t('Das gewählte Dojo gibt es nicht.'));
         }
         return [
             'email' => $email,
@@ -334,14 +334,14 @@ final class Konten
     private function konto(int $id): void
     {
         if ($this->db->wert('SELECT id FROM benutzer WHERE id = ?', [$id]) === null) {
-            throw new FachFehler('Konto nicht gefunden.');
+            throw new FachFehler(t('Konto nicht gefunden.'));
         }
     }
 
     private function mindestensEinAdmin(): void
     {
         if ((int) $this->db->wert('SELECT COUNT(*) FROM benutzer WHERE ist_admin = 1 AND aktiv = 1') === 0) {
-            throw new FachFehler('Es muss mindestens ein aktives Administrationskonto bleiben.');
+            throw new FachFehler(t('Es muss mindestens ein aktives Administrationskonto bleiben.'));
         }
     }
 

@@ -33,10 +33,10 @@ final class ImportController extends Controller
         $turnier = $this->turnier($id);
         $datei = $request->files['datei'] ?? null;
         if (!is_array($datei) || ($datei['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            throw new FachFehler('Bitte eine Datei auswählen.');
+            throw new FachFehler(t('Bitte eine Datei auswählen.'));
         }
         if ($datei['size'] > 5 * 1024 * 1024) {
-            throw new FachFehler('Die Datei ist zu groß (max. 5 MB).');
+            throw new FachFehler(t('Die Datei ist zu groß (max. 5 MB).'));
         }
         $zeilen = TabellenLeser::lesen($datei['tmp_name'], (string) $datei['name']);
         $analyse = (new ImportService($this->db))->analysieren($id, $zeilen);
@@ -60,18 +60,15 @@ final class ImportController extends Controller
         $token = $request->text('token');
         $pfad = preg_match('/^[a-f0-9]{24}$/', $token) === 1 ? $this->tempPfad($token) : '';
         if ($pfad === '' || !is_file($pfad)) {
-            throw new FachFehler('Die Import-Vorschau ist abgelaufen. Bitte die Datei erneut hochladen.');
+            throw new FachFehler(t('Die Import-Vorschau ist abgelaufen. Bitte die Datei erneut hochladen.'));
         }
         $zeilen = json_decode((string) file_get_contents($pfad), true);
         unlink($pfad);
         $ergebnis = (new ImportService($this->db))->uebernehmen($id, is_array($zeilen) ? $zeilen : []);
-        $this->erfolg(sprintf(
-            '%d Teilnehmer importiert, %d übersprungen, %d Teams.%s',
-            $ergebnis['angelegt'],
-            $ergebnis['uebersprungen'],
-            $ergebnis['teams'],
-            $ergebnis['hinweise'] ? ' ' . count($ergebnis['hinweise']) . ' Zuordnungshinweise – siehe Übersicht.' : '',
-        ));
+        $this->erfolg(
+            t('{angelegt} Teilnehmer importiert, {uebersprungen} übersprungen, {teams} Teams.', ['angelegt' => $ergebnis['angelegt'], 'uebersprungen' => $ergebnis['uebersprungen'], 'teams' => $ergebnis['teams']])
+            . ($ergebnis['hinweise'] ? t(' {n} Zuordnungshinweise – siehe Übersicht.', ['n' => count($ergebnis['hinweise'])]) : ''),
+        );
         return $this->weiter("turnier/$id/teilnehmer");
     }
 
@@ -84,7 +81,7 @@ final class ImportController extends Controller
     private function tempPfad(string $token): string
     {
         if (preg_match('/^[a-f0-9]{24}$/', $token) !== 1) {
-            throw new FachFehler('Die Import-Vorschau ist abgelaufen. Bitte die Datei erneut hochladen.');
+            throw new FachFehler(t('Die Import-Vorschau ist abgelaufen. Bitte die Datei erneut hochladen.'));
         }
         $verzeichnis = $this->app->wurzel . '/data/tmp';
         if (!is_dir($verzeichnis)) {

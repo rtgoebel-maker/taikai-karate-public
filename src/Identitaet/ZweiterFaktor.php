@@ -99,7 +99,7 @@ final class ZweiterFaktor
         $z = $_SESSION[self::SCHLUESSEL] ?? null;
         if (!is_array($z) || ($z['ablauf'] ?? 0) < ($jetzt ?? time())) {
             self::verwerfen();
-            throw new FachFehler('Die Anmeldung ist abgelaufen – bitte erneut mit E-Mail und Passwort anmelden.');
+            throw new FachFehler(t('Die Anmeldung ist abgelaufen – bitte erneut mit E-Mail und Passwort anmelden.'));
         }
         return $z;
     }
@@ -110,10 +110,10 @@ final class ZweiterFaktor
         $versuche = (int) ($_SESSION[self::SCHLUESSEL]['versuche'] ?? 0) + 1;
         if ($versuche >= self::MAX_VERSUCHE || !isset($_SESSION[self::SCHLUESSEL])) {
             self::verwerfen();
-            throw new FachFehler('Zu viele falsche Codes – bitte erneut mit E-Mail und Passwort anmelden.');
+            throw new FachFehler(t('Zu viele falsche Codes – bitte erneut mit E-Mail und Passwort anmelden.'));
         }
         $_SESSION[self::SCHLUESSEL]['versuche'] = $versuche;
-        throw new FachFehler('Der Code stimmt nicht. Noch ' . (self::MAX_VERSUCHE - $versuche) . ' Versuche.');
+        throw new FachFehler(t('Der Code stimmt nicht. Noch {n} Versuche.', ['n' => self::MAX_VERSUCHE - $versuche]));
     }
 
     public static function verwerfen(): void
@@ -123,11 +123,11 @@ final class ZweiterFaktor
 
     public static function mailText(string $code, string $name): string
     {
-        return "Guten Tag $name,\n\n"
-            . 'Ihr Anmeldecode für Taikai – Karate: ' . substr($code, 0, 3) . ' ' . substr($code, 3) . "\n\n"
-            . 'Er gilt ' . intdiv(self::GUELTIG_SEKUNDEN, 60) . " Minuten und nur für diese Anmeldung.\n\n"
-            . "Sie haben sich gerade nicht angemeldet? Dann kennt jemand Ihr Passwort – bitte ändern Sie es umgehend\n"
-            . "(Passwort vergessen bzw. Administration). Ohne diesen Code kommt niemand in Ihr Konto.\n"
-            . "\n-- \nDiese Nachricht wurde automatisch von Taikai – Karate verschickt.";
+        return t('Guten Tag {name},', ['name' => $name]) . "\n\n"
+            . t('Ihr Anmeldecode für Taikai – Karate: {code}', ['code' => substr($code, 0, 3) . ' ' . substr($code, 3)]) . "\n\n"
+            . t('Er gilt {minuten} Minuten und nur für diese Anmeldung.', ['minuten' => intdiv(self::GUELTIG_SEKUNDEN, 60)]) . "\n\n"
+            . t('Sie haben sich gerade nicht angemeldet? Dann kennt jemand Ihr Passwort – bitte ändern Sie es umgehend') . "\n"
+            . t('(Passwort vergessen bzw. Administration). Ohne diesen Code kommt niemand in Ihr Konto.') . "\n"
+            . "\n-- \n" . t('Diese Nachricht wurde automatisch von Taikai – Karate verschickt.');
     }
 }
