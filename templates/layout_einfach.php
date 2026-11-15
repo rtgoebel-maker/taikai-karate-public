@@ -18,6 +18,7 @@ use Wettkampf\Kern\Http\Session;
     <?= $this->teil('teile/farben') ?>
 </head>
 <body class="einfach">
+<div class="einfach-sprache"><?= $this->teil('teile/sprache_umschalter') ?></div>
 <p class="einfach-logo"><img src="<?= e(asset('logo/taikai-logo.svg')) ?>" alt="Taikai – Karate" width="225" height="72"></p>
 <main class="karte schmal">
     <?php foreach (Session::flashHolen() as $meldung): ?>

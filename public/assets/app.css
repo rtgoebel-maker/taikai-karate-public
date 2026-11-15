@@ -599,3 +599,13 @@ ul.schlicht li:last-child { border-bottom: 0; }
 .doppelt-liste li { margin: .35rem 0; }
 .verein-bearbeiten > summary { cursor: pointer; color: var(--text-leise); display: inline-block; margin-top: .15rem; }
 .verein-bearbeiten[open] input { margin-top: .3rem; width: 100%; }
+
+/* Sprachumschalter „🌐 DE | EN“ (teile/sprache_umschalter): Farben aus der Umgebung – dunkle Kopfzeile wie helle Fußzeile */
+.sprache-umschalter { display: inline-flex; align-items: center; gap: .1rem; padding: .12rem .2rem .12rem .45rem; border: 1px solid color-mix(in srgb, currentColor 45%, transparent); border-radius: 999px; font-size: .8rem; font-weight: 700; line-height: 1; white-space: nowrap; vertical-align: middle; }
+.sprache-umschalter svg { width: 1.05em; height: 1.05em; margin-right: .2rem; flex: none; }
+.sprache-umschalter a, .sprache-umschalter .aktiv { padding: .22rem .42rem; border-radius: 999px; color: inherit; text-decoration: none; letter-spacing: .03em; }
+.sprache-umschalter a { opacity: .75; }
+.sprache-umschalter a:hover, .sprache-umschalter a:focus-visible { opacity: 1; background: color-mix(in srgb, currentColor 14%, transparent); }
+.sprache-umschalter .aktiv { background: color-mix(in srgb, currentColor 24%, transparent); }
+/* schlichte Seiten (Login, Einrichtung): Umschalter zusätzlich oben rechts, damit man ihn ohne Deutschkenntnisse findet */
+.einfach-sprache { position: absolute; top: .9rem; right: 1rem; color: var(--text, #1d2b45); }

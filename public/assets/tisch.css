@@ -122,7 +122,7 @@ details.begriffe dd { margin: 0; color: var(--leise); }
 .marke.ausruf-bereit { background: #e6f4ea; color: var(--ok); }
 .marke.ausruf-fehlt { background: #fdeaea; color: #8e1b1b; }
 a.knopf-leise { text-decoration: none; }
-.leiste .sprache-klein { font-size: .85rem; white-space: nowrap; }
+.leiste .sprache-klein { color: #fff; }
 
 /* Gruppen-Abschluss und Übergang zur nächsten Gruppe */
 .abschluss, .uebergang { display: grid; gap: .6rem; }
@@ -294,3 +294,11 @@ input.kr.ungueltig { border-color: var(--aka); background: #fdecec; color: var(-
 /* Ausruf der aktuellen Gruppe noch nicht gestartet: Start im Ausruf-Kasten nachholen */
 .ausruf-stand .ausruf-nicht-gestartet { margin: .2rem 0 .5rem; padding: .4rem .6rem; border-radius: 8px; background: #fff4dc; color: #7a4d00; font-weight: 700; font-size: .9rem; }
 .ausruf-stand .ausruf-nicht-gestartet + .knopf-ausruf { display: block; width: 100%; margin-bottom: .4rem; }
+
+/* Sprachumschalter „🌐 DE | EN“ (teile/sprache_umschalter): Farben aus der Umgebung – dunkle Kopfzeile wie helle Fußzeile */
+.sprache-umschalter { display: inline-flex; align-items: center; gap: .1rem; padding: .12rem .2rem .12rem .45rem; border: 1px solid color-mix(in srgb, currentColor 45%, transparent); border-radius: 999px; font-size: .8rem; font-weight: 700; line-height: 1; white-space: nowrap; vertical-align: middle; }
+.sprache-umschalter svg { width: 1.05em; height: 1.05em; margin-right: .2rem; flex: none; }
+.sprache-umschalter a, .sprache-umschalter .aktiv { padding: .22rem .42rem; border-radius: 999px; color: inherit; text-decoration: none; letter-spacing: .03em; }
+.sprache-umschalter a { opacity: .75; }
+.sprache-umschalter a:hover, .sprache-umschalter a:focus-visible { opacity: 1; background: color-mix(in srgb, currentColor 14%, transparent); }
+.sprache-umschalter .aktiv { background: color-mix(in srgb, currentColor 24%, transparent); }

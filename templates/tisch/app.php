@@ -42,7 +42,7 @@ $query = $alsLeitung ? '?tatami=' . (int) $tatami['id'] : '';
     <?php if ($alsLeitung): ?>
         <span class="knopf-leise" title="<?= te('Von der Wettkampfleitung geöffnet. Korrekturen erfordern trotzdem die Leitungs-PIN, sobald eine vergeben ist.') ?>"><?= te('Leitungsansicht') ?></span>
     <?php endif; ?>
-    <?= $this->teil('teile/sprache_umschalter', ['klasse' => 'knopf-leise sprache-klein']) ?>
+    <?= $this->teil('teile/sprache_umschalter', ['klasse' => 'sprache-klein']) ?>
     <?php if (!$alsLeitung): ?>
         <form method="post" action="<?= e(url('tisch/abmelden')) ?>" data-bestaetigen="<?= te('Tablet von dieser Tatami abmelden?') ?>" data-bestaetigen-ja="<?= te('Abmelden') ?>">
             <input type="hidden" name="_csrf" value="<?= e(Session::csrfToken()) ?>">
