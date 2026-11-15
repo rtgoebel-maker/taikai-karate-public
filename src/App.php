@@ -159,8 +159,9 @@ final class App
             $antwort = $handler->handle($request);
             AutoSicherung::ausKonfiguration($this->db, $this->config, $this->wurzel)?->beiBedarf();
             try {
-                // Demo-Turniere täglich zurücksetzen (Schulungsinstallationen), falls eingeschaltet
+                // Demo-Turniere täglich zurücksetzen (Schulungsinstallationen), falls eingeschaltet; vorgemerkte löschen
                 (new DemoZuruecksetzen($this->db))->beiBedarf();
+                (new \Wettkampf\Turnier\DemoBesitz($this->db))->faelligeLoeschen();
             } catch (\Throwable $f) {
                 error_log('Demo zurücksetzen: ' . $f->getMessage());
             }
@@ -405,10 +406,23 @@ final class App
      *
      * @return list<string> neu angelegte Turniere
      */
-    public function demoTurniereSicherstellen(): array
+    public function demoTurniereSicherstellen(int $benutzerId): array
     {
         (new SystemEinstellungen($this->db))->setzen(SystemEinstellungen::DEMO, '1');
-        return (new \Wettkampf\Betrieb\DemoTurnier($this->db))->standardSicherstellen();
+        return (new \Wettkampf\Betrieb\DemoTurnier($this->db))->standardSicherstellen($benutzerId);
+    }
+
+    /**
+     * Nach einer Änderung am Konto: Ist es kein aktiver Demo-Zugang (mehr), werden seine Demo-Turniere zum Löschen vorgemerkt
+     * (Frist DemoBesitz::FRIST_STUNDEN), sonst wird die Vormerkung aufgehoben.
+     *
+     * @return int Anzahl betroffener Turniere
+     */
+    public function demoBesitzAbgleichen(int $benutzerId): int
+    {
+        $konto = $this->db->eine('SELECT aktiv, rolle, ist_admin FROM benutzer WHERE id = ?', [$benutzerId]);
+        $aktiverDemo = $konto !== null && (int) $konto['aktiv'] === 1 && !(int) $konto['ist_admin'] && $konto['rolle'] === Konten::ROLLE_DEMO;
+        return (new \Wettkampf\Turnier\DemoBesitz($this->db))->vormerken($benutzerId, !$aktiverDemo);
     }
 
     /** Freiwillige Einladungen zu künftigen Turnieren (Abmeldelinks per HMAC mit dem Schlüssel dieser Installation). */

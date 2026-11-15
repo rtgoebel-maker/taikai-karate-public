@@ -611,3 +611,7 @@ ul.schlicht li:last-child { border-bottom: 0; }
 .einfach-sprache { position: absolute; top: .9rem; right: 1rem; color: var(--text, #1d2b45); }
 /* Markierung „Demo“ in der dunklen Kopfzeile (Demo-Zugang) */
 .kopf .tag.demo-marke { background: #ffd54a; border-color: #ffd54a; color: #1d2b45; font-weight: 800; letter-spacing: .04em; }
+/* Turnierliste der Administration: Suche und Filter */
+.turnier-filter { display: flex; flex-wrap: wrap; gap: .6rem 1rem; align-items: flex-end; padding: .8rem 1rem; }
+.turnier-filter label { display: flex; flex-direction: column; gap: .2rem; font-size: .85rem; }
+.turnier-filter input[type=search] { min-width: 14rem; }

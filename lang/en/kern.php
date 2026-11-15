@@ -445,4 +445,6 @@ return [
     'Konto für {email} angelegt.' => 'Account for {email} created.',
     'Die Demo-Turniere sind bereits vorhanden.' => 'The demo tournaments already exist.',
     'Demo-Turniere angelegt: {namen}.' => 'Demo tournaments created: {namen}.',
+    'Löschvormerkung für {n} Demo-Turniere aufgehoben.' => 'Deletion mark removed for {n} demo tournaments.',
+    '{n} Demo-Turniere dieses Kontos sind zum Löschen vorgemerkt und werden in {stunden} Stunden gelöscht.' => '{n} demo tournaments of this account are marked for deletion and will be deleted in {stunden} hours.',
 ];

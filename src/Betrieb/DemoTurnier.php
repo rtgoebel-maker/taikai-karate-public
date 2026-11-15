@@ -10,6 +10,7 @@ use Wettkampf\Domain\FachFehler;
 use Wettkampf\Domain\Graduierung;
 use Wettkampf\Domain\TurnierPhase;
 use Wettkampf\Kern\Db\Database;
+use Wettkampf\Turnier\DemoBesitz;
 use Wettkampf\Turnier\TurnierPhaseService;
 use Wettkampf\Turnier\StammdatenService;
 use Wettkampf\Meldung\AnmeldungService;
@@ -97,14 +98,15 @@ final class DemoTurnier
     }
 
     /**
-     * Die drei Standard-Demos anlegen, soweit es sie (als Demo-Turnier mit diesem Namen) noch nicht gibt.
+     * Die drei Standard-Demos eines Demo-Zugangs anlegen, soweit er sie noch nicht hat: Besitzer ist das Konto,
+     * es leitet die Turniere (turnier_rolle).
      *
      * @return list<string> Namen der neu angelegten Turniere
      */
-    public function standardSicherstellen(): array
+    public function standardSicherstellen(int $besitzer): array
     {
         $vorhanden = [];
-        foreach ($this->db->alle("SELECT name, einstellungen FROM turnier WHERE einstellungen LIKE '%\"demo\":{%'") as $t) {
+        foreach ((new DemoBesitz($this->db))->turniereVon($besitzer) as $t) {
             if (self::kennung($t) !== null) {
                 $vorhanden[(string) $t['name']] = true;
             }
@@ -112,11 +114,21 @@ final class DemoTurnier
         $neu = [];
         foreach (self::STANDARD as [$name, $phase, $tage]) {
             if (!isset($vorhanden[$name])) {
-                $this->anlegen((new DateTimeImmutable('today'))->modify(($tage >= 0 ? '+' : '') . $tage . ' days')->format('Y-m-d'), $name, true, null, $phase);
+                $id = $this->anlegen((new DateTimeImmutable('today'))->modify(($tage >= 0 ? '+' : '') . $tage . ' days')->format('Y-m-d'), $name, true, null, $phase)['turnier'];
+                $this->besitzerEintragen($id, $besitzer);
                 $neu[] = $name;
             }
         }
         return $neu;
+    }
+
+    /** Konto als Besitzer vermerken und zur Turnierleitung machen. */
+    public function besitzerEintragen(int $turnierId, int $besitzer): void
+    {
+        (new DemoBesitz($this->db))->besitzerSetzen($turnierId, $besitzer);
+        if ($this->db->wert('SELECT 1 FROM turnier_rolle WHERE turnier_id = ? AND benutzer_id = ?', [$turnierId, $besitzer]) === null) {
+            $this->db->insert('turnier_rolle', ['turnier_id' => $turnierId, 'benutzer_id' => $besitzer, 'rolle' => 'leitung', 'erstellt_am' => date('Y-m-d H:i:s'), 'erstellt_von' => 'Demo']);
+        }
     }
 
     /**

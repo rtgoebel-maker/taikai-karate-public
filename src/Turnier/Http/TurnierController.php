@@ -6,6 +6,7 @@ namespace Wettkampf\Turnier\Http;
 
 use Wettkampf\Durchfuehrung\AusrufService;
 use Wettkampf\Kern\Protokoll;
+use Wettkampf\Turnier\DemoBesitz;
 use Wettkampf\Turnier\StammdatenService;
 use Wettkampf\Turnier\TurnierPhaseService;
 use Wettkampf\Domain\FachFehler;
@@ -203,6 +204,7 @@ final class TurnierController extends Controller
     {
         $ich = (int) (Session::benutzer()['id'] ?? 0);
         if (Session::istDemo() && $ich > 0) {
+            (new DemoBesitz($this->db))->besitzerSetzen($turnierId, $ich);
             $this->db->insert('turnier_rolle', ['turnier_id' => $turnierId, 'benutzer_id' => $ich, 'rolle' => 'leitung', 'erstellt_am' => date('Y-m-d H:i:s'), 'erstellt_von' => Session::akteur()]);
         }
     }

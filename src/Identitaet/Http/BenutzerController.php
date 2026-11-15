@@ -33,8 +33,8 @@ final class BenutzerController extends Controller
     public function anlegen(Request $request): Response
     {
         $demo = $request->post('admin') === null && $request->post('demo') !== null;
-        $this->konten()->anlegen($request->post, (string) $request->post('passwort', ''), $request->post('admin') !== null, $demo);
-        $this->erfolg(t('Konto für {email} angelegt.', ['email' => Konten::email($request->text('email'))]) . ($demo ? $this->demoBereit() : ''));
+        $id = $this->konten()->anlegen($request->post, (string) $request->post('passwort', ''), $request->post('admin') !== null, $demo);
+        $this->erfolg(t('Konto für {email} angelegt.', ['email' => Konten::email($request->text('email'))]) . ($demo ? $this->demoBereit($id) : ''));
         return $this->weiter('benutzer');
     }
 
@@ -95,27 +95,28 @@ final class BenutzerController extends Controller
     public function aktivUmschalten(Request $request, int $id): Response
     {
         $this->konten()->aktivUmschalten($id, $this->ich());
-        $this->erfolg(t('Konto geändert.'));
+        $this->erfolg(t('Konto geändert.') . $this->demoAbgleich($id));
         return $this->weiter('benutzer');
     }
 
     public function loeschen(Request $request, int $id): Response
     {
         $this->konten()->loeschen($id, $this->ich(), $request->text('bestaetigung'));
-        $this->erfolg(t('Konto endgültig gelöscht – die E-Mail-Adresse ist wieder frei.'));
+        $this->erfolg(t('Konto endgültig gelöscht – die E-Mail-Adresse ist wieder frei.') . $this->demoAbgleich($id));
         return $this->weiter('benutzer');
     }
 
     public function demoUmschalten(Request $request, int $id): Response
     {
         $this->konten()->demoSetzen($id, $request->post('demo') === '1');
-        $this->erfolg($request->post('demo') === '1' ? t('Demo-Zugang eingerichtet.') . $this->demoBereit() : t('Demo-Zugang entzogen.'));
+        $this->erfolg($request->post('demo') === '1' ? t('Demo-Zugang eingerichtet.') . $this->demoAbgleich($id) . $this->demoBereit($id) : t('Demo-Zugang entzogen.') . $this->demoAbgleich($id));
         return $this->weiter('benutzer');
     }
 
     public function adminUmschalten(Request $request, int $id): Response
     {
         $this->konten()->adminSetzen($id, $request->post('admin') === '1', $this->ich());
+        $this->app->demoBesitzAbgleichen($id);
         $this->erfolg(t('Administrationsrecht geändert.'));
         return $this->weiter('benutzer');
     }
@@ -131,11 +132,25 @@ final class BenutzerController extends Controller
     }
 
     /** Standard-Demos für den Demo-Zugang bereitstellen; Text für die Erfolgsmeldung. */
-    private function demoBereit(): string
+    private function demoBereit(int $id): string
     {
-        $neu = $this->app->demoTurniereSicherstellen();
+        $neu = $this->app->demoTurniereSicherstellen($id);
         return ' ' . ($neu === []
             ? t('Die Demo-Turniere sind bereits vorhanden.')
             : t('Demo-Turniere angelegt: {namen}.', ['namen' => implode(', ', $neu)]));
+    }
+
+    /** Demo-Turniere des Kontos vormerken bzw. Vormerkung aufheben; Text für die Erfolgsmeldung. */
+    private function demoAbgleich(int $id): string
+    {
+        $anzahl = $this->app->demoBesitzAbgleichen($id);
+        if ($anzahl === 0) {
+            return '';
+        }
+        $vorgemerkt = $this->db->eine('SELECT aktiv, rolle FROM benutzer WHERE id = ?', [$id]);
+        $aktiverDemo = $vorgemerkt !== null && (int) $vorgemerkt['aktiv'] === 1 && $vorgemerkt['rolle'] === Konten::ROLLE_DEMO;
+        return ' ' . ($aktiverDemo
+            ? t('Löschvormerkung für {n} Demo-Turniere aufgehoben.', ['n' => $anzahl])
+            : t('{n} Demo-Turniere dieses Kontos sind zum Löschen vorgemerkt und werden in {stunden} Stunden gelöscht.', ['n' => $anzahl, 'stunden' => 72]));
     }
 }

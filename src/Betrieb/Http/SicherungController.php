@@ -52,8 +52,8 @@ final class SicherungController extends Controller
         $ergebnis = $this->service()->importieren($daten);
         $ich = (int) (Session::benutzer()['id'] ?? 0);
         if (Session::istDemo() && $ich > 0) {
-            // Demo-Nutzer leitet das importierte Turnier (sonst sähe er es nicht)
-            $this->db->insert('turnier_rolle', ['turnier_id' => (int) $ergebnis['turnier'], 'benutzer_id' => $ich, 'rolle' => 'leitung', 'erstellt_am' => date('Y-m-d H:i:s'), 'erstellt_von' => Session::akteur()]);
+            // Demo-Nutzer besitzt und leitet das importierte Turnier (sonst sähe er es nicht)
+            (new \Wettkampf\Betrieb\DemoTurnier($this->db))->besitzerEintragen((int) $ergebnis['turnier'], $ich);
         }
         $this->erfolg(match ($ergebnis['herkunft']) {
             Turnierpaket::EIGENE => t('Turnier importiert (Prüfsumme dieser Installation gültig).'),

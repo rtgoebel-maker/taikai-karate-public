@@ -7,6 +7,7 @@ namespace Wettkampf\Betrieb;
 use Wettkampf\Domain\FachFehler;
 use Wettkampf\Kern\Db\Database;
 use Wettkampf\Kern\Protokoll;
+use Wettkampf\Turnier\DemoBesitz;
 use Wettkampf\Turnier\StammdatenService;
 use Wettkampf\Turnier\SystemEinstellungen;
 
@@ -115,10 +116,17 @@ final class DemoZuruecksetzen
             if ($k === null) {
                 continue;
             }
+            if (DemoBesitz::loeschenAb($t) !== null) {
+                continue; // zum Löschen vorgemerkt (Demo-Zugang entzogen) – nicht neu anlegen
+            }
+            $besitzer = DemoBesitz::besitzer($t);
             $rollen = $this->db->alle('SELECT benutzer_id, rolle FROM turnier_rolle WHERE turnier_id = ?', [$t['id']]);
             $stamm->turnierLoeschen((int) $t['id']);
             $logos = $k['logos_von'] !== null && $this->db->wert('SELECT 1 FROM turnier WHERE id = ?', [$k['logos_von']]) !== null ? $k['logos_von'] : null;
             $neu = $demo->anlegen(date('Y-m-d', (int) strtotime(date('Y-m-d', $jetzt) . ' ' . ($k['tage'] >= 0 ? '+' : '') . $k['tage'] . ' days')), $k['name'], $k['teams'], $logos, $k['phase']);
+            if ($besitzer !== null) {
+                (new DemoBesitz($this->db))->besitzerSetzen((int) $neu['turnier'], $besitzer);
+            }
             foreach ($rollen as $r) {
                 $this->db->insert('turnier_rolle', ['turnier_id' => $neu['turnier'], 'benutzer_id' => $r['benutzer_id'], 'rolle' => $r['rolle'], 'erstellt_am' => date('Y-m-d H:i:s', $jetzt), 'erstellt_von' => 'Demo-Zurücksetzen']);
             }

@@ -45,8 +45,8 @@ final class Konten
         ));
         $demo = !(int) $konto['ist_admin'] && $konto['rolle'] === self::ROLLE_DEMO;
         if ($demo) {
-            // alle Demo-Turniere (Kennung in den Einstellungen, siehe Betrieb\DemoTurnier) – echte Turniere nur, wenn ernannt
-            $demoTurniere = array_map('intval', $this->db->spalte("SELECT id FROM turnier WHERE einstellungen LIKE '%\"demo\":{%'"));
+            // eigene Turniere (Rollen) und gemeinsame Demo-Turniere der Administration (Kennung ohne Besitzer, siehe Turnier\DemoBesitz)
+            $demoTurniere = array_map('intval', $this->db->spalte("SELECT id FROM turnier WHERE einstellungen LIKE '%\"demo\":{%' AND einstellungen NOT LIKE '%\"demo_besitzer\":%'"));
             $turniere = array_values(array_unique([...$turniere, ...$demoTurniere]));
             sort($turniere);
         }
