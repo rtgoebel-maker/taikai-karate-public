@@ -338,13 +338,13 @@ final class AnmeldungController extends Controller
         if ($request->text('konto_vorname') === '' || $request->text('konto_nachname') === '') {
             $fehler[] = t('Zugang: bitte Vor- und Nachname angeben.');
         }
-        $passwort = (string) $request->post('konto_passwort', '');
+        $passwort = text_wert($request->post('konto_passwort', ''));
         try {
             Konten::passwortPruefen($passwort);
         } catch (FachFehler $f) {
             $fehler[] = t('Zugang: {fehler}', ['fehler' => $f->getMessage()]);
         }
-        if ($passwort !== (string) $request->post('konto_passwort2', '')) {
+        if ($passwort !== text_wert($request->post('konto_passwort2', ''))) {
             $fehler[] = t('Zugang: Die beiden Passwörter stimmen nicht überein.');
         }
         if ($fehler !== []) {

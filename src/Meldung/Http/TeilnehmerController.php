@@ -10,6 +10,8 @@ use Wettkampf\Turnier\StammdatenService;
 use Wettkampf\Meldung\ZuordnungService;
 use Wettkampf\Domain\Alter;
 use Wettkampf\Kern\Http\Request;
+use Wettkampf\Kern\Http\Session;
+use Wettkampf\Turnier\VereinService;
 use Wettkampf\Kern\Http\Response;
 use Wettkampf\Kern\Http\Controller;
 
@@ -92,6 +94,8 @@ final class TeilnehmerController extends Controller
         $this->turnier($id);
         $daten = $request->post;
         $daten['disziplinen'] = (array) $request->post('disziplinen', []);
+        $daten['verein_id'] = $request->zahl('verein_id') ?? '';
+        (new VereinService($this->db))->pruefen($daten['verein_id'] === '' ? null : $daten['verein_id'], $request->text('verein_name'), self::nurDemoTurniere());
         $teilnahmeId = $request->zahl('teilnahme_id');
         $neueId = (new StammdatenService($this->db))->teilnehmerSpeichern($id, $daten, $teilnahmeId);
         $ergebnis = (new ZuordnungService($this->db))->teilnehmerZuordnen($id, $neueId);
@@ -103,7 +107,7 @@ final class TeilnehmerController extends Controller
         }
         $this->erfolg(t('Teilnehmer gespeichert.') . ($ergebnis ? ' ' . implode(' ', $ergebnis) : ''));
         if ($request->post('weiter') === 'neu') {
-            return $this->weiter("turnier/$id/teilnehmer/neu", ['verein' => $daten['verein_id'] ?? null]);
+            return $this->weiter("turnier/$id/teilnehmer/neu", ['verein' => $daten['verein_id']]);
         }
         return $this->weiter("turnier/$id/teilnehmer");
     }
@@ -141,7 +145,7 @@ final class TeilnehmerController extends Controller
             }
             unset($s);
         }
-        $vereine = $this->db->alle('SELECT id, name FROM verein ORDER BY name');
+        $vereine = (new VereinService($this->db))->auswahl(self::nurDemoTurniere());
         return $this->seite('teilnehmer/formular', [
             'turnier' => $turnier,
             'teilnahmeId' => $teilnahmeId,
@@ -150,5 +154,11 @@ final class TeilnehmerController extends Controller
             'starts' => $starts,
             'aktiv' => 'teilnehmer',
         ]);
+    }
+
+    /** @return list<int>|null Demo-Nutzer: nur Vereine seiner Turniere anbieten und annehmen */
+    private static function nurDemoTurniere(): ?array
+    {
+        return Session::istDemo() ? array_map('intval', (array) (Session::benutzer()['turniere'] ?? [])) : null;
     }
 }

@@ -74,6 +74,13 @@ final class Fortschreibung
                     $aenderung["{$seite}_start_id"] = $verlierer;
                 }
             }
+            foreach (['aka', 'shiro'] as $seite) {
+                // andere Person auf dem Platz (Korrektur, Zurücksetzen): Ausruf-Stand („da“/„fehlt“) gilt nicht mehr
+                if (array_key_exists("{$seite}_start_id", $aenderung) && $aenderung["{$seite}_start_id"] !== ($folge["{$seite}_start_id"] === null ? null : (int) $folge["{$seite}_start_id"])) {
+                    $aenderung["aufruf_{$seite}"] = null;
+                    $aenderung['aufruf_am'] = null;
+                }
+            }
             $aka = array_key_exists('aka_start_id', $aenderung) ? $aenderung['aka_start_id'] : $folge['aka_start_id'];
             $shiro = array_key_exists('shiro_start_id', $aenderung) ? $aenderung['shiro_start_id'] : $folge['shiro_start_id'];
             if (in_array($folge['status'], ['wartet', 'bereit'], true)) {

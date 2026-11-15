@@ -60,7 +60,7 @@ final class HalleController extends Controller
         $id = $this->service()->abholen(
             $request->text('online_url'),
             $request->text('email'),
-            (string) $request->post('passwort', ''),
+            text_wert($request->post('passwort', '')),
             $request->text('code'),
             self::$transport ?? new HttpTransport(),
         );

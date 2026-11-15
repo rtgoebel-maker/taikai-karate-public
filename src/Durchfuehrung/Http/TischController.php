@@ -10,6 +10,7 @@ use Wettkampf\Domain\FachFehler;
 use Wettkampf\Kern\Drossel;
 use Wettkampf\Kern\Http\NichtGefunden;
 use Wettkampf\Kern\Http\Request;
+use Wettkampf\Turnier\DemoBesitz;
 use Wettkampf\Kern\Http\Response;
 use Wettkampf\Kern\Http\Session;
 use Wettkampf\Kern\Http\Controller;
@@ -35,24 +36,26 @@ final class TischController extends Controller
         }
         // PIN-Anmeldung nur, wo die Leitung sie als Notlösung erlaubt
         $tatamis = $this->db->alle(
-            'SELECT ta.id, ta.bezeichnung, ta.pin_hash, tu.name AS turnier, tu.datum
+            'SELECT ta.id, ta.bezeichnung, ta.pin_hash, tu.name AS turnier, tu.datum, tu.einstellungen
                FROM tatami ta JOIN turnier tu ON tu.id = ta.turnier_id
               WHERE tu.status <> \'abgeschlossen\' AND tu.tisch_pin_erlaubt = 1
               ORDER BY tu.datum DESC, tu.id DESC, ta.nummer',
         );
+        // Demo-Turniere eines Demo-Zugangs: nur per QR-Code (feste Demo-PINs würden fremde Demos öffnen)
+        $tatamis = array_values(array_filter($tatamis, static fn(array $t) => DemoBesitz::besitzer($t) === null));
         return $this->seite('tisch/anmeldung', ['tatamis' => $tatamis, 'ansicht' => $request->text('ansicht', 'app')]);
     }
 
     public function anmelden(Request $request): Response
     {
         $tatami = $this->db->eine(
-            'SELECT ta.*, tu.name AS turnier, tu.tisch_pin_erlaubt FROM tatami ta JOIN turnier tu ON tu.id = ta.turnier_id WHERE ta.id = ?',
+            'SELECT ta.*, tu.name AS turnier, tu.tisch_pin_erlaubt, tu.einstellungen FROM tatami ta JOIN turnier tu ON tu.id = ta.turnier_id WHERE ta.id = ?',
             [(int) $request->zahl('tatami_id')],
         );
         if ($tatami === null) {
             throw new FachFehler(t('Bitte eine Tatami wählen.'));
         }
-        if (!(int) $tatami['tisch_pin_erlaubt']) {
+        if (!(int) $tatami['tisch_pin_erlaubt'] || DemoBesitz::besitzer($tatami) !== null) {
             throw new FachFehler(t('Die Anmeldung per PIN ist für dieses Turnier abgeschaltet – bitte den QR-Code der Wettkampfleitung scannen.'));
         }
         if (!$tatami['pin_hash']) {

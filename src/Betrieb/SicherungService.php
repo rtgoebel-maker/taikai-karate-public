@@ -119,6 +119,12 @@ final class SicherungService
             }
             // eine wiederhergestellte Sicherung führt diese Installation selbst (Übergabe an die Halle: Schritt 9d)
             $t['fuehrung_instanz'] = $t['fuehrung_name'] = $t['fuehrung_seit'] = $t['fuehrung_stand'] = null;
+            // Besitz und Löschvormerkung eines Demo-Turniers nicht erben (Import durch Demo-Nutzer: neuer Besitzer, siehe Controller)
+            $e = json_decode((string) ($t['einstellungen'] ?? ''), true);
+            if (is_array($e) && (isset($e['demo_besitzer']) || isset($e['demo_loeschen_ab']))) {
+                unset($e['demo_besitzer'], $e['demo_loeschen_ab']);
+                $t['einstellungen'] = json_encode($e, JSON_UNESCAPED_UNICODE);
+            }
             // Anmeldelink: gleicher Schlüssel bei Wiederherstellung, bei einer Kopie neu (eindeutig)
             if (isset($t['anmelde_schluessel']) && $this->db->wert('SELECT id FROM turnier WHERE anmelde_schluessel = ?', [$t['anmelde_schluessel']]) !== null) {
                 $t['anmelde_schluessel'] = null;

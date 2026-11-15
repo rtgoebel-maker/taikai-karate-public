@@ -108,9 +108,9 @@ final class KlassenController extends Controller
         $this->turnier($id);
         $daten = $request->post;
         $daten['optionen'] = [
-            'punkte_min' => (float) str_replace(',', '.', (string) ($daten['punkte_min'] ?? Wertung::PUNKTE_MIN)),
-            'punkte_max' => (float) str_replace(',', '.', (string) ($daten['punkte_max'] ?? Wertung::PUNKTE_MAX)),
-            'punkte_schritt' => (float) str_replace(',', '.', (string) ($daten['punkte_schritt'] ?? '0.1')),
+            'punkte_min' => (float) str_replace(',', '.', text_wert($daten['punkte_min'] ?? Wertung::PUNKTE_MIN)),
+            'punkte_max' => (float) str_replace(',', '.', text_wert($daten['punkte_max'] ?? Wertung::PUNKTE_MAX)),
+            'punkte_schritt' => (float) str_replace(',', '.', text_wert($daten['punkte_schritt'] ?? '0.1')),
             'streichung' => !empty($daten['streichung']),
             'freilos_platz' => !empty($daten['freilos_platz']),
             'team_kaempfe' => in_array((int) ($daten['team_kaempfe'] ?? 3), [3, 5, 7], true) ? (int) $daten['team_kaempfe'] : 3,

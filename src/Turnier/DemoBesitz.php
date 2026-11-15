@@ -42,6 +42,8 @@ final class DemoBesitz
     public function besitzerSetzen(int $turnierId, int $benutzerId): void
     {
         $this->schreiben($turnierId, [self::BESITZER => $benutzerId]);
+        // Demo eines Kontos: Tablets nur per QR-Code – die festen Demo-PINs öffneten sonst jedes Demo-Turnier
+        $this->db->update('turnier', ['tisch_pin_erlaubt' => 0], ['id' => $turnierId]);
     }
 
     /**

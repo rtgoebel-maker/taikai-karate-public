@@ -65,7 +65,7 @@ final class CoachService
     public function einstellungenSpeichern(int $turnierId, array $daten): void
     {
         $e = json_decode((string) $this->db->wert('SELECT einstellungen FROM turnier WHERE id = ?', [$turnierId]), true) ?: [];
-        $gewaehlt = array_map('strval', (array) ($daten['bereiche'] ?? []));
+        $gewaehlt = array_map('strval', array_filter((array) ($daten['bereiche'] ?? []), 'is_scalar'));
         $e['coach'] = [
             'aktiv' => ($daten['aktiv'] ?? '') === '1',
             'bereiche' => array_combine(array_keys(self::BEREICHE), array_map(static fn(string $b) => in_array($b, $gewaehlt, true), array_keys(self::BEREICHE))),
@@ -375,9 +375,9 @@ final class CoachService
     /** @param array<string, mixed> $daten teilnahme_id, art, neu, begruendung */
     public function antragStellen(int $turnierId, int $vereinId, array $daten, string $von): int
     {
-        $art = (string) ($daten['art'] ?? '');
-        $neu = trim((string) ($daten['neu'] ?? ''));
-        $begruendung = trim((string) ($daten['begruendung'] ?? ''));
+        $art = text_wert($daten['art'] ?? '');
+        $neu = trim(text_wert($daten['neu'] ?? ''));
+        $begruendung = trim(text_wert($daten['begruendung'] ?? ''));
         $teilnahme = (int) ($daten['teilnahme_id'] ?? 0);
         if (!isset(self::ANTRAG_ARTEN[$art])) {
             throw new FachFehler(t('Bitte die Art der Korrektur wählen.'));

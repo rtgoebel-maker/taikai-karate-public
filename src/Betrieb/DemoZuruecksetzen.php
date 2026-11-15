@@ -48,7 +48,7 @@ final class DemoZuruecksetzen
         if (!preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $uhrzeit)) {
             throw new FachFehler(t('Bitte eine Uhrzeit im Format HH:MM angeben.'));
         }
-        if ($pauseBis !== '' && (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $pauseBis) || strtotime($pauseBis) === false)) {
+        if ($pauseBis !== '' && (!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $pauseBis, $m) || !checkdate((int) $m[2], (int) $m[3], (int) $m[1]))) {
             throw new FachFehler(t('Bitte ein gültiges Datum angeben.'));
         }
         $s = new SystemEinstellungen($this->db);
@@ -114,6 +114,7 @@ final class DemoZuruecksetzen
         $demo = new DemoTurnier($this->db);
         $stamm = new StammdatenService($this->db);
         $anzahl = 0;
+        $neueIds = []; // alt → neu: Logos aus einem Demo-Turnier, das im selben Lauf neu angelegt wird
         foreach ($this->demoTurniere() as $t) {
             $k = DemoTurnier::kennung($t);
             if ($k === null || ($nurBesitzer !== null && DemoBesitz::besitzer($t) !== $nurBesitzer)) {
@@ -124,16 +125,35 @@ final class DemoZuruecksetzen
             }
             $besitzer = DemoBesitz::besitzer($t);
             $rollen = $this->db->alle('SELECT benutzer_id, rolle FROM turnier_rolle WHERE turnier_id = ?', [$t['id']]);
+            // selbst hochgeladene Logos (Urkunden zeigen) bleiben erhalten
+            $eigeneLogos = $this->db->alle('SELECT art, mime, daten, breite, hoehe FROM turnier_logo WHERE turnier_id = ?', [$t['id']]);
             $stamm->turnierLoeschen((int) $t['id']);
-            $logos = $k['logos_von'] !== null && $this->db->wert('SELECT 1 FROM turnier WHERE id = ?', [$k['logos_von']]) !== null ? $k['logos_von'] : null;
+            $quelle = $k['logos_von'] === null ? null : ($neueIds[$k['logos_von']] ?? $k['logos_von']);
+            $logos = $quelle !== null && $this->db->wert('SELECT 1 FROM turnier WHERE id = ?', [$quelle]) !== null ? $quelle : null;
             $neu = $demo->anlegen(date('Y-m-d', (int) strtotime(date('Y-m-d', $jetzt) . ' ' . ($k['tage'] >= 0 ? '+' : '') . $k['tage'] . ' days')), $k['name'], $k['teams'], $logos, $k['phase']);
+            if ($eigeneLogos !== [] && $this->db->wert('SELECT 1 FROM turnier_logo WHERE turnier_id = ?', [$neu['turnier']]) === null) {
+                foreach ($eigeneLogos as $l) {
+                    $this->db->insert('turnier_logo', $l + ['turnier_id' => $neu['turnier'], 'geaendert_am' => date('Y-m-d H:i:s', $jetzt)]);
+                }
+            }
             if ($besitzer !== null) {
                 (new DemoBesitz($this->db))->besitzerSetzen((int) $neu['turnier'], $besitzer);
             }
             foreach ($rollen as $r) {
                 $this->db->insert('turnier_rolle', ['turnier_id' => $neu['turnier'], 'benutzer_id' => $r['benutzer_id'], 'rolle' => $r['rolle'], 'erstellt_am' => date('Y-m-d H:i:s', $jetzt), 'erstellt_von' => 'Demo-Zurücksetzen']);
             }
+            $neueIds[(int) $t['id']] = (int) $neu['turnier'];
             $anzahl++;
+        }
+        // Quelle der Logos erst später im Lauf neu angelegt → Kennung auf die neue ID (sonst morgen ohne Logos)
+        foreach ($neueIds as $neueId) {
+            $zeile = $this->db->eine('SELECT einstellungen FROM turnier WHERE id = ?', [$neueId]);
+            $e = json_decode((string) ($zeile['einstellungen'] ?? ''), true);
+            $alt = is_array($e) && is_array($e['demo'] ?? null) ? (int) ($e['demo']['logos_von'] ?? 0) : 0;
+            if ($alt > 0 && isset($neueIds[$alt])) {
+                $e['demo']['logos_von'] = $neueIds[$alt];
+                $this->db->update('turnier', ['einstellungen' => json_encode($e, JSON_UNESCAPED_UNICODE)], ['id' => $neueId]);
+            }
         }
         (new Protokoll($this->db))->eintragen(null, 'system', null, 'demo_zurueckgesetzt', ['turniere' => $anzahl, 'besitzer' => $nurBesitzer]);
         return $anzahl;

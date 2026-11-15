@@ -38,7 +38,7 @@ final class TatamiAnsicht
     /**
      * @return array{tatami: array<string, mixed>, laufend: array<string, mixed>|null, naechste: list<array<string, mixed>>, offen: int, beendet: int, aufruf_liste: list<array{start_id: int, name: string, verein: string, klasse: string, fehlt: bool}>}
      */
-    public function fuerTatami(int $tatamiId, int $anzahlNaechste = 5): array
+    public function fuerTatami(int $tatamiId, int $anzahlNaechste = 5, bool $ganzeGruppen = false): array
     {
         $tatami = $this->db->eine('SELECT id, turnier_id, nummer, bezeichnung, stream_url, gesperrt_am FROM tatami WHERE id = ?', [$tatamiId]);
         $eintraege = [];
@@ -105,11 +105,28 @@ final class TatamiAnsicht
         return [
             'tatami' => $tatami,
             'laufend' => $laufend,
-            'naechste' => array_slice(array_values($eintraege), 0, $anzahlNaechste),
+            'naechste' => self::naechste(array_values($eintraege), $laufend, $anzahlNaechste, $ganzeGruppen),
             'aufruf_liste' => $this->aufrufListe(array_values($eintraege), $laufend),
             'offen' => $offen,
             'beendet' => $beendet,
         ];
+    }
+
+    /**
+     * Die nächsten Einträge; mit $ganzeGruppen (Tablet, Ausruf) dazu alle weiteren Einträge der schon sichtbaren Gruppen –
+     * sonst ließe sich eine große Gruppe (z. B. Kata mit 40 Startern) nie vollständig abhaken und abschließen.
+     *
+     * @param list<array<string, mixed>> $eintraege
+     * @param array<string, mixed>|null $laufend
+     * @return list<array<string, mixed>>
+     */
+    private static function naechste(array $eintraege, ?array $laufend, int $anzahl, bool $ganzeGruppen): array
+    {
+        if (!$ganzeGruppen || count($eintraege) <= $anzahl) {
+            return array_slice($eintraege, 0, $anzahl);
+        }
+        $sichtbar = array_flip(array_column([...($laufend === null ? [] : [$laufend]), ...array_slice($eintraege, 0, $anzahl)], 'klasse_id'));
+        return array_values(array_filter($eintraege, static fn(array $e, int $i): bool => $i < $anzahl || isset($sichtbar[$e['klasse_id']]), ARRAY_FILTER_USE_BOTH));
     }
 
     /**
@@ -234,10 +251,17 @@ final class TatamiAnsicht
             || $this->abschlussOffen($tatamiId) !== null) {
             return null;
         }
+        // begonnen zählt auf dieser Tatami bzw. in früheren Runden (andere Phasenart, z. B. Pools vor dem Finale) – parallele
+        // Pools derselben Klasse auf anderen Tatamis nicht: dort beginnt die Gruppe trotzdem mit dem Ausruf
+        $phasenArt = (string) $this->db->wert(
+            'SELECT p.typ FROM ' . ($neu['typ'] === 'auftritt' ? 'auftritt' : 'begegnung') . ' x JOIN phase p ON p.id = x.phase_id WHERE x.id = ?',
+            [$neu['id']],
+        );
+        $gleich = '(p.tatami_id = ? OR p.typ <> ?)';
         $begonnen = (int) $this->db->wert(
-            "SELECT (SELECT COUNT(*) FROM begegnung b JOIN phase p ON p.id = b.phase_id WHERE p.klasse_id = ? AND b.status IN ('laeuft', 'beendet'))
-                  + (SELECT COUNT(*) FROM auftritt a JOIN phase p ON p.id = a.phase_id WHERE p.klasse_id = ? AND a.status = 'beendet')",
-            [$neu['klasse_id'], $neu['klasse_id']],
+            "SELECT (SELECT COUNT(*) FROM begegnung b JOIN phase p ON p.id = b.phase_id WHERE p.klasse_id = ? AND $gleich AND b.status IN ('laeuft', 'beendet'))
+                  + (SELECT COUNT(*) FROM auftritt a JOIN phase p ON p.id = a.phase_id WHERE p.klasse_id = ? AND $gleich AND a.status = 'beendet')",
+            [$neu['klasse_id'], $tatamiId, $phasenArt, $neu['klasse_id'], $tatamiId, $phasenArt],
         );
         // erste Gruppe der Tatami: eigener Schlüssel, damit „Weiter“ am Tablet gemerkt wird
         return $begonnen > 0 ? null : ($letzter ?? ['klasse' => '', 'am' => 'start-' . $neu['klasse_id']]);

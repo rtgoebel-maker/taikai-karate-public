@@ -182,6 +182,12 @@ if (!function_exists('e')) {
         };
     }
 
+    /** Einzelwert aus Formular/Adresse als Text; Listen (manipulierte Eingabe wie name[x]=…) ergeben den Standard. */
+    function text_wert(mixed $wert, string $standard = ''): string
+    {
+        return is_scalar($wert) ? (string) $wert : $standard;
+    }
+
     /** Markiert eine Auswahloption. */
     function sel(mixed $a, mixed $b): string
     {

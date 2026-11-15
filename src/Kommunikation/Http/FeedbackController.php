@@ -71,9 +71,10 @@ final class FeedbackController extends Controller
             ) ?? [],
             // letzte Mails (ohne Inhalt – der enthält Bearbeitungs- und Bestätigungslinks)
             'mailListe' => $this->db->alle('SELECT erstellt_am, empfaenger, betreff, anlass, gesendet_am, versuche, fehler FROM mail_ausgang ORDER BY id DESC LIMIT 15'),
-            'turniereMitLogos' => $this->db->alle(
+            // Demo-Zugang: nur Logos (auch Unterschriften!) aus Turnieren, die er selbst leitet
+            'turniereMitLogos' => array_values(array_filter($this->db->alle(
                 'SELECT t.id, t.name, t.datum FROM turnier t WHERE EXISTS (SELECT 1 FROM turnier_logo l WHERE l.turnier_id = t.id) ORDER BY t.datum DESC, t.id DESC',
-            ),
+            ), static fn(array $t) => !Session::istDemo() || Session::leitet((int) $t['id']))),
         ]);
     }
 
@@ -84,6 +85,9 @@ final class FeedbackController extends Controller
             throw new FachFehler(t('Der Demo-Modus ist ausgeschaltet.'));
         }
         $logosVon = (int) $request->zahl('logos_von');
+        if ($logosVon > 0 && Session::istDemo() && !Session::leitet($logosVon)) {
+            throw new FachFehler(t('Logos lassen sich nur aus eigenen Turnieren übernehmen.'));
+        }
         $demo = (new DemoTurnier($this->db))->anlegen(
             $request->text('datum'),
             $request->text('name'),
@@ -94,7 +98,10 @@ final class FeedbackController extends Controller
         $this->demoFreigabe($demo['turnier'], $request);
         $this->erfolg(t('Demo-Turnier „{name}“ angelegt: {n} Teilnehmer', ['name' => $demo['name'], 'n' => $demo['teilnehmer']])
             . ($demo['teams'] ? ', ' . t('{n} Teams', ['n' => $demo['teams']]) : '') . ', ' . t('{n} Klassen ausgelost', ['n' => $demo['ausgelost']])
-            . ($demo['ergebnisse'] ? ', ' . t('{n} Ergebnisse eingetragen', ['n' => $demo['ergebnisse']]) : ' – ' . t('noch nicht gestartet')) . '. ' . t('PINs: {pins}.', ['pins' => t(DemoTurnier::PINS)]));
+            . ($demo['ergebnisse'] ? ', ' . t('{n} Ergebnisse eingetragen', ['n' => $demo['ergebnisse']]) : ' – ' . t('noch nicht gestartet')) . '. '
+            . (DemoBesitz::besitzer($this->db->eine('SELECT einstellungen FROM turnier WHERE id = ?', [$demo['turnier']]) ?? []) === null
+                ? t('PINs: {pins}.', ['pins' => t(DemoTurnier::PINS)])
+                : t('Tablets und Ausruf unter „Geräte“ per QR-Code koppeln (keine Tatami-PINs); Leitungs-PIN 9999.')));
         return $this->weiter("turnier/{$demo['turnier']}");
     }
 
@@ -210,7 +217,7 @@ final class FeedbackController extends Controller
         $von = Session::akteur();
         if ($tisch !== null) {
             $von = 'Tisch ' . $tisch['name'];
-        } elseif (preg_match('#/turnier/(\d+)|[?&]turnier=(\d+)#', (string) ($daten['seite'] ?? ''), $t)) {
+        } elseif (preg_match('#/turnier/(\d+)|[?&]turnier=(\d+)#', text_wert($daten['seite'] ?? ''), $t)) {
             $turnierId = (int) ($t[1] ?: $t[2]);
         }
         if ($turnierId !== null && $this->db->wert('SELECT id FROM turnier WHERE id = ?', [$turnierId]) === null) {

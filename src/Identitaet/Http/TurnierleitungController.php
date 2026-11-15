@@ -36,7 +36,7 @@ final class TurnierleitungController extends Controller
         $konten = new Konten($this->db);
         if ($request->post('neu') !== null) {
             // neues Konto (ohne Administration) anlegen und sofort ernennen
-            $benutzerId = $konten->anlegen($request->post, (string) $request->post('passwort', ''), false);
+            $benutzerId = $konten->anlegen($request->post, text_wert($request->post('passwort', '')), false);
         } else {
             $konto = $konten->perEmail($request->text('email'))
                 ?? throw new FachFehler(t('Es gibt kein aktives Konto mit dieser E-Mail-Adresse. Unten kann ein neues Konto angelegt werden.'));

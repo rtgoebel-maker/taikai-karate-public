@@ -33,7 +33,7 @@ final class BenutzerController extends Controller
     public function anlegen(Request $request): Response
     {
         $demo = $request->post('admin') === null && $request->post('demo') !== null;
-        $id = $this->konten()->anlegen($request->post, (string) $request->post('passwort', ''), $request->post('admin') !== null, $demo);
+        $id = $this->konten()->anlegen($request->post, text_wert($request->post('passwort', '')), $request->post('admin') !== null, $demo);
         $this->erfolg(t('Konto für {email} angelegt.', ['email' => Konten::email($request->text('email'))]) . ($demo ? $this->demoBereit($id) : ''));
         return $this->weiter('benutzer');
     }
@@ -53,8 +53,8 @@ final class BenutzerController extends Controller
     public function passwort(Request $request, int $id): Response
     {
         $konten = $this->konten();
-        $neu = (string) $request->post('passwort', '');
-        if ($neu !== (string) $request->post('passwort2', '')) {
+        $neu = text_wert($request->post('passwort', ''));
+        if ($neu !== text_wert($request->post('passwort2', ''))) {
             throw new FachFehler(t('Die beiden Eingaben des neuen Passworts stimmen nicht überein.'));
         }
         Konten::passwortPruefen($neu);
@@ -63,7 +63,7 @@ final class BenutzerController extends Controller
             $ziel = 'passwort-bestaetigung:' . $id;
             $ip = $this->app->clientIp($request);
             $schutz->pruefen($ziel, $ip);
-            if (!$konten->passwortStimmt($id, (string) $request->post('bisheriges_passwort', ''))) {
+            if (!$konten->passwortStimmt($id, text_wert($request->post('bisheriges_passwort', '')))) {
                 $schutz->fehlschlag($ziel, $ip);
                 throw new FachFehler(t('Das bisherige Passwort ist falsch.'));
             }
@@ -109,7 +109,12 @@ final class BenutzerController extends Controller
     public function demoUmschalten(Request $request, int $id): Response
     {
         $this->konten()->demoSetzen($id, $request->post('demo') === '1');
-        $this->erfolg($request->post('demo') === '1' ? t('Demo-Zugang eingerichtet.') . $this->demoAbgleich($id) . $this->demoBereit($id) : t('Demo-Zugang entzogen.') . $this->demoAbgleich($id));
+        if ($request->post('demo') === '1') {
+            $bereit = $this->demoBereit($id); // zuerst anlegen, dann abgleichen: ein deaktiviertes Konto merkt auch die neuen Demos vor
+            $this->erfolg(t('Demo-Zugang eingerichtet.') . $this->demoAbgleich($id) . $bereit);
+        } else {
+            $this->erfolg(t('Demo-Zugang entzogen.') . $this->demoAbgleich($id));
+        }
         return $this->weiter('benutzer');
     }
 

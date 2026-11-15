@@ -71,7 +71,7 @@ final class KontoController extends Controller
 
     public function neu(Request $request, string $token): Response
     {
-        (new DojoKonten($this->db))->passwortNeu($token, (string) $request->post('passwort', ''), (string) $request->post('passwort2', ''));
+        (new DojoKonten($this->db))->passwortNeu($token, text_wert($request->post('passwort', '')), text_wert($request->post('passwort2', '')));
         $this->erfolg(t('Neues Passwort gespeichert – bitte damit anmelden.'));
         return $this->weiter('login');
     }

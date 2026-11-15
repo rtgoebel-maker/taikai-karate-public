@@ -42,7 +42,7 @@ final class RechnungService
     public function einstellungenSpeichern(int $turnierId, array $daten): void
     {
         $turnier = $this->db->eine('SELECT einstellungen FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler(t('Turnier nicht gefunden.'));
-        $datum = trim((string) ($daten['datum'] ?? ''));
+        $datum = trim(text_wert($daten['datum'] ?? ''));
         if ($datum !== '' && (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $datum) || strtotime($datum) === false)) {
             throw new FachFehler(t('Ungültiges Rechnungsdatum.'));
         }
@@ -50,15 +50,15 @@ final class RechnungService
         if ($ziel < 0 || $ziel > 365) {
             throw new FachFehler(t('Das Zahlungsziel muss zwischen 0 und 365 Tagen liegen.'));
         }
-        $praefix = trim((string) ($daten['praefix'] ?? ''));
+        $praefix = trim(text_wert($daten['praefix'] ?? ''));
         if (!preg_match('/^[A-Za-z0-9 ._\/-]{0,20}$/', $praefix)) {
             throw new FachFehler(t('Das Präfix der Rechnungsnummer darf nur Buchstaben, Ziffern und . _ / - enthalten (höchstens 20 Zeichen).'));
         }
         $neu = [
-            'absender' => mb_substr(trim((string) ($daten['absender'] ?? '')), 0, 500),
-            'bank' => mb_substr(trim((string) ($daten['bank'] ?? '')), 0, 300),
-            'steuerhinweis' => mb_substr(trim((string) ($daten['steuerhinweis'] ?? '')), 0, 300),
-            'text' => mb_substr(trim((string) ($daten['text'] ?? '')), 0, 1000),
+            'absender' => mb_substr(trim(text_wert($daten['absender'] ?? '')), 0, 500),
+            'bank' => mb_substr(trim(text_wert($daten['bank'] ?? '')), 0, 300),
+            'steuerhinweis' => mb_substr(trim(text_wert($daten['steuerhinweis'] ?? '')), 0, 300),
+            'text' => mb_substr(trim(text_wert($daten['text'] ?? '')), 0, 1000),
             'zahlungsziel' => $ziel,
             'praefix' => $praefix,
             'datum' => $datum,

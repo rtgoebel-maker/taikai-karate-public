@@ -41,8 +41,8 @@ final class DojoKonten
      */
     public function anlegenFuerAnmeldung(array $daten, string $email, string $anmeldungUuid, string $ablauf, string $turnierName, Postausgang $post): void
     {
-        $passwort = (string) ($daten['konto_passwort'] ?? '');
-        if ($passwort !== (string) ($daten['konto_passwort2'] ?? '')) {
+        $passwort = text_wert($daten['konto_passwort'] ?? '');
+        if ($passwort !== text_wert($daten['konto_passwort2'] ?? '')) {
             throw new FachFehler(t('Die beiden Passwörter stimmen nicht überein.'));
         }
         Konten::passwortPruefen($passwort);

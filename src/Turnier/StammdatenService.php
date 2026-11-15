@@ -163,8 +163,8 @@ final class StammdatenService
      */
     private function turnierFelder(array $daten): array
     {
-        $name = trim((string) ($daten['name'] ?? ''));
-        $datum = (string) ($daten['datum'] ?? '');
+        $name = trim(text_wert($daten['name'] ?? ''));
+        $datum = text_wert($daten['datum'] ?? '');
         if ($name === '') {
             throw new FachFehler(t('Bitte einen Turniernamen angeben.'));
         }
@@ -174,8 +174,8 @@ final class StammdatenService
         return [
             'name' => $name,
             'datum' => $datum,
-            'ort' => trim((string) ($daten['ort'] ?? '')) ?: null,
-            'halle' => trim((string) ($daten['halle'] ?? '')) ?: null,
+            'ort' => trim(text_wert($daten['ort'] ?? '')) ?: null,
+            'halle' => trim(text_wert($daten['halle'] ?? '')) ?: null,
             'anzahl_tatamis' => (int) $daten['anzahl_tatamis'],
             'min_graduierung' => ($daten['min_graduierung'] ?? '') === '' ? null : (int) $daten['min_graduierung'],
             'meldeschluss' => ($daten['meldeschluss'] ?? '') ?: null,
@@ -207,9 +207,9 @@ final class StammdatenService
      */
     public function teilnehmerSpeichern(int $turnierId, array $daten, ?int $teilnahmeId = null): int
     {
-        $vorname = trim((string) ($daten['vorname'] ?? ''));
-        $nachname = trim((string) ($daten['nachname'] ?? ''));
-        $geschlecht = (string) ($daten['geschlecht'] ?? '');
+        $vorname = trim(text_wert($daten['vorname'] ?? ''));
+        $nachname = trim(text_wert($daten['nachname'] ?? ''));
+        $geschlecht = text_wert($daten['geschlecht'] ?? '');
         $grad = $daten['graduierung'] ?? null;
         $geburt = ($daten['geburtsdatum'] ?? '') ?: null;
         $alter = ($daten['alter_manuell'] ?? '') === '' || $daten['alter_manuell'] === null ? null : (int) $daten['alter_manuell'];
@@ -255,7 +255,7 @@ final class StammdatenService
                 ? ($daten['status'] ?? 'gemeldet') : 'gemeldet',
             'ausweis_geprueft' => empty($daten['ausweis_geprueft']) ? 0 : 1,
             'nachmeldung' => empty($daten['nachmeldung']) ? 0 : 1,
-            'vermerk' => trim((string) ($daten['vermerk'] ?? '')) ?: null,
+            'vermerk' => trim(text_wert($daten['vermerk'] ?? '')) ?: null,
         ];
 
         return $this->db->transaktion(function () use ($turnierId, $teilnahmeId, $athlet, $teilnahme) {

@@ -117,8 +117,8 @@ final class SicherheitController extends Controller
     public function passwort(Request $request): Response
     {
         $this->keinDemo();
-        $neu = (string) $request->post('neu', '');
-        if ($neu !== (string) $request->post('neu2', '')) {
+        $neu = text_wert($request->post('neu', ''));
+        if ($neu !== text_wert($request->post('neu2', ''))) {
             throw new FachFehler(t('Die beiden Eingaben des neuen Passworts stimmen nicht überein.'));
         }
         Konten::passwortPruefen($neu);
@@ -162,7 +162,7 @@ final class SicherheitController extends Controller
         $ziel = 'passwort-bestaetigung:' . $id;
         $ip = $this->app->clientIp($request);
         $schutz->pruefen($ziel, $ip);
-        if (!(new Konten($this->db))->passwortStimmt($id, (string) $request->post('passwort', ''))) {
+        if (!(new Konten($this->db))->passwortStimmt($id, text_wert($request->post('passwort', '')))) {
             $schutz->fehlschlag($ziel, $ip);
             throw new FachFehler(t('Das Passwort ist falsch.'));
         }

@@ -89,9 +89,9 @@ final class UebergabeController extends Controller
     {
         $daten = $request->json();
         $paket = $this->service()->abholen(
-            (string) ($daten['email'] ?? ''),
-            (string) ($daten['passwort'] ?? ''),
-            (string) ($daten['code'] ?? ''),
+            text_wert($daten['email'] ?? ''),
+            text_wert($daten['passwort'] ?? ''),
+            text_wert($daten['code'] ?? ''),
             $this->app->clientIp($request),
             self::onlineUrl($request),
         );

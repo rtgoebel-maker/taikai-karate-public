@@ -150,16 +150,16 @@ final class TurnierController extends Controller
         }
         foreach ((array) $request->post('tatami', []) as $tatamiId => $felder) {
             $tatami = $this->datensatz('tatami', (int) $tatamiId, $id);
-            $stream = mb_substr(trim((string) ($felder['stream_url'] ?? '')), 0, 500);
+            $stream = mb_substr(trim(text_wert($felder['stream_url'] ?? '')), 0, 500);
             // Link auf der öffentlichen Statusseite: nur http(s), kein javascript:/data: (OWASP A05)
             if ($stream !== '' && preg_match('#^https?://[^\s"<>]+$#i', $stream) !== 1) {
                 throw new FachFehler(t('Die Stream-Adresse muss mit https:// beginnen, z. B. https://youtube.com/live/…'));
             }
             $aenderung = [
-                'bezeichnung' => trim((string) ($felder['bezeichnung'] ?? '')) ?: $tatami['bezeichnung'],
+                'bezeichnung' => trim(text_wert($felder['bezeichnung'] ?? '')) ?: $tatami['bezeichnung'],
                 'stream_url' => $stream ?: null,
             ];
-            $pin = trim((string) ($felder['pin'] ?? ''));
+            $pin = trim(text_wert($felder['pin'] ?? ''));
             if ($pin !== '') {
                 $this->pinPruefen($pin);
                 $aenderung['pin_hash'] = password_hash($pin, PASSWORD_DEFAULT);
@@ -187,6 +187,10 @@ final class TurnierController extends Controller
         $turnier = $this->turnier($id);
         if (!Session::leitet($id)) {
             throw new NichtGefunden(t('Turnier nicht gefunden.')); // Demo-Nutzer: nur Demo- und eigene Turniere
+        }
+        if (Session::istDemo() && DemoBesitz::besitzer($turnier) !== (int) (Session::benutzer()['id'] ?? 0)) {
+            // gemeinsame bzw. freigegebene Demo-Turniere gehören allen bzw. der Administration – nur eigene löschen
+            throw new FachFehler(t('Dieses Demo-Turnier ist freigegeben und gehört nicht Ihnen – löschen kann es nur die Administration.'));
         }
         if ($request->text('bestaetigung') !== $turnier['name']) {
             throw new FachFehler(t('Zum Löschen bitte den Turniernamen exakt eingeben.'));

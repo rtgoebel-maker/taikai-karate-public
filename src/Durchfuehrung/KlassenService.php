@@ -32,6 +32,9 @@ final class KlassenService
     /** @return int Anzahl angelegter Klassen (vorhandene Codes werden übersprungen) */
     public function vorlageLaden(int $turnierId, string $vorlage): int
     {
+        if (!isset(Vorlagen::liste()[$vorlage])) {
+            throw new FachFehler(t('Bitte eine Vorlage auswählen.'));
+        }
         return $this->db->transaktion(function () use ($turnierId, $vorlage) {
             $vorhanden = array_flip($this->db->spalte('SELECT code FROM klasse WHERE turnier_id = ?', [$turnierId]));
             $basis = (int) $this->db->wert('SELECT MAX(sortierung) FROM klasse WHERE turnier_id = ?', [$turnierId]);
@@ -420,11 +423,11 @@ final class KlassenService
     private function felderPruefen(array $d): array
     {
         $int = static fn($w) => $w === null || $w === '' ? null : (int) $w;
-        $code = trim((string) ($d['code'] ?? ''));
-        $disziplin = (string) ($d['disziplin'] ?? '');
-        $geschlecht = (string) ($d['geschlecht'] ?? '');
-        $modus = (string) ($d['modus'] ?? 'auto');
-        $wertung = (string) ($d['wertung'] ?? 'flaggen');
+        $code = trim(text_wert($d['code'] ?? ''));
+        $disziplin = text_wert($d['disziplin'] ?? '');
+        $geschlecht = text_wert($d['geschlecht'] ?? '');
+        $modus = text_wert($d['modus'] ?? 'auto');
+        $wertung = text_wert($d['wertung'] ?? 'flaggen');
         $wertungFinale = ($d['wertung_finale'] ?? '') ?: null;
 
         if ($code === '') {
@@ -467,11 +470,11 @@ final class KlassenService
         if (!in_array($kampfrichter, [3, 5, 7], true)) {
             throw new FachFehler(t('Anzahl der Kampfrichter: 3, 5 oder 7.'));
         }
-        $optionen = is_array($d['optionen'] ?? null) ? $d['optionen'] : json_decode((string) ($d['optionen'] ?? ''), true);
+        $optionen = is_array($d['optionen'] ?? null) ? $d['optionen'] : json_decode(text_wert($d['optionen'] ?? ''), true);
 
         return [
             'code' => $code,
-            'bezeichnung' => trim((string) ($d['bezeichnung'] ?? '')) ?: $code,
+            'bezeichnung' => trim(text_wert($d['bezeichnung'] ?? '')) ?: $code,
             'disziplin' => $disziplin,
             'kumite_form' => in_array($d['kumite_form'] ?? '', self::KUMITE_FORMEN, true) && str_starts_with($disziplin, 'kumite') ? $d['kumite_form'] : null,
             'geschlecht' => $geschlecht,
@@ -479,8 +482,8 @@ final class KlassenService
             'alter_max' => $alterMax,
             'grad_min' => $gradMin,
             'grad_max' => $gradMax,
-            'erlaubte_kata' => trim((string) ($d['erlaubte_kata'] ?? '')) ?: null,
-            'exklusiv_gruppe' => trim((string) ($d['exklusiv_gruppe'] ?? '')) ?: null,
+            'erlaubte_kata' => trim(text_wert($d['erlaubte_kata'] ?? '')) ?: null,
+            'exklusiv_gruppe' => trim(text_wert($d['exklusiv_gruppe'] ?? '')) ?: null,
             'modus' => $modus,
             'anzahl_pools' => $pools,
             'aufsteiger_pro_pool' => $aufsteiger,

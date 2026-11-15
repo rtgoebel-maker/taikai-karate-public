@@ -102,7 +102,7 @@ final class DatenschutzEinstellungen
         $alt = is_array($alle['datenschutz'] ?? null) ? $alle['datenschutz'] : [];
         $neu = [];
         foreach (self::TEXTE as $feld => $max) {
-            $neu[$feld] = mb_substr(trim(str_replace("\r\n", "\n", (string) ($post[$feld] ?? ''))), 0, $max);
+            $neu[$feld] = mb_substr(trim(str_replace("\r\n", "\n", text_wert($post[$feld] ?? ''))), 0, $max);
         }
         $neu['cloudflare'] = !empty($post['cloudflare']);
         $neu['fotos'] = !empty($post['fotos']);

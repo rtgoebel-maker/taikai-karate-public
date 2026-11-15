@@ -866,4 +866,8 @@ return [
     'Alle jetzt zurücksetzen' => 'Reset all now',
     'Meine Demo-Turniere zurücksetzen' => 'Reset my demo tournaments',
     'freigegeben für {namen}' => 'shared with {namen}',
+    'Bitte eine Vorlage auswählen.' => 'Please choose a template.',
+    'Logos lassen sich nur aus eigenen Turnieren übernehmen.' => 'Logos can only be taken from your own tournaments.',
+    'Dieses Demo-Turnier ist freigegeben und gehört nicht Ihnen – löschen kann es nur die Administration.' => 'This demo tournament is shared and does not belong to you – only the administration can delete it.',
+    'Diesen Vereinsnamen gibt es bereits außerhalb der Demo – bitte einen anderen Namen wählen.' => 'This club name already exists outside the demo – please choose a different name.',
 ];

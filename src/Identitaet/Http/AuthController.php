@@ -54,7 +54,7 @@ final class AuthController extends Controller
             }
             $schutz->erfolg('setup', $ip);
         }
-        $passwort = (string) $request->post('passwort', '');
+        $passwort = text_wert($request->post('passwort', ''));
         if ($passwort !== $request->post('passwort2')) {
             throw new FachFehler(t('Die Passwörter stimmen nicht überein.'));
         }
@@ -88,7 +88,7 @@ final class AuthController extends Controller
         $schutz->pruefen($ziel, $ip);
         $benutzer = $konten->perEmail($email);
         // Auch ohne passendes Konto einen Hash prüfen: gleiche Antwortzeit, E-Mail nicht per Zeitmessung erkennbar
-        $passwortOk = password_verify((string) $request->post('passwort', ''), $benutzer['passwort_hash'] ?? Konten::KEIN_KONTO_HASH);
+        $passwortOk = password_verify(text_wert($request->post('passwort', '')), $benutzer['passwort_hash'] ?? Konten::KEIN_KONTO_HASH);
         if ($benutzer === null || !$passwortOk) {
             $schutz->fehlschlag($ziel, $ip);
             throw new FachFehler(t('E-Mail oder Passwort ist falsch.'));

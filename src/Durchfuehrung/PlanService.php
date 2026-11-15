@@ -64,6 +64,13 @@ final class PlanService
             $phasen = (int) $phase['gleiche_flaeche'] === 1
                 ? array_map('intval', $this->db->spalte('SELECT id FROM phase WHERE klasse_id = ? ORDER BY id', [$phase['klasse_id']]))
                 : [$phaseId];
+            // ein laufender Kampf bleibt auf seiner Tatami (sonst zwei laufende Kämpfe am Ziel, das Tablet verliert seinen)
+            $laeuft = $this->db->wert(
+                "SELECT COUNT(*) FROM begegnung WHERE status = 'laeuft' AND phase_id IN (" . implode(',', $phasen) . ')',
+            );
+            if ((int) $laeuft > 0 && ($phase['tatami_id'] === null ? null : (int) $phase['tatami_id']) !== $tatamiId) {
+                throw new FachFehler(t('In dieser Gruppe läuft gerade ein Kampf – bitte erst nach dem Kampf auf eine andere Tatami verschieben.'));
+            }
 
             if ($tatamiId === null && $position === null) {
                 // zurück in die Warteschlange: an den Platz laut Klassenreihenfolge, nicht ans Ende
@@ -460,11 +467,11 @@ final class PlanService
     {
         $turnier = $this->db->eine('SELECT einstellungen FROM turnier WHERE id = ?', [$turnierId]);
         $e = json_decode((string) ($turnier['einstellungen'] ?? ''), true) ?: [];
-        if (isset($daten['beginn']) && preg_match('/^\d{1,2}:\d{2}$/', (string) $daten['beginn'])) {
+        if (isset($daten['beginn']) && preg_match('/^\d{1,2}:\d{2}$/', text_wert($daten['beginn']))) {
             $e['beginn'] = $daten['beginn'];
         }
         foreach (array_keys(self::STANDARD_MINUTEN) as $d) {
-            $wert = str_replace(',', '.', (string) ($daten["minuten_$d"] ?? ''));
+            $wert = str_replace(',', '.', text_wert($daten["minuten_$d"] ?? ''));
             if (is_numeric($wert) && (float) $wert > 0 && (float) $wert < 60) {
                 $e['minuten'][$d] = (float) $wert;
             }

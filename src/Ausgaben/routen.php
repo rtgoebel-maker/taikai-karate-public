@@ -19,6 +19,7 @@ return static function (Router $r): void {
     $r->get('/turnier/{id}/druck/siegerliste', [DruckController::class, 'siegerliste'], 'turnier');
     $r->get('/turnier/{id}/druck/vereine', [DruckController::class, 'vereine'], 'turnier');
     $r->get('/turnier/{id}/druck/urkunden', [DruckController::class, 'urkunden'], 'turnier');
+    $r->get('/turnier/{id}/druck/urkunden/gestalten', [DruckController::class, 'urkundenGestalten'], 'turnier');
     $r->get('/turnier/{id}/druck/urkunden/vorschau', [DruckController::class, 'urkundenVorschau'], 'turnier');
     $r->get('/turnier/{id}/logo/{art}', [DruckController::class, 'logo'], 'turnier');
     $r->post('/turnier/{id}/druck/urkunden', [DruckController::class, 'urkundenSpeichern'], 'turnier');

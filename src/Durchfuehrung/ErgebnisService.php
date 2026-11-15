@@ -187,6 +187,9 @@ final class ErgebnisService
                 if ($a['phase_typ'] === 'punkte_vorrunde') {
                     $this->finalrundeZuruecksetzen((int) $a['klasse_id']);
                 }
+                // Korrektur ändert die Punktgleichheiten: ein früherer Stichentscheid gilt nicht mehr (sonst entstehen
+                // neue Gleichstände mit alten Rängen, und der Stichentscheid lässt sich nie mehr auflösen)
+                $this->db->query('UPDATE auftritt SET stichentscheid = NULL WHERE phase_id = ?', [$a['phase_id']]);
             }
 
             if (($eingabe['entscheidung'] ?? '') === 'kiken') {
@@ -378,6 +381,14 @@ final class ErgebnisService
         }
         if ($b['phase_typ'] === 'pool') {
             $this->finalrundeZuruecksetzen((int) $b['klasse_id']);
+        }
+        // jeder gegen jeden: eine Korrektur ändert die Gleichstände – früheren Stichentscheid dieser Gruppe verwerfen
+        if (($b['art'] ?? '') === 'jgj') {
+            $this->db->query(
+                'UPDATE start SET stichentscheid = NULL WHERE id IN (SELECT aka_start_id FROM begegnung WHERE phase_id = ? AND aka_start_id IS NOT NULL)
+                    OR id IN (SELECT shiro_start_id FROM begegnung WHERE phase_id = ? AND shiro_start_id IS NOT NULL)',
+                [$b['phase_id'], $b['phase_id']],
+            );
         }
     }
 

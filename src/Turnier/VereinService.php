@@ -20,6 +20,38 @@ final class VereinService
     public function __construct(private readonly Database $db) {}
 
     /**
+     * Auswahlliste der Vereine in Formularen (Teilnehmer, Teams).
+     *
+     * @param list<int>|null $nurTurniere Demo-Nutzer: nur Vereine dieser Turniere – nie echte Vereine anderer Turniere
+     * @return list<array{id: int, name: string}>
+     */
+    public function auswahl(?array $nurTurniere = null): array
+    {
+        $zeilen = $nurTurniere === null ? $this->db->alle('SELECT id, name FROM verein ORDER BY name') : $this->uebersicht($nurTurniere);
+        return array_map(static fn(array $v): array => ['id' => (int) $v['id'], 'name' => (string) $v['name']], $zeilen);
+    }
+
+    /**
+     * Gewählten bzw. eingetippten Verein prüfen: Es muss ihn geben; Demo-Nutzer dürfen nur Vereine ihrer Turniere
+     * nehmen (ein eingetippter Name eines fremden, echten Vereins wird abgelehnt statt angehängt).
+     *
+     * @param list<int>|null $nurTurniere
+     */
+    public function pruefen(?int $vereinId, ?string $name = null, ?array $nurTurniere = null): void
+    {
+        if ($vereinId === null && ($name === null || trim($name) === '')) {
+            return;
+        }
+        $id = $vereinId ?? $this->db->wert('SELECT id FROM verein WHERE LOWER(name) = LOWER(?)', [trim((string) preg_replace('/\s+/', ' ', (string) $name))]);
+        if ($vereinId !== null && $this->db->wert('SELECT id FROM verein WHERE id = ?', [$vereinId]) === null) {
+            throw new FachFehler(t('Verein nicht gefunden.'));
+        }
+        if ($id !== null && $nurTurniere !== null && !in_array((int) $id, array_column($this->auswahl($nurTurniere), 'id'), true)) {
+            throw new FachFehler($vereinId !== null ? t('Verein nicht gefunden.') : t('Diesen Vereinsnamen gibt es bereits außerhalb der Demo – bitte einen anderen Namen wählen.'));
+        }
+    }
+
+    /**
      * Vereine mit Zahlen (Athleten, Turniere, Coach-Konten).
      *
      * @param list<int>|null $nurTurniere nur Vereine und Zahlen dieser Turniere (Demo-Nutzer), Coach-Konten dann nicht

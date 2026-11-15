@@ -3,11 +3,8 @@
  * @var array<string, mixed> $turnier
  * @var list<array<string, mixed>> $tatamis
  * @var list<array<string, mixed>> $klassen
- * @var array<string, string> $urkunde Texte der Urkunden
- * @var array<string, array<string, mixed>> $logos vorhandene Logos (Art → Größe, Version)
  */
 use Wettkampf\Kern\Sprache;
-use Wettkampf\Turnier\LogoService;
 
 $this->layout('layout', ['titel' => t('Druck'), 'turnier' => $turnier, 'aktiv' => 'druck']);
 $tid = $turnier['id'];
@@ -69,7 +66,7 @@ $tid = $turnier['id'];
         <div class="knopf-stapel">
             <a class="knopf<?= $bestaetigt ? ' primaer' : '' ?>" href="<?= e(url("turnier/$tid/druck/urkunden")) ?>" target="_blank">🏅 <?= te('Alle Urkunden') ?></a>
             <a class="knopf" href="<?= e(url("turnier/$tid/druck/urkunden", ['vordruck' => 1])) ?>" target="_blank"><?= te('Nur Text (für Vordruck-Papier)') ?></a>
-            <a class="knopf" href="#urkunden-gestalten" data-aufklappen="urkunden-gestalten"><?= te('Logos & Unterschriften …') ?></a>
+            <a class="knopf" href="<?= e(url("turnier/$tid/druck/urkunden/gestalten")) ?>">🎨 <?= te('Urkunden gestalten …') ?> <span class="klein"><?= te('(Logos, Unterschriften, Vorschau)') ?></span></a>
         </div>
     </section>
 
@@ -82,73 +79,4 @@ $tid = $turnier['id'];
         <?php endforeach; ?>
         </div>
     </section>
-
-    <details class="karte spalten-3 urkunden-gestalten" id="urkunden-gestalten">
-        <summary><h2><?= te('Urkunden gestalten') ?></h2> <span class="klein leise"><?= te('Logos, Untertitel und Unterschriften – einmal je Turnier') ?></span></summary>
-        <form method="post" action="<?= e(url("turnier/$tid/druck/urkunden")) ?>" class="formular" enctype="multipart/form-data">
-            <?= csrf_feld() ?>
-            <div class="urkunden-spalten">
-            <div class="formular">
-            <label><?= te('Untertitel') ?> <span class="hilfe"><?= te('z. B. Veranstalter oder Verband') ?></span><input name="untertitel" value="<?= e($urkunde['untertitel']) ?>" maxlength="200" placeholder="<?= te('z. B. Karateverband Musterland e. V.') ?>" data-urkunde-feld></label>
-            <fieldset class="logos">
-                <legend><?= te('Unterschriften') ?> <span class="hilfe"><?= te('Beschriftung unter der Linie; optional die Unterschrift als Bild (z. B. Scan, PNG mit transparentem Hintergrund)') ?></span></legend>
-                <?php foreach (LogoService::UNTERSCHRIFTEN as $art => $text): $l = $logos[$art] ?? null; $text = Sprache::t($text); ?>
-                    <div class="logo-zeile">
-                        <div class="logo-vorschau"><?php if ($l): ?><img src="<?= e(url("turnier/$tid/logo/$art", ['v' => $l['version']])) ?>" alt="<?= e($text) ?>"><?php else: ?><span class="klein leise"><?= te('keine') ?></span><?php endif; ?></div>
-                        <div class="formular" style="gap:.4rem">
-                            <label><?= te('{text} – Beschriftung', ['text' => $text]) ?> <input name="<?= $art ?>" value="<?= e($urkunde[$art]) ?>" maxlength="100" data-urkunde-feld></label>
-                            <label><?= te('Unterschrift als Bild') ?> <input type="file" name="logo_<?= $art ?>" accept="image/png,image/jpeg,image/webp,image/gif"></label>
-                        </div>
-                        <?php if ($l): ?><label class="check klein"><input type="checkbox" name="logo_entfernen[]" value="<?= $art ?>"> <?= te('entfernen') ?></label><?php endif; ?>
-                    </div>
-                <?php endforeach; ?>
-            </fieldset>
-            </div>
-            <div class="formular">
-            <fieldset class="logos">
-                <legend><?= te('Logos') ?> <span class="hilfe"><?= te('optional · PNG, JPG, WebP oder GIF, max. 2 MB') ?></span></legend>
-                <?php foreach (LogoService::ARTEN as $art => $text): $l = $logos[$art] ?? null; $text = Sprache::t($text); ?>
-                    <div class="logo-zeile">
-                        <div class="logo-vorschau"><?php if ($l): ?><img src="<?= e(url("turnier/$tid/logo/$art", ['v' => $l['version']])) ?>" alt="<?= e($text) ?>"><?php else: ?><span class="klein leise"><?= te('kein Logo') ?></span><?php endif; ?></div>
-                        <div class="logo-felder">
-                            <label><?= e($text) ?>
-                                <input type="file" name="logo_<?= $art ?>" accept="image/png,image/jpeg,image/webp,image/gif"></label>
-                            <div class="zeile logo-lage">
-                                <label><?= te('Position') ?>
-                                    <select name="logo_pos[<?= $art ?>]" data-urkunde-feld>
-                                        <?php foreach (\Wettkampf\Ausgaben\UrkundenLayout::POSITIONEN as $pos => $posText): ?>
-                                            <option value="<?= e($pos) ?>"<?= sel($urkunde['logos'][$art]['pos'], $pos) ?>><?= e(t($posText)) ?></option>
-                                        <?php endforeach; ?>
-                                    </select></label>
-                                <label><?= te('Höhe (mm)') ?>
-                                    <input type="number" name="logo_groesse[<?= $art ?>]" value="<?= (int) $urkunde['logos'][$art]['groesse'] ?>" min="<?= \Wettkampf\Ausgaben\UrkundenLayout::GROESSE_MIN ?>" max="<?= \Wettkampf\Ausgaben\UrkundenLayout::GROESSE_MAX ?>" step="1" data-urkunde-feld></label>
-                            </div>
-                        </div>
-                        <?php if ($l): ?><label class="check klein"><input type="checkbox" name="logo_entfernen[]" value="<?= $art ?>"> <?= te('entfernen') ?></label><?php endif; ?>
-                    </div>
-                <?php endforeach; ?>
-            </fieldset>
-            <?php $h = $logos['hintergrund'] ?? null; ?>
-            <fieldset class="logos">
-                <legend><?= te('Hintergrundbild') ?> <span class="hilfe"><?= te('optional · PNG, JPG oder WebP, max. 5 MB') ?></span></legend>
-                <div class="logo-zeile hintergrund-zeile">
-                    <div class="logo-vorschau hochkant"><?php if ($h): ?><img src="<?= e(url("turnier/$tid/logo/hintergrund", ['v' => $h['version']])) ?>" alt="<?= te('Hintergrundbild') ?>"><?php else: ?><span class="klein leise"><?= te('Standard') ?></span><?php endif; ?></div>
-                    <label><?= te('Eigenes Hintergrundbild') ?>
-                        <span class="hilfe"><?= $h ? te('ersetzt Rahmen und Wasserzeichen') : te('ohne eigenes Bild: Standard mit Rahmen und Wasserzeichen') ?> · <?= te('A4 hochkant, z. B. 2480 × 3508 px (300 dpi);') ?>
-                            <?= te('Text, Logos und Unterschriften liegen darüber – in der Mitte hell lassen. Druckränder von ca. 1 cm bleiben weiß.') ?></span>
-                        <input type="file" name="logo_hintergrund" accept="image/png,image/jpeg,image/webp"></label>
-                    <?php if ($h): ?><label class="check klein"><input type="checkbox" name="logo_entfernen[]" value="hintergrund"> <?= te('entfernen') ?></label><?php endif; ?>
-                </div>
-            </fieldset>
-            </div>
-            </div>
-            <section class="urkunde-vorschau-bereich">
-                <h3><?= te('Vorschau') ?> <span class="hilfe"><?= te('Musterurkunde – Position, Größe und Texte erscheinen sofort, neue Bilder nach dem Speichern') ?></span></h3>
-                <div class="urkunde-vorschau-rahmen"><iframe title="<?= te('Vorschau der Urkunde') ?>" data-urkunde-vorschau="<?= e(url("turnier/$tid/druck/urkunden/vorschau")) ?>" src="<?= e(url("turnier/$tid/druck/urkunden/vorschau")) ?>"></iframe></div>
-                <p class="klein"><a href="<?= e(url("turnier/$tid/druck/urkunden/vorschau")) ?>" target="_blank"><?= te('Vorschau in voller Größe ↗') ?></a></p>
-            </section>
-            <div><button class="knopf" type="submit"><?= te('Urkunden-Einstellungen speichern') ?></button></div>
-        </form>
-        <script src="<?= e(asset('urkunde-vorschau.js')) ?>" defer></script>
-    </details>
 </div>

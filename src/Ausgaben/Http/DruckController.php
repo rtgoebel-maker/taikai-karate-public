@@ -28,9 +28,20 @@ final class DruckController extends Controller
             "SELECT id, code, bezeichnung, status FROM klasse WHERE turnier_id = ? AND status NOT IN ('offen', 'zusammengelegt') ORDER BY sortierung, code",
             [$id],
         );
-        $urkunde = $this->urkundenEinstellungen($turnier);
-        $logos = (new LogoService($this->db))->vorhandene($id);
-        return $this->seite('druck/center', compact('turnier', 'tatamis', 'klassen', 'urkunde', 'logos') + ['aktiv' => 'druck']);
+        return $this->seite('druck/center', compact('turnier', 'tatamis', 'klassen') + ['aktiv' => 'druck']);
+    }
+
+    /** Urkunden gestalten: Texte, Logos (Lage, Größe), Unterschriften, Hintergrund – mit mitlaufender Vorschau. */
+    public function urkundenGestalten(Request $request, int $id): Response
+    {
+        $turnier = $this->turnier($id);
+        return $this->seite('druck/urkunden_gestalten', [
+            'turnier' => $turnier,
+            'urkunde' => $this->urkundenEinstellungen($turnier),
+            'logos' => (new LogoService($this->db))->vorhandene($id),
+            'bestaetigt' => (int) $this->db->wert("SELECT COUNT(*) FROM klasse WHERE turnier_id = ? AND status = 'bestaetigt'", [$id]),
+            'aktiv' => 'druck',
+        ]);
     }
 
     /** Turnierbaum / Pool-Listen einer Klasse. */
@@ -278,7 +289,7 @@ final class DruckController extends Controller
             }
         }
         $this->erfolg(t('Urkunden gespeichert.') . ($geaendert ? ' ' . implode(', ', $geaendert) . '.' : ''));
-        return $this->weiter("turnier/$id/druck");
+        return $this->weiter("turnier/$id/druck/urkunden/gestalten");
     }
 
     /**

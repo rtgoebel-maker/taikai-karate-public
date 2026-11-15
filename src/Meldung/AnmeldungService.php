@@ -119,9 +119,9 @@ final class AnmeldungService
     {
         $turnier = $this->db->eine('SELECT einstellungen FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler(t('Turnier nicht gefunden.'));
         $alle = json_decode((string) $turnier['einstellungen'], true) ?: [];
-        $neu = ['hinweis' => trim((string) ($daten['hinweis'] ?? '')), 'zahlung_vor_freigabe' => !empty($daten['zahlung_vor_freigabe']), 'rechnung_fuer_dojos' => !empty($daten['rechnung_fuer_dojos'])];
+        $neu = ['hinweis' => trim(text_wert($daten['hinweis'] ?? '')), 'zahlung_vor_freigabe' => !empty($daten['zahlung_vor_freigabe']), 'rechnung_fuer_dojos' => !empty($daten['rechnung_fuer_dojos'])];
         foreach (array_keys(self::POSTEN) as $schluessel) {
-            $neu[$schluessel] = self::cent((string) ($daten[$schluessel] ?? '0'));
+            $neu[$schluessel] = self::cent(text_wert($daten[$schluessel] ?? '0'));
         }
         $alle['anmeldung'] = $neu;
         $this->db->update('turnier', ['einstellungen' => json_encode($alle, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR)], ['id' => $turnierId]);

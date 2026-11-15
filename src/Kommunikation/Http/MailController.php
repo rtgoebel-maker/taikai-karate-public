@@ -115,7 +115,7 @@ final class MailController extends Controller
         $ziel = 'system-passwort:' . $id;
         $ip = $this->app->clientIp($request);
         $schutz->pruefen($ziel, $ip);
-        if (!(new Konten($this->db))->passwortStimmt($id, (string) $request->post('bestaetigung', ''))) {
+        if (!(new Konten($this->db))->passwortStimmt($id, text_wert($request->post('bestaetigung', '')))) {
             $schutz->fehlschlag($ziel, $ip);
             throw new FachFehler(t('Bitte zur Bestätigung das eigene Passwort richtig eingeben – nichts gespeichert.'));
         }

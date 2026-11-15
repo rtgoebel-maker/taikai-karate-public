@@ -44,6 +44,23 @@ final class Konten
             [$id, self::ROLLE_LEITUNG],
         ));
         $demo = !(int) $konto['ist_admin'] && $konto['rolle'] === self::ROLLE_DEMO;
+        if (!$demo && !(int) $konto['ist_admin']) {
+            // Demo-Zugang entzogen: eigene bzw. als Demo freigegebene Demo-Turniere nicht mehr leiten (sonst ließen sich darüber
+            // als Turnierleitung Konten anlegen); die Turniere bleiben bis zur Löschung vorgemerkt, bei erneutem Zugang wieder da
+            $ausDemo = [];
+            foreach ($this->db->alle(
+                'SELECT r.turnier_id, r.erstellt_von, t.einstellungen FROM turnier_rolle r JOIN turnier t ON t.id = r.turnier_id WHERE r.benutzer_id = ? AND r.rolle = ?',
+                [$id, self::ROLLE_LEITUNG],
+            ) as $r) {
+                $e = json_decode((string) ($r['einstellungen'] ?? ''), true);
+                $e = is_array($e) ? $e : [];
+                $besitzer = isset($e['demo_besitzer']) ? (int) $e['demo_besitzer'] : null;
+                if ($besitzer === $id || (str_starts_with((string) $r['erstellt_von'], 'Demo') && ($besitzer !== null || is_array($e['demo'] ?? null)))) {
+                    $ausDemo[] = (int) $r['turnier_id'];
+                }
+            }
+            $turniere = array_values(array_diff($turniere, $ausDemo));
+        }
         if ($demo) {
             // eigene Turniere (Rollen) und gemeinsame Demo-Turniere der Administration (Kennung ohne Besitzer, siehe Turnier\DemoBesitz)
             $demoTurniere = array_map('intval', $this->db->spalte("SELECT id FROM turnier WHERE einstellungen LIKE '%\"demo\":{%' AND einstellungen NOT LIKE '%\"demo_besitzer\":%'"));
@@ -321,8 +338,8 @@ final class Konten
      */
     private function felder(array $daten, ?int $id): array
     {
-        $text = static fn(string $feld, int $max) => mb_substr(trim((string) ($daten[$feld] ?? '')), 0, $max);
-        $email = self::email((string) ($daten['email'] ?? ''));
+        $text = static fn(string $feld, int $max) => mb_substr(trim(text_wert($daten[$feld] ?? '')), 0, $max);
+        $email = self::email(text_wert($daten['email'] ?? ''));
         if ($email === '' || strlen($email) > 190 || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
             throw new FachFehler(t('Bitte eine gültige E-Mail-Adresse angeben.'));
         }

@@ -146,14 +146,40 @@ final class DemoTurnier
     public static function kennung(array $turnier): ?array
     {
         $d = (json_decode((string) ($turnier['einstellungen'] ?? ''), true) ?: [])['demo'] ?? null;
-        if (!is_array($d) || !isset(self::PHASEN[(string) ($d['phase'] ?? '')])) {
+        if (!is_array($d) || !isset(self::PHASEN[text_wert($d['phase'] ?? '')])) {
             return null;
         }
         return [
-            'name' => (string) ($d['name'] ?? ''), 'teams' => !empty($d['teams']),
+            'name' => text_wert($d['name'] ?? ''), 'teams' => !empty($d['teams']),
             'logos_von' => isset($d['logos_von']) && (int) $d['logos_von'] > 0 ? (int) $d['logos_von'] : null,
             'phase' => (string) $d['phase'], 'tage' => (int) ($d['tage'] ?? 28),
         ];
+    }
+
+    /**
+     * Vereinsnamen der Demo: Heißt ein echter Verein (mit Teilnehmern außerhalb der Demo, Coach-Konten oder Anmeldungen)
+     * schon so, bekommt der Demo-Verein den Zusatz „(Demo)“ – erfundene Teilnehmer landen nie in echten Vereinen.
+     *
+     * @return list<string>
+     */
+    private function vereinsNamen(): array
+    {
+        $echt = [];
+        foreach ($this->db->alle('SELECT id, einstellungen FROM turnier') as $t) {
+            if (self::kennung($t) === null && DemoBesitz::besitzer($t) === null) {
+                $echt[] = (int) $t['id'];
+            }
+        }
+        $in = $echt === [] ? '0' : implode(',', $echt);
+        return array_map(function (string $name) use ($in): string {
+            $id = $this->db->wert('SELECT id FROM verein WHERE LOWER(name) = LOWER(?)', [$name]);
+            $genutzt = $id !== null && $this->db->wert(
+                "SELECT 1 FROM athlet a JOIN teilnahme t ON t.athlet_id = a.id WHERE a.verein_id = ? AND t.turnier_id IN ($in)
+                 UNION SELECT 1 FROM benutzer WHERE verein_id = ? UNION SELECT 1 FROM anmeldung WHERE verein_id = ?",
+                [(int) $id, (int) $id, (int) $id],
+            ) !== null;
+            return $genutzt ? $name . ' (Demo)' : $name;
+        }, self::VEREINE);
     }
 
     /** @param array<string, mixed> $kennung */
@@ -319,6 +345,7 @@ final class DemoTurnier
         $sortierung = 0;
         $teilnehmer = 0;
         $teams = 0;
+        $vereine = $this->vereinsNamen();
         $person = static function (string $g, int $alter, int $grad, string $verein, array $disziplinen) use ($stamm, $turnier, $z, $tag): int {
             return $stamm->teilnehmerSpeichern($turnier, [
                 'vorname' => self::VORNAMEN[$g][$z->zahl(count(self::VORNAMEN[$g]))],
@@ -341,13 +368,13 @@ final class DemoTurnier
             $gradZufall = static fn() => $gradMin === $k3 ? Graduierung::kyu(3 - $z->zahl(3)) : Graduierung::kyu(7 - $z->zahl(4));
             for ($i = 0; $i < $anzahl; $i++) {
                 if (!$teamGroesse) {
-                    $person($g, $alterZufall(), $gradZufall(), self::VEREINE[$z->zahl(count(self::VEREINE))], [$optionen['disziplin']]);
+                    $person($g, $alterZufall(), $gradZufall(), $vereine[$z->zahl(count($vereine))], [$optionen['disziplin']]);
                     $teilnehmer++;
                     continue;
                 }
                 // Team aus Mitgliedern desselben Vereins (nur Teamstart, keine Einzelklasse)
-                $verein = self::VEREINE[$i % count(self::VEREINE)];
-                $nummer = intdiv($i, count(self::VEREINE)) + 1;
+                $verein = $vereine[$i % count($vereine)];
+                $nummer = intdiv($i, count($vereine)) + 1;
                 $mitglieder = [];
                 for ($j = 0; $j < $teamGroesse; $j++) {
                     $mitglieder[] = $person($g === 'mixed' ? ($z->zahl(2) === 0 ? 'w' : 'm') : $g, $alterZufall(), $gradZufall(), $verein, []);

@@ -7,6 +7,8 @@ namespace Wettkampf\Meldung\Http;
 use Wettkampf\Meldung\TeamService;
 use Wettkampf\Meldung\ZuordnungService;
 use Wettkampf\Kern\Http\Request;
+use Wettkampf\Kern\Http\Session;
+use Wettkampf\Turnier\VereinService;
 use Wettkampf\Kern\Http\Response;
 use Wettkampf\Kern\Http\Controller;
 
@@ -39,13 +41,14 @@ final class TeamController extends Controller
               WHERE t.turnier_id = ? AND t.status NOT IN ('abgemeldet', 'nicht_erschienen') ORDER BY v.name, a.nachname, a.vorname",
             [$id],
         );
-        $vereine = $this->db->alle('SELECT id, name FROM verein ORDER BY name');
+        $vereine = (new VereinService($this->db))->auswahl(self::nurDemoTurniere());
         return $this->seite('team/index', compact('turnier', 'teams', 'mitglieder', 'teilnehmer', 'vereine') + ['aktiv' => 'teams']);
     }
 
     public function speichern(Request $request, int $id): Response
     {
         $this->turnier($id);
+        (new VereinService($this->db))->pruefen($request->zahl('verein_id'), null, self::nurDemoTurniere());
         $service = new TeamService($this->db);
         $teamId = $service->teamSpeichern($id, $request->text('name'), $request->text('disziplin'), $request->zahl('verein_id'), $request->zahl('team_id'));
         $hinweise = (new ZuordnungService($this->db))->teamZuordnen($id, $teamId);
@@ -56,6 +59,7 @@ final class TeamController extends Controller
     public function mitglied(Request $request, int $id, int $teamid): Response
     {
         $this->turnier($id);
+        (new VereinService($this->db))->pruefen($request->zahl('verein_id'), null, self::nurDemoTurniere());
         (new TeamService($this->db))->mitgliedHinzufuegen($id, $teamid, (int) $request->zahl('teilnahme_id'), $request->text('rolle', 'stamm'), $request->zahl('verein_id'));
         $hinweise = (new ZuordnungService($this->db))->teamZuordnen($id, $teamid);
         $this->erfolg(t('Mitglied hinzugefügt.') . ($hinweise ? ' ' . implode(' ', $hinweise) : ''));
@@ -75,5 +79,11 @@ final class TeamController extends Controller
         (new TeamService($this->db))->teamLoeschen($id, $teamid);
         $this->erfolg(t('Team gelöscht.'));
         return $this->weiter("turnier/$id/teams");
+    }
+
+    /** @return list<int>|null Demo-Nutzer: nur Vereine seiner Turniere anbieten und annehmen */
+    private static function nurDemoTurniere(): ?array
+    {
+        return Session::istDemo() ? array_map('intval', (array) (Session::benutzer()['turniere'] ?? [])) : null;
     }
 }

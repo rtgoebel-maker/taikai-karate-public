@@ -262,7 +262,7 @@ final class TischApiController extends Controller
     private function mitAusrufUebernahme(int $tatamiId): array
     {
         $ansicht = new TatamiAnsicht($this->db);
-        $zustand = $ansicht->fuerTatami($tatamiId, 30);
+        $zustand = $ansicht->fuerTatami($tatamiId, 30, true);
         $offen = array_unique(array_column(array_filter(
             array_merge($zustand['laufend'] ? [$zustand['laufend']] : [], $zustand['naechste']),
             static fn($e) => !($e['aufruf']['fertig'] ?? false),
@@ -272,7 +272,7 @@ final class TischApiController extends Controller
         foreach ($offen as $klasseId) {
             $geaendert += $ausruf->uebernehmen((int) $klasseId);
         }
-        return $geaendert > 0 ? $ansicht->fuerTatami($tatamiId, 30) : $zustand;
+        return $geaendert > 0 ? $ansicht->fuerTatami($tatamiId, 30, true) : $zustand;
     }
 
     /**

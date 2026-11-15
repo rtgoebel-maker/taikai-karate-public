@@ -76,10 +76,10 @@ final class BotSchutz
         }
         $jetzt ??= time();
         $fehler = new FachFehler(t('Das Formular konnte nicht angenommen werden – bitte die Seite neu laden und erneut absenden. (Schutz vor automatischen Anmeldungen; JavaScript muss eingeschaltet sein.)'));
-        if (trim((string) ($post[self::FELD_FALLE] ?? '')) !== '') {
+        if (trim(text_wert($post[self::FELD_FALLE] ?? '')) !== '') {
             throw $fehler;
         }
-        $teile = explode('.', (string) ($post[self::FELD_TOKEN] ?? ''));
+        $teile = explode('.', text_wert($post[self::FELD_TOKEN] ?? ''));
         if (count($teile) !== 5) {
             throw $fehler;
         }
@@ -96,7 +96,7 @@ final class BotSchutz
         if ($alter < min($mindestSekunden ?? $this->mindestSekunden, $this->mindestSekunden)) {
             throw $fehler; // schneller abgeschickt, als ein Mensch das Formular ausfüllen kann
         }
-        $loesung = (string) ($post[self::FELD_LOESUNG] ?? '');
+        $loesung = text_wert($post[self::FELD_LOESUNG] ?? '');
         if (!ctype_digit($loesung) || strlen($loesung) > 12 || !self::nullBits(hash('sha256', "$nonce:$loesung", true), (int) $bits)) {
             throw $fehler;
         }

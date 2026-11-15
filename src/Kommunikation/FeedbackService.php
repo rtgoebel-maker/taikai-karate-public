@@ -26,15 +26,15 @@ final class FeedbackService
      */
     public function einreichen(array $daten, string $von, ?int $turnierId): int
     {
-        $art = (string) ($daten['art'] ?? '');
+        $art = text_wert($daten['art'] ?? '');
         if (!isset(self::ARTEN[$art])) {
             throw new FachFehler(t('Bitte wählen: Fehler, Verbesserungsvorschlag oder Frage.'));
         }
-        $beschreibung = trim((string) ($daten['beschreibung'] ?? ''));
+        $beschreibung = trim(text_wert($daten['beschreibung'] ?? ''));
         if ($beschreibung === '') {
             throw new FachFehler(t('Bitte beschreiben, was aufgefallen ist.'));
         }
-        $seite = self::einzeilig((string) ($daten['seite'] ?? ''), 500);
+        $seite = self::einzeilig(text_wert($daten['seite'] ?? ''), 500);
         if (!str_starts_with($seite, '/') || str_starts_with($seite, '//') || str_contains($seite, '\\')) {
             $seite = '/';
         }
@@ -45,7 +45,7 @@ final class FeedbackService
             'seite' => $seite,
             'turnier_id' => $turnierId,
             'von' => self::einzeilig($von, 200),
-            'geraet' => self::einzeilig((string) ($daten['geraet'] ?? ''), 300) ?: null,
+            'geraet' => self::einzeilig(text_wert($daten['geraet'] ?? ''), 300) ?: null,
             'screenshot' => $bild,
             'screenshot_mime' => $mime,
             'status' => 'neu',

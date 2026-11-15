@@ -73,7 +73,7 @@ final class MailEinstellungen
      */
     public function speichern(array $daten, string $von, bool $adresseFest = false): void
     {
-        $t = static fn(string $f, int $max) => mb_substr(trim((string) ($daten[$f] ?? '')), 0, $max);
+        $t = static fn(string $f, int $max) => mb_substr(trim(text_wert($daten[$f] ?? '')), 0, $max);
         $neu = [
             'transport' => $t('transport', 10),
             'url' => rtrim($t('url', 300), '/'),
@@ -121,7 +121,7 @@ final class MailEinstellungen
         foreach ($neu as $feld => $wert) {
             $this->system->setzen('mail_' . $feld, $wert);
         }
-        $passwort = (string) ($daten['passwort'] ?? '');
+        $passwort = text_wert($daten['passwort'] ?? '');
         if ($passwort !== '') {
             if (strlen($passwort) > 500) {
                 throw new FachFehler(t('Das Passwort ist zu lang.'));
