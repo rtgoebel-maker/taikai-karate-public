@@ -609,3 +609,5 @@ ul.schlicht li:last-child { border-bottom: 0; }
 .sprache-umschalter .aktiv { background: color-mix(in srgb, currentColor 24%, transparent); }
 /* schlichte Seiten (Login, Einrichtung): Umschalter zusätzlich oben rechts, damit man ihn ohne Deutschkenntnisse findet */
 .einfach-sprache { position: absolute; top: .9rem; right: 1rem; color: var(--text, #1d2b45); }
+/* Markierung „Demo“ in der dunklen Kopfzeile (Demo-Zugang) */
+.kopf .tag.demo-marke { background: #ffd54a; border-color: #ffd54a; color: #1d2b45; font-weight: 800; letter-spacing: .04em; }

@@ -39,6 +39,13 @@ final class DemoTurnier
         TurnierPhase::ABGESCHLOSSEN => 'abgeschlossen (alle Ergebnisse eingetragen und bestätigt)',
     ];
 
+    /** Standard-Demos für Demo-Zugänge: Name, Stand, Abstand des Turniertags zu heute (Tage) – alle mit Teams */
+    public const STANDARD = [
+        ['Demo Vorbereitung', TurnierPhase::VORBEREITUNG, 28],
+        ['Demo läuft', TurnierPhase::LAEUFT, 0],
+        ['Demo abgeschlossen', TurnierPhase::ABGESCHLOSSEN, -7],
+    ];
+
     /** Fortschritt eines laufenden Demo-Turniers (Anteil eingetragener Kämpfe/Vorträge) */
     private const ANTEIL_LAUFEND = 0.4;
 
@@ -87,6 +94,29 @@ final class DemoTurnier
             ]);
             return $demo;
         });
+    }
+
+    /**
+     * Die drei Standard-Demos anlegen, soweit es sie (als Demo-Turnier mit diesem Namen) noch nicht gibt.
+     *
+     * @return list<string> Namen der neu angelegten Turniere
+     */
+    public function standardSicherstellen(): array
+    {
+        $vorhanden = [];
+        foreach ($this->db->alle("SELECT name, einstellungen FROM turnier WHERE einstellungen LIKE '%\"demo\":{%'") as $t) {
+            if (self::kennung($t) !== null) {
+                $vorhanden[(string) $t['name']] = true;
+            }
+        }
+        $neu = [];
+        foreach (self::STANDARD as [$name, $phase, $tage]) {
+            if (!isset($vorhanden[$name])) {
+                $this->anlegen((new DateTimeImmutable('today'))->modify(($tage >= 0 ? '+' : '') . $tage . ' days')->format('Y-m-d'), $name, true, null, $phase);
+                $neu[] = $name;
+            }
+        }
+        return $neu;
     }
 
     /**

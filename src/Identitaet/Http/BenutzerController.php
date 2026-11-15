@@ -32,8 +32,9 @@ final class BenutzerController extends Controller
 
     public function anlegen(Request $request): Response
     {
-        $this->konten()->anlegen($request->post, (string) $request->post('passwort', ''), $request->post('admin') !== null, $request->post('admin') === null && $request->post('demo') !== null);
-        $this->erfolg('Konto für ' . Konten::email($request->text('email')) . ' angelegt.');
+        $demo = $request->post('admin') === null && $request->post('demo') !== null;
+        $this->konten()->anlegen($request->post, (string) $request->post('passwort', ''), $request->post('admin') !== null, $demo);
+        $this->erfolg(t('Konto für {email} angelegt.', ['email' => Konten::email($request->text('email'))]) . ($demo ? $this->demoBereit() : ''));
         return $this->weiter('benutzer');
     }
 
@@ -108,7 +109,7 @@ final class BenutzerController extends Controller
     public function demoUmschalten(Request $request, int $id): Response
     {
         $this->konten()->demoSetzen($id, $request->post('demo') === '1');
-        $this->erfolg($request->post('demo') === '1' ? t('Demo-Zugang eingerichtet.') : t('Demo-Zugang entzogen.'));
+        $this->erfolg($request->post('demo') === '1' ? t('Demo-Zugang eingerichtet.') . $this->demoBereit() : t('Demo-Zugang entzogen.'));
         return $this->weiter('benutzer');
     }
 
@@ -127,5 +128,14 @@ final class BenutzerController extends Controller
     private function ich(): int
     {
         return (int) (Session::benutzer()['id'] ?? 0);
+    }
+
+    /** Standard-Demos für den Demo-Zugang bereitstellen; Text für die Erfolgsmeldung. */
+    private function demoBereit(): string
+    {
+        $neu = $this->app->demoTurniereSicherstellen();
+        return ' ' . ($neu === []
+            ? t('Die Demo-Turniere sind bereits vorhanden.')
+            : t('Demo-Turniere angelegt: {namen}.', ['namen' => implode(', ', $neu)]));
     }
 }

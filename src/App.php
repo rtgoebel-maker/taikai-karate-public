@@ -399,6 +399,18 @@ final class App
         return new Tresor($this->instanz()->schluessel());
     }
 
+    /**
+     * Für einen neuen Demo-Zugang: Demo-Modus einschalten und die Standard-Demos (Vorbereitung, läuft, abgeschlossen) anlegen,
+     * soweit sie fehlen.
+     *
+     * @return list<string> neu angelegte Turniere
+     */
+    public function demoTurniereSicherstellen(): array
+    {
+        (new SystemEinstellungen($this->db))->setzen(SystemEinstellungen::DEMO, '1');
+        return (new \Wettkampf\Betrieb\DemoTurnier($this->db))->standardSicherstellen();
+    }
+
     /** Freiwillige Einladungen zu künftigen Turnieren (Abmeldelinks per HMAC mit dem Schlüssel dieser Installation). */
     public function einladungen(): \Wettkampf\Meldung\Einladungen
     {

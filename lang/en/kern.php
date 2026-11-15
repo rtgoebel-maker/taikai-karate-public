@@ -442,4 +442,7 @@ return [
     'Demo-Zugang entziehen' => 'Revoke demo account',
     'Zum Demo-Zugang machen' => 'Make demo account',
     'Demo-Zugang: alle Demo-Turniere und eigene Turniere, keine Konten und keine Zugangsdaten' => 'Demo account: all demo tournaments and own tournaments, no accounts and no credentials',
+    'Konto für {email} angelegt.' => 'Account for {email} created.',
+    'Die Demo-Turniere sind bereits vorhanden.' => 'The demo tournaments already exist.',
+    'Demo-Turniere angelegt: {namen}.' => 'Demo tournaments created: {namen}.',
 ];
