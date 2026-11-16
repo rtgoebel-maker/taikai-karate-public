@@ -910,8 +910,6 @@ return [
     'Demo-Vereine anzeigen' => 'Show demo clubs',
     'Ausblenden' => 'Hide',
     'Ein Demo-Verein lässt sich nicht mit einem echten Verein zusammenführen.' => 'A demo club cannot be merged with a real club.',
-    'Anlage: gemeldete Starter' => 'Annex: registered competitors',
-    'Starterliste als Anlage auf der Rechnung (Namen der gemeldeten Starter)' => 'Competitor list as an annex to the invoice (names of the registered competitors)',
     'Nicht nötig – auf eine Rechnung gehören Art und Menge der Leistung (z. B. 12 × Startgeld Kata). Rechnungen werden 8 Jahre aufbewahrt; Namen, oft von Kindern, gehören deshalb besser nicht darauf. Die Dojos sehen ihre Starter in der Anmeldeübersicht. Im Buchhaltungsexport fehlt die Liste immer.' => 'Not required – an invoice needs the type and quantity of the service (e.g. 12 × kata entry fee). Invoices are kept for 8 years; names, often of children, are therefore better left off. Dojos see their competitors in the registration overview. The accounting export never contains the list.',
     'Enthält:' => 'Contains:',
     '{n} Belege zu Online-Anmeldungen' => '{n} receipts for online registrations',
@@ -949,4 +947,8 @@ return [
     'Kopie ohne Unterschrift' => 'copy without signature',
     'Zu den Quittungen' => 'To the receipts',
     'Präfix der Quittungsnummer' => 'Prefix of the receipt number',
+    'Anlage zur {art} Nr. {nummer}' => 'Annex to {art} no. {nummer}',
+    'Diese Anlage ist kein Teil des Belegs und muss nicht mit ihm aufbewahrt werden.' => 'This annex is not part of the voucher and does not have to be kept with it.',
+    'Starterliste als Anlage beifügen (eigene Seite nach jeder Rechnung bzw. Quittung, Namen der gemeldeten Starter)' => 'Attach the competitor list as an annex (separate page after each invoice or receipt, names of the registered competitors)',
+    'Je Dojo eine Quittung über das Startgeld – berechnet aus den gemeldeten Teilnehmern und Teams (ohne Abmeldungen und Nicht-Erschienene) und den Preisen unter <a href="{link}">Einstellungen und Startgeld</a>. Zu einer einzelnen Online-Anmeldung gibt es die Quittung in der Anmeldung unter „Zahlung“.' => 'One receipt per dojo for the entry fee – calculated from the registered participants and teams (without withdrawals and no-shows) and the prices under <a href="{link}">Settings and entry fee</a>. For a single online registration, the receipt is in the registration under “Payment”.',
 ];

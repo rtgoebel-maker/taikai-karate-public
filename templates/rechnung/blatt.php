@@ -67,19 +67,7 @@ $absenderZeile = implode(' · ', array_filter(array_map('trim', explode("\n", $e
         <?php if ($e['bank'] !== ''): ?><p class="r-bank"><?= nl2br(e($e['bank'])) ?></p><?php endif; ?>
     <?php endif; ?>
     <?php if ($e['text'] !== ''): ?><p><?= nl2br(e($e['text'])) ?></p><?php endif; ?>
-
-    <?php if (($teilnehmer || $teams) && !empty($e['starterliste'])): /* nur auf Wunsch; im Buchhaltungsarchiv nie (Datensparsamkeit) */ ?>
-    <h2><?= te('Anlage: gemeldete Starter') ?></h2>
-    <table class="r-starter">
-        <thead><tr><th><?= te('Name') ?></th><th>Kata</th><th>Kumite</th></tr></thead>
-        <tbody>
-        <?php foreach ($teilnehmer as $t): ?>
-            <tr><td><?= e($t['name']) ?><?= !$t['kata'] && $t['kumite'] === '' ? ' <span class="klein">' . te('(nur im Team)') . '</span>' : '' ?></td><td><?= $t['kata'] ? '✓' : '' ?></td><td><?= $t['kumite'] !== '' ? '✓' : '' ?></td></tr>
-        <?php endforeach; ?>
-        <?php foreach ($teams as $t): ?>
-            <tr><td><?= e($t['name']) ?> <span class="klein"><?= te('(Team)') ?></span></td><td colspan="2"><?= e(disziplin_text($t['disziplin'])) ?></td></tr>
-        <?php endforeach; ?>
-        </tbody>
-    </table>
-    <?php endif; ?>
 </div>
+<?php if (($teilnehmer || $teams) && !empty($e['starterliste'])): /* nur auf Wunsch, als eigene Seite; im Buchhaltungsarchiv nie */ ?>
+<?= $this->teil('rechnung/anlage', ['turnier' => $turnier, 'empfaenger' => $empfaenger, 'nummer' => $nummer, 'art' => t('Rechnung'), 'teilnehmer' => $teilnehmer, 'teams' => $teams]) ?>
+<?php endif; ?>

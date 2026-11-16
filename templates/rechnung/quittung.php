@@ -66,19 +66,7 @@ $worte = sprache() === 'de' ? RechnungService::inWorten((int) $preis['summe']) :
         <div><span class="q-linie"></span><span class="klein"><?= te('Ort, Datum') ?></span></div>
         <div><span class="q-linie"></span><span class="klein"><?= te('Betrag erhalten – Unterschrift (Kassenwart bzw. Wettkampfleitung)') ?></span></div>
     </div>
-
-    <?php if (($teilnehmer || $teams) && !empty($e['starterliste'])): ?>
-    <h2><?= te('Anlage: gemeldete Starter') ?></h2>
-    <table class="r-starter">
-        <thead><tr><th><?= te('Name') ?></th><th>Kata</th><th>Kumite</th></tr></thead>
-        <tbody>
-        <?php foreach ($teilnehmer as $t): ?>
-            <tr><td><?= e($t['name']) ?></td><td><?= $t['kata'] ? '✓' : '' ?></td><td><?= $t['kumite'] !== '' ? '✓' : '' ?></td></tr>
-        <?php endforeach; ?>
-        <?php foreach ($teams as $t): ?>
-            <tr><td><?= e($t['name']) ?> <span class="klein"><?= te('(Team)') ?></span></td><td colspan="2"><?= e(disziplin_text($t['disziplin'])) ?></td></tr>
-        <?php endforeach; ?>
-        </tbody>
-    </table>
-    <?php endif; ?>
 </div>
+<?php if (($teilnehmer || $teams) && !empty($e['starterliste'])): /* nur auf Wunsch, als eigene Seite; im Buchhaltungsarchiv nie */ ?>
+<?= $this->teil('rechnung/anlage', ['turnier' => $turnier, 'empfaenger' => $empfaenger, 'nummer' => $nummer, 'art' => t('Quittung'), 'teilnehmer' => $teilnehmer, 'teams' => $teams]) ?>
+<?php endif; ?>

@@ -23,7 +23,11 @@ $fehlt = $e['absender'] === '' || (!$q && $e['bank'] === '');
 <?php if ($q): ?>
     <div class="meldung meldung-hinweis"><?= th('<strong>Gemeinnütziger Ausrichter:</strong> Statt Rechnungen gibt es Quittungen. Je Dojo eine Seite – bitte <strong>zweimal drucken</strong>, beide unterschreiben: eine erhält das Dojo, eine bleibt beim Kassenwart (Beleg, 8 Jahre aufbewahren). Ist die Zahlung in der Software erfasst, steht das Datum schon darauf; sonst (z. B. bar am Turniertag) von Hand ausfüllen.') ?></div>
 <?php endif; ?>
+<?php if ($q): ?>
+<p class="leise"><?= th('Je Dojo eine Quittung über das Startgeld – berechnet aus den gemeldeten Teilnehmern und Teams (ohne Abmeldungen und Nicht-Erschienene) und den Preisen unter <a href="{link}">Einstellungen und Startgeld</a>. Zu einer einzelnen Online-Anmeldung gibt es die Quittung in der Anmeldung unter „Zahlung“.', ['link' => url("turnier/$tid/anmeldungen")]) ?></p>
+<?php else: ?>
 <p class="leise"><?= th('Je Dojo eine Rechnung über das Startgeld – berechnet wie in der Startgeld-Übersicht des Coaching-Portals aus den gemeldeten Teilnehmern und Teams (ohne Abmeldungen und Nicht-Erschienene) und den Preisen unter <a href="{link}">Einstellungen und Startgeld</a>. Für Turnieranmeldungen ist eine Rechnung nicht vorgeschrieben – diese Seite ist für Vereine gedacht, die eine Rechnung brauchen, und für Nachmeldungen. Zu einer einzelnen Online-Anmeldung gibt es die Rechnung in der Anmeldung unter „Zahlung → Rechnung erstellen“.', ['link' => url("turnier/$tid/anmeldungen")]) ?></p>
+<?php endif; ?>
 
 <div class="zwei-spalten">
     <section class="karte">
@@ -68,8 +72,10 @@ $fehlt = $e['absender'] === '' || (!$q && $e['bank'] === '');
         <div class="zeile">
             <label><?= $q ? te('Präfix der Quittungsnummer') : te('Präfix der Rechnungsnummer') ?> <span class="hilfe"><?= te('dahinter Turnier- und Vereinsnummer') ?></span>
                 <input name="praefix" value="<?= e($e['praefix']) ?>" maxlength="20"></label>
+            <?php if ($q): ?><input type="hidden" name="datum" value="<?= e($e['datum']) ?>"><?php else: ?>
             <label><?= te('Rechnungsdatum') ?> <span class="hilfe"><?= te('leer = Tag des Drucks') ?></span>
                 <input type="date" name="datum" value="<?= e($e['datum']) ?>"></label>
+            <?php endif; ?>
             <label><?= te('Zahlungsziel (Tage)') ?>
                 <input type="number" name="zahlungsziel" min="0" max="365" value="<?= (int) $e['zahlungsziel'] ?>"></label>
         </div>
@@ -78,7 +84,7 @@ $fehlt = $e['absender'] === '' || (!$q && $e['bank'] === '');
         <label><?= te('Zusätzlicher Text') ?> <span class="hilfe"><?= te('optional, z. B. Dank oder Hinweis zur Barzahlung am Turniertag') ?></span>
             <textarea name="text" rows="2"><?= e($e['text']) ?></textarea></label>
         <label class="check"><input type="checkbox" name="starterliste" value="1"<?= chk($e['starterliste']) ?>>
-            <span><?= te('Starterliste als Anlage auf der Rechnung (Namen der gemeldeten Starter)') ?>
+            <span><?= te('Starterliste als Anlage beifügen (eigene Seite nach jeder Rechnung bzw. Quittung, Namen der gemeldeten Starter)') ?>
                 <span class="hilfe"><?= te('Nicht nötig – auf eine Rechnung gehören Art und Menge der Leistung (z. B. 12 × Startgeld Kata). Rechnungen werden 8 Jahre aufbewahrt; Namen, oft von Kindern, gehören deshalb besser nicht darauf. Die Dojos sehen ihre Starter in der Anmeldeübersicht. Im Buchhaltungsexport fehlt die Liste immer.') ?></span></span></label>
         <p><button class="knopf primaer" type="submit"><?= te('Speichern') ?></button></p>
     </form>
