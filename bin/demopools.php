@@ -19,7 +19,7 @@ $name = null;
 $logosVon = null;
 $mitTeams = false;
 $phase = 'vorbereitung';
-foreach (array_slice($argv, 1) as $argument) {
+foreach (array_slice((array) ($_SERVER['argv'] ?? []), 1) as $argument) {
     if (preg_match('/^--datum=(\d{4}-\d{2}-\d{2})$/', $argument, $m)) {
         $datum = $m[1];
     } elseif (preg_match('/^--name=(.+)$/', $argument, $m)) {

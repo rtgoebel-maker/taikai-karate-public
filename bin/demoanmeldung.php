@@ -29,7 +29,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 $app = App::erstellen(dirname(__DIR__));
 $db = $app->db;
 $optionen = ['datum' => '2027-02-27', 'meldeschluss-stunden' => '72', 'name' => null, 'ort' => 'Musterstadt', 'preis-start' => '12', 'preis-team' => '24'];
-foreach (array_slice($argv, 1) as $argument) {
+foreach (array_slice((array) ($_SERVER['argv'] ?? []), 1) as $argument) {
     if (preg_match('/^--([a-z-]+)=(.*)$/', $argument, $m) && array_key_exists($m[1], $optionen)) {
         $optionen[$m[1]] = $m[2];
     }

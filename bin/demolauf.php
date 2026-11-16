@@ -49,7 +49,7 @@ $turnier = null;
 $anteil = 45;
 $neu = false;
 $arten = false;
-foreach (array_slice($argv, 1) as $argument) {
+foreach (array_slice((array) ($_SERVER['argv'] ?? []), 1) as $argument) {
     if (preg_match('/^--turnier=(\d+)$/', $argument, $m)) {
         $turnier = (int) $m[1];
     } elseif ($argument === '--neu') {

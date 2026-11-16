@@ -26,7 +26,7 @@ $anzahl = 150;
 $turnier = null;
 $datum = date('Y') . '-02-15';
 $name = null;
-foreach (array_slice($argv, 1) as $argument) {
+foreach (array_slice((array) ($_SERVER['argv'] ?? []), 1) as $argument) {
     if (preg_match('/^--turnier=(\d+)$/', $argument, $m)) {
         $turnier = (int) $m[1];
     } elseif (preg_match('/^--datum=(\d{4}-\d{2}-\d{2})$/', $argument, $m)) {

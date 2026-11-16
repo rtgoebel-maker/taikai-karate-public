@@ -17,7 +17,7 @@ use Wettkampf\Sync\SendeService;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-$einmal = in_array('--einmal', $argv, true);
+$einmal = in_array('--einmal', (array) ($_SERVER['argv'] ?? []), true);
 ini_set('default_socket_timeout', '10');
 echo 'Sync Hallen-Laptop → Online (alle ' . SendeService::ABSTAND_SEKUNDEN . " s). Bitte laufen lassen (Fenster bzw. Dienst).\n";
 if (!extension_loaded('openssl')) {
