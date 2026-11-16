@@ -4,13 +4,17 @@
  * @var bool $istAdmin
  * @var array{q: string, status: string, art: string} $filter
  * @var int $alle Anzahl ohne Filter
+ * @var int|null $demoAnzahl Demo-Turniere (Administration: standardmäßig ausgeblendet)
  */
 use Wettkampf\Domain\TurnierPhase;
 use Wettkampf\Kern\Http\Session;
 use Wettkampf\Turnier\Http\StartController;
 
 $this->layout('layout', ['titel' => t('Turniere')]);
-$gefiltert = $filter['q'] !== '' || $filter['status'] !== '' || $filter['art'] !== '';
+$demoAnzahl ??= 0;
+$gefiltert = $filter['q'] !== '' || $filter['status'] !== '' || $filter['art'] !== 'echt';
+$nurEcht = $istAdmin && $filter['art'] === 'echt';
+$mitAnzeige = static fn(string $art): string => url('', array_filter(['q' => $filter['q'], 'status' => $filter['status'], 'art' => $art]));
 $mitDemo = $istAdmin && array_filter($turniere, static fn(array $t) => $t['demo'] !== null) !== [];
 ?>
 <div class="titelzeile">
@@ -29,7 +33,7 @@ $mitDemo = $istAdmin && array_filter($turniere, static fn(array $t) => $t['demo'
             </select></label>
         <label><?= te('Art') ?>
             <select name="art">
-                <option value=""><?= te('alle') ?></option>
+                <option value="alle"<?= sel($filter['art'], 'alle') ?>><?= te('alle (mit Demo-Turnieren)') ?></option>
                 <?php foreach (StartController::ARTEN as $wert => $text): ?>
                     <option value="<?= e($wert) ?>"<?= sel($filter['art'], $wert) ?>><?= te($text) ?></option>
                 <?php endforeach; ?>
@@ -40,9 +44,16 @@ $mitDemo = $istAdmin && array_filter($turniere, static fn(array $t) => $t['demo'
         </div>
     </form>
 <?php endif; ?>
+<?php if ($istAdmin && $demoAnzahl > 0): ?>
+    <p class="klein"><?= $nurEcht
+        ? te('{n} Demo-Turniere sind ausgeblendet.', ['n' => $demoAnzahl]) . ' <a href="' . e($mitAnzeige('alle')) . '">' . te('Demo-Turniere anzeigen') . '</a>'
+        : te('Demo-Turniere eingeblendet.') . ' <a href="' . e($mitAnzeige('echt')) . '">' . te('Nur echte Turniere') . '</a>' ?></p>
+<?php endif; ?>
 <?php if (!$turniere): ?>
     <div class="karte leer">
-        <?php if ($istAdmin && $gefiltert): ?>
+        <?php if ($istAdmin && $nurEcht && $filter['q'] === '' && $filter['status'] === '' && $demoAnzahl > 0): ?>
+            <p><?= te('Noch kein echtes Turnier angelegt.') ?> <a href="<?= e($mitAnzeige('alle')) ?>"><?= te('Demo-Turniere anzeigen') ?></a></p>
+        <?php elseif ($istAdmin && $gefiltert): ?>
             <p><?= te('Kein Turnier passt zum Filter.') ?> <a href="<?= e(url('')) ?>"><?= te('Filter zurücksetzen') ?></a></p>
         <?php elseif ($istAdmin): ?>
             <p><?= te('Noch kein Turnier angelegt.') ?></p>

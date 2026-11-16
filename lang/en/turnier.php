@@ -951,4 +951,10 @@ return [
     'Diese Anlage ist kein Teil des Belegs und muss nicht mit ihm aufbewahrt werden.' => 'This annex is not part of the voucher and does not have to be kept with it.',
     'Starterliste als Anlage beifügen (eigene Seite nach jeder Rechnung bzw. Quittung, Namen der gemeldeten Starter)' => 'Attach the competitor list as an annex (separate page after each invoice or receipt, names of the registered competitors)',
     'Je Dojo eine Quittung über das Startgeld – berechnet aus den gemeldeten Teilnehmern und Teams (ohne Abmeldungen und Nicht-Erschienene) und den Preisen unter <a href="{link}">Einstellungen und Startgeld</a>. Zu einer einzelnen Online-Anmeldung gibt es die Quittung in der Anmeldung unter „Zahlung“.' => 'One receipt per dojo for the entry fee – calculated from the registered participants and teams (without withdrawals and no-shows) and the prices under <a href="{link}">Settings and entry fee</a>. For a single online registration, the receipt is in the registration under “Payment”.',
+    'alle (mit Demo-Turnieren)' => 'all (including demo tournaments)',
+    '{n} Demo-Turniere sind ausgeblendet.' => '{n} demo tournaments are hidden.',
+    'Demo-Turniere anzeigen' => 'Show demo tournaments',
+    'Demo-Turniere eingeblendet.' => 'Demo tournaments shown.',
+    'Nur echte Turniere' => 'Real tournaments only',
+    'Noch kein echtes Turnier angelegt.' => 'No real tournament created yet.',
 ];

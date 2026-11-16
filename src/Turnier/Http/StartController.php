@@ -40,8 +40,11 @@ final class StartController extends Controller
         }
         unset($t);
 
-        $filter = ['q' => mb_substr($request->text('q'), 0, 100), 'status' => $request->text('status'), 'art' => $request->text('art')];
+        // Administration: standardmäßig nur echte Turniere, Demo-Turniere über „Art“ bzw. den Hinweis einblenden
+        $art = $request->text('art');
+        $filter = ['q' => mb_substr($request->text('q'), 0, 100), 'status' => $request->text('status'), 'art' => $art === '' ? 'echt' : $art];
         $alle = count($turniere);
+        $demoAnzahl = count(array_filter($turniere, static fn(array $t) => $t['demo'] !== null));
         if (Session::istAdmin()) {
             $turniere = array_values(array_filter($turniere, static function (array $t) use ($filter): bool {
                 $text = mb_strtolower($t['name'] . ' ' . $t['ort']);
@@ -55,6 +58,6 @@ final class StartController extends Controller
                     };
             }));
         }
-        return $this->seite('start', ['turniere' => $turniere, 'istAdmin' => Session::istAdmin(), 'filter' => $filter, 'alle' => $alle]);
+        return $this->seite('start', ['turniere' => $turniere, 'istAdmin' => Session::istAdmin(), 'filter' => $filter, 'alle' => $alle, 'demoAnzahl' => $demoAnzahl]);
     }
 }
