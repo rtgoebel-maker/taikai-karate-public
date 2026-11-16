@@ -238,3 +238,20 @@ table.r-starter td { padding: .6mm 1.5mm; }
 /* Vorschau im Druckcenter: Blatt ohne Abstand und Schatten */
 body.urkunde-vorschau { background: #fff; }
 body.urkunde-vorschau .blatt { margin: 0; box-shadow: none; }
+
+/* Quittung (gemeinnütziger Ausrichter, rechnung/quittung.php) */
+.quittung .r-titel { padding-top: 12mm; font-size: 18pt; letter-spacing: .08em; text-transform: uppercase; }
+.quittung table.q-daten { float: none; width: auto; margin: 2mm 0 6mm; }
+.quittung table.q-daten td { text-align: left; padding-left: 4mm; }
+.q-betrag { border: 0.5mm solid #222; padding: 3mm 4mm; margin: 0 0 5mm; }
+.q-betrag > div:first-child { display: flex; justify-content: space-between; align-items: baseline; }
+.q-betrag strong { font-size: 16pt; }
+.q-worte { font-style: italic; margin-top: 1mm; }
+table.q-felder { margin: 0 0 3mm; }
+table.q-felder th, table.q-felder td { border: 0; background: none; padding: 1.2mm 0; vertical-align: bottom; }
+table.q-felder th { width: 42mm; text-align: left; font-weight: 600; }
+.q-zahlung { margin-top: 5mm !important; }
+.q-linie { display: inline-block; min-width: 60mm; border-bottom: 0.3mm solid #222; height: 5mm; }
+.q-unterschrift { display: flex; gap: 12mm; margin-top: 18mm; }
+.q-unterschrift > div { flex: 1; display: flex; flex-direction: column; gap: 1mm; }
+.q-unterschrift .q-linie { width: 100%; min-width: 0; height: 12mm; }

@@ -2,7 +2,7 @@
 /**
  * Ein Rechnungsblatt (A4) – für die Rechnungen je Dojo (Leitung) und die Rechnung einer bezahlten Online-Anmeldung.
  * @var array<string, mixed> $turnier
- * @var array{absender: string, bank: string, steuerhinweis: string, zahlungsziel: int, praefix: string, datum: string, text: string} $einstellungen
+ * @var array{absender: string, bank: string, steuerhinweis: string, zahlungsziel: int, praefix: string, datum: string, text: string, starterliste?: bool} $einstellungen
  * @var array{verein: string, ansprechpartner: string, email: string} $empfaenger
  * @var string $nummer
  * @var string $datum Rechnungsdatum (Y-m-d)
@@ -14,6 +14,10 @@
  */
 use Wettkampf\Meldung\AnmeldungService;
 
+if (!empty($einstellungen['quittung'])) {
+    include __DIR__ . '/quittung.php'; // gemeinnütziger Ausrichter: Quittung statt Rechnung
+    return;
+}
 $euro = static fn (int $cent) => AnmeldungService::euro($cent);
 $e = $einstellungen;
 $absenderZeile = implode(' · ', array_filter(array_map('trim', explode("\n", $e['absender']))));
@@ -64,8 +68,8 @@ $absenderZeile = implode(' · ', array_filter(array_map('trim', explode("\n", $e
     <?php endif; ?>
     <?php if ($e['text'] !== ''): ?><p><?= nl2br(e($e['text'])) ?></p><?php endif; ?>
 
-    <?php if ($teilnehmer || $teams): /* im Buchhaltungsarchiv ohne Starterliste (Datensparsamkeit) */ ?>
-    <h2><?= te('Gemeldete Starter') ?></h2>
+    <?php if (($teilnehmer || $teams) && !empty($e['starterliste'])): /* nur auf Wunsch; im Buchhaltungsarchiv nie (Datensparsamkeit) */ ?>
+    <h2><?= te('Anlage: gemeldete Starter') ?></h2>
     <table class="r-starter">
         <thead><tr><th><?= te('Name') ?></th><th>Kata</th><th>Kumite</th></tr></thead>
         <tbody>

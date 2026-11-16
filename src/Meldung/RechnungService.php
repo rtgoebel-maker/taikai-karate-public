@@ -17,11 +17,65 @@ use Wettkampf\Kern\Protokoll;
  */
 final class RechnungService
 {
+    /** Steuerhinweis auf Quittungen gemeinnütziger Ausrichter, solange kein eigener eingetragen ist (Katalogschlüssel). */
+    public const STEUERHINWEIS_GEMEINNUETZIG = 'Steuerfreie Leistung nach § 4 Nr. 22 Buchst. b UStG (Teilnehmergebühren für eine sportliche Veranstaltung eines gemeinnützigen Vereins).';
+
     public function __construct(private readonly Database $db) {}
 
     /**
+     * Gemeinnütziger Ausrichter: Quittungen statt Rechnungen (Startgelder umsatzsteuerfrei nach § 4 Nr. 22 b UStG,
+     * keine Rechnungspflicht nach § 14 Abs. 2 UStG).
+     *
      * @param array<string, mixed> $turnier
-     * @return array{absender: string, bank: string, steuerhinweis: string, zahlungsziel: int, praefix: string, datum: string, text: string}
+     */
+    public static function quittung(array $turnier): bool
+    {
+        return !empty(((json_decode((string) ($turnier['einstellungen'] ?? ''), true) ?: [])['rechnung'] ?? [])['quittung'] ?? null);
+    }
+
+    /** Betrag in Worten für die Quittung, z. B. „dreihundertvierundzwanzig Euro und fünfzig Cent“. */
+    public static function inWorten(int $cent): string
+    {
+        $euro = intdiv(max(0, $cent), 100);
+        $rest = max(0, $cent) % 100;
+        $text = ($euro === 1 ? 'ein' : self::zahlwort($euro)) . ' Euro';
+        return $rest > 0 ? $text . ' und ' . ($rest === 1 ? 'ein' : self::zahlwort($rest)) . ' Cent' : $text;
+    }
+
+    private static function zahlwort(int $n): string
+    {
+        if ($n === 0) {
+            return 'null';
+        }
+        $unter1000 = static function (int $n, bool $amEnde): string {
+            $einer = ['', 'ein', 'zwei', 'drei', 'vier', 'fünf', 'sechs', 'sieben', 'acht', 'neun'];
+            $zehn = ['zehn', 'elf', 'zwölf', 'dreizehn', 'vierzehn', 'fünfzehn', 'sechzehn', 'siebzehn', 'achtzehn', 'neunzehn'];
+            $zehner = ['', '', 'zwanzig', 'dreißig', 'vierzig', 'fünfzig', 'sechzig', 'siebzig', 'achtzig', 'neunzig'];
+            $h = intdiv($n, 100);
+            $r = $n % 100;
+            $text = $h > 0 ? $einer[$h] . 'hundert' : '';
+            if ($r === 1) {
+                $text .= $amEnde ? 'eins' : 'ein';
+            } elseif ($r >= 2 && $r <= 9) {
+                $text .= $einer[$r];
+            } elseif ($r >= 10 && $r <= 19) {
+                $text .= $zehn[$r - 10];
+            } elseif ($r >= 20) {
+                $text .= ($r % 10 > 0 ? $einer[$r % 10] . 'und' : '') . $zehner[intdiv($r, 10)];
+            }
+            return $text;
+        };
+        $millionen = intdiv($n, 1000000);
+        $tausend = intdiv($n % 1000000, 1000);
+        $rest = $n % 1000;
+        return ($millionen > 0 ? ($millionen === 1 ? 'eine Million ' : $unter1000($millionen, false) . ' Millionen ') : '')
+            . ($tausend > 0 ? $unter1000($tausend, false) . 'tausend' : '')
+            . ($rest > 0 ? $unter1000($rest, true) : '');
+    }
+
+    /**
+     * @param array<string, mixed> $turnier
+     * @return array{absender: string, bank: string, steuerhinweis: string, zahlungsziel: int, praefix: string, datum: string, text: string, starterliste: bool, quittung: bool}
      */
     public function einstellungen(array $turnier): array
     {
@@ -32,16 +86,20 @@ final class RechnungService
             'bank' => (string) ($e['bank'] ?? ''),
             'steuerhinweis' => (string) ($e['steuerhinweis'] ?? ''),
             'zahlungsziel' => (int) ($e['zahlungsziel'] ?? 14),
-            'praefix' => (string) ($e['praefix'] ?? "R-$jahr-"),
+            'praefix' => (string) ($e['praefix'] ?? (!empty($e['quittung']) ? "Q-$jahr-" : "R-$jahr-")),
             'datum' => (string) ($e['datum'] ?? ''),
             'text' => (string) ($e['text'] ?? ''),
+            // Namen der Starter auf der Rechnung: nicht nötig (§ 14 UStG: Art und Menge der Leistung) und 8 Jahre im
+            // Buchhaltungsarchiv – deshalb nur auf ausdrücklichen Wunsch
+            'starterliste' => !empty($e['starterliste']),
+            'quittung' => !empty($e['quittung']),
         ];
     }
 
     /** @param array<string, mixed> $daten */
     public function einstellungenSpeichern(int $turnierId, array $daten): void
     {
-        $turnier = $this->db->eine('SELECT einstellungen FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler(t('Turnier nicht gefunden.'));
+        $turnier = $this->db->eine('SELECT einstellungen, datum FROM turnier WHERE id = ?', [$turnierId]) ?? throw new FachFehler(t('Turnier nicht gefunden.'));
         $datum = trim(text_wert($daten['datum'] ?? ''));
         if ($datum !== '' && (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $datum) || strtotime($datum) === false)) {
             throw new FachFehler(t('Ungültiges Rechnungsdatum.'));
@@ -51,6 +109,14 @@ final class RechnungService
             throw new FachFehler(t('Das Zahlungsziel muss zwischen 0 und 365 Tagen liegen.'));
         }
         $praefix = trim(text_wert($daten['praefix'] ?? ''));
+        // Standard-Präfix folgt der Belegart: Quittung „Q-Jahr-“, Rechnung „R-Jahr-“ – ein eigenes Präfix bleibt
+        $jahr = substr((string) ($turnier['datum'] ?? date('Y')), 0, 4);
+        $quittung = !empty($daten['quittung']);
+        if ($quittung && in_array($praefix, ['', "R-$jahr-"], true)) {
+            $praefix = "Q-$jahr-";
+        } elseif (!$quittung && in_array($praefix, ['', "Q-$jahr-"], true)) {
+            $praefix = "R-$jahr-";
+        }
         if (!preg_match('/^[A-Za-z0-9 ._\/-]{0,20}$/', $praefix)) {
             throw new FachFehler(t('Das Präfix der Rechnungsnummer darf nur Buchstaben, Ziffern und . _ / - enthalten (höchstens 20 Zeichen).'));
         }
@@ -62,6 +128,8 @@ final class RechnungService
             'zahlungsziel' => $ziel,
             'praefix' => $praefix,
             'datum' => $datum,
+            'starterliste' => !empty($daten['starterliste']),
+            'quittung' => $quittung,
         ];
         $alle = json_decode((string) $turnier['einstellungen'], true) ?: [];
         $alle['rechnung'] = $neu;
@@ -122,6 +190,7 @@ final class RechnungService
                 'datum' => $datum,
                 'faellig' => date('Y-m-d', (int) strtotime($datum . ' +' . $e['zahlungsziel'] . ' days')),
                 'startgeld' => $coach->startgeld($turnierId, (int) $v['id']),
+                'bezahlt' => $this->bezahlt($turnierId, (int) $v['id'], (int) $coach->startgeld($turnierId, (int) $v['id'])['summe']),
             ];
         }
         if ($vereinId !== null && $liste === []) {
@@ -176,6 +245,21 @@ final class RechnungService
             ], $daten['teilnehmer'])),
             'teams' => array_map(static fn(array $t) => ['name' => (string) $t['name'], 'disziplin' => (string) $t['disziplin']], $daten['teams']),
         ];
+    }
+
+    /**
+     * Zahlungseingang eines Dojos (Online-Anmeldungen dieses Vereins): nur wenn der volle Betrag erfasst ist.
+     *
+     * @return array{cent: int, am: string|null}|null
+     */
+    private function bezahlt(int $turnierId, int $vereinId, int $summe): ?array
+    {
+        $z = $this->db->eine(
+            "SELECT SUM(bezahlt_cent) AS cent, MAX(bezahlt_am) AS am FROM anmeldung WHERE turnier_id = ? AND verein_id = ? AND status <> 'abgelehnt'",
+            [$turnierId, $vereinId],
+        );
+        $cent = (int) ($z['cent'] ?? 0);
+        return $summe > 0 && $cent >= $summe ? ['cent' => $cent, 'am' => $z['am'] !== null ? (string) $z['am'] : null] : null;
     }
 
     /** @param array<string, mixed> $turnier */

@@ -395,6 +395,12 @@ final class DemoTurnier
             'preis_kata' => '12', 'preis_kumite' => '12', 'preis_kata_team' => '24', 'preis_kumite_team' => '24',
             'hinweis' => 'Startgebühr bitte bis zum Meldeschluss überweisen.',
         ]);
+        (new \Wettkampf\Meldung\RechnungService($db))->einstellungenSpeichern($turnier, [
+            'absender' => "Karateverein Musterstadt e. V.\nMusterstraße 1\n12345 Musterstadt",
+            'bank' => "IBAN DE89 3704 0044 0532 0130 00\nBIC COBADEFFXXX · Musterbank (Beispiel)",
+            'zahlungsziel' => 14,
+            'praefix' => 'R-' . substr($datum, 0, 4) . '-',
+        ]);
         if ($logosVon !== null) {
             foreach ($db->alle('SELECT art, mime, daten, breite, hoehe FROM turnier_logo WHERE turnier_id = ?', [$logosVon]) as $l) {
                 $db->insert('turnier_logo', $l + ['turnier_id' => $turnier, 'geaendert_am' => date('Y-m-d H:i:s')]);

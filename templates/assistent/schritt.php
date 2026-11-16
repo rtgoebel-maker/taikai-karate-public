@@ -167,6 +167,10 @@ $fuss = static function (string $knopf) use ($vorheriger, $tid, $weiterPfad, $sc
         </div>
         <input type="hidden" name="datum" value="<?= e($zahlung['datum']) ?>">
         <input type="hidden" name="text" value="<?= e($zahlung['text']) ?>">
+        <?php if ($zahlung['starterliste']): ?><input type="hidden" name="starterliste" value="1"><?php endif; ?>
+        <label class="check"><input type="checkbox" name="quittung" value="1"<?= chk($zahlung['quittung']) ?>>
+            <span><?= te('Ausrichter ist ein gemeinnütziger Verein – Quittungen statt Rechnungen') ?>
+                <span class="hilfe"><?= te('Startgelder sind dann umsatzsteuerfrei (§ 4 Nr. 22 b UStG), eine Rechnung ist nicht vorgeschrieben.') ?></span></span></label>
         <label><?= te('Steuerhinweis') ?> <span class="hilfe"><?= te('optional, z. B. Kleinunternehmerregelung – bitte mit dem Kassenwart klären') ?></span>
             <input name="steuerhinweis" value="<?= e($zahlung['steuerhinweis']) ?>" maxlength="300"></label>
         <?= $fuss(t('Speichern und weiter')) ?>

@@ -10,6 +10,7 @@
  * @var string|null $liveAusAb
  * @var bool $exportErledigt
  * @var bool $pdf
+ * @var array{anmeldungen: int, belege: int, dojos: int, dojoRechnungen: int|null, mails: int, pdf: bool} $exportInhalt was der Export enthält
  * @var list<array{id: int, name: string, datum: string}> $vorlagen Turniere mit gespeicherten Angaben zum Übernehmen
  */
 $this->layout('layout', ['titel' => t('Datenschutz'), 'turnier' => $turnier]);
@@ -94,6 +95,16 @@ $zeit = static fn(?string $z) => $z === null ? '' : datum_de(date('Y-m-d', (int)
             <h2><?= te('Buchhaltungsexport') ?></h2>
             <p><?= te('ZIP zum Archivieren außerhalb der Software: Zahlungsliste (CSV), Rechnungen bzw. Zahlungsbelege als PDF (nur Posten, ohne Starterliste), versendete E-Mails und Prüfsummen. Die Software ist kein Archiv – nach der Löschfrist werden die Personenangaben dort pseudonymisiert.') ?></p>
             <?php if (!$pdf): ?><div class="meldung meldung-hinweis"><?= te('PDF-Belege sind auf diesem Server nicht verfügbar (PHP-Erweiterung dom fehlt) – der Export enthält dann nur Listen und Mails.') ?></div><?php endif; ?>
+            <p class="klein"><strong><?= te('Enthält:') ?></strong>
+                <?= te('{n} Belege zu Online-Anmeldungen', ['n' => $pdf ? $exportInhalt['belege'] : 0]) ?> ·
+                <?= te('{n} Rechnungen je Dojo', ['n' => $pdf ? (int) $exportInhalt['dojoRechnungen'] : 0]) ?> ·
+                <?= te('{n} E-Mails', ['n' => $exportInhalt['mails']]) ?></p>
+            <?php if ($exportInhalt['dojoRechnungen'] === null && $exportInhalt['dojos'] > 0): ?>
+                <div class="meldung meldung-hinweis"><?= th('Die <strong>Rechnungen je Dojo ({n})</strong> fehlen im Export, solange unter <a href="{url}">Rechnungen</a> kein Absender eingetragen ist.', ['n' => $exportInhalt['dojos'], 'url' => url("turnier/$tid/rechnungen")]) ?></div>
+            <?php endif; ?>
+            <?php if ($exportInhalt['anmeldungen'] === 0): ?>
+                <p class="hilfe"><?= te('Keine Online-Anmeldungen in diesem Turnier – Belege dazu gibt es deshalb nicht.') ?></p>
+            <?php endif; ?>
             <p class="klein"><?= $e['exportiert_am'] !== null ? te('Zuletzt exportiert: {zeit}', ['zeit' => $zeit($e['exportiert_am'])]) : te('Noch nicht exportiert.') ?></p>
             <?php if (!$fertig): ?>
                 <form method="post" action="<?= e(url("turnier/$tid/datenschutz/buchhaltung")) ?>">

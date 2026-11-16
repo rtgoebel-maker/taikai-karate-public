@@ -41,6 +41,7 @@ final class DatenschutzController extends Controller
             'liveAusAb' => DatenschutzEinstellungen::liveAusAb($turnier),
             'exportErledigt' => $this->fristen()->exportErledigt($turnier),
             'pdf' => PdfBeleg::verfuegbar(),
+            'exportInhalt' => (new Buchhaltungsexport($this->db, $this->app->view))->inhalt($id),
             'vorlagen' => $this->vorlagen($id),
             'aktiv' => 'einstellungen',
         ]);

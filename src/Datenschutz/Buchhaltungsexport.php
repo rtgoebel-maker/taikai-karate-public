@@ -31,6 +31,27 @@ final class Buchhaltungsexport
     public function __construct(private readonly Database $db, private readonly View $view) {}
 
     /**
+     * Was der Export enthalten wird (Anzeige vor dem Download): Belege zu Online-Anmeldungen, Rechnungen je Dojo
+     * (null = fehlen, weil unter Rechnungen kein Absender eingetragen ist), versendete E-Mails.
+     *
+     * @return array{anmeldungen: int, belege: int, dojos: int, dojoRechnungen: int|null, mails: int, pdf: bool}
+     */
+    public function inhalt(int $turnierId): array
+    {
+        $turnier = $this->db->eine('SELECT * FROM turnier WHERE id = ?', [$turnierId]) ?? [];
+        $rechnungen = new RechnungService($this->db);
+        $dojos = count($rechnungen->rechnungen($turnierId));
+        return [
+            'anmeldungen' => (int) $this->db->wert('SELECT COUNT(*) FROM anmeldung WHERE turnier_id = ?', [$turnierId]),
+            'belege' => (int) $this->db->wert("SELECT COUNT(*) FROM anmeldung WHERE turnier_id = ? AND status <> 'abgelehnt' AND aufforderung_cent > 0", [$turnierId]),
+            'dojos' => $dojos,
+            'dojoRechnungen' => $rechnungen->einstellungen($turnier)['absender'] !== '' ? $dojos : null,
+            'mails' => (int) $this->db->wert('SELECT COUNT(*) FROM mail_ausgang WHERE turnier_id = ? AND gesendet_am IS NOT NULL', [$turnierId]),
+            'pdf' => PdfBeleg::verfuegbar(),
+        ];
+    }
+
+    /**
      * ZIP erzeugen; liefert den Pfad einer temporären Datei (der Aufrufer löscht sie nach dem Senden).
      */
     public function erstellen(int $turnierId): string
@@ -69,21 +90,22 @@ final class Buchhaltungsexport
         // Rechnungen je Dojo nur, wenn die Leitung die Rechnungsseite eingerichtet hat (Absender eingetragen)
         if ($rechnungen->einstellungen($turnier)['absender'] !== '') {
             $e = $rechnungen->einstellungen($turnier);
-            $zeilen = [[t('Rechnungs-Nr.'), t('Dojo'), t('Rechnungsdatum'), t('Fällig'), t('Betrag (EUR)'), t('Beleg')]];
+            $q = $e['quittung']; // gemeinnütziger Ausrichter: Quittungen (Kopie ohne Unterschrift)
+            $zeilen = [[$q ? t('Quittungs-Nr.') : t('Rechnungs-Nr.'), t('Dojo'), $q ? t('Datum') : t('Rechnungsdatum'), $q ? t('Bezahlt am') : t('Fällig'), t('Betrag (EUR)'), t('Beleg')]];
             foreach ($rechnungen->rechnungen($turnierId) as $r) {
                 $beleg = '';
                 if (PdfBeleg::verfuegbar()) {
-                    $beleg = 'belege/dojo-rechnung-' . self::dateiname((string) $r['nummer']) . '.pdf';
-                    $dateien[$beleg] = PdfBeleg::erzeugen($this->view->render('datenschutz/beleg_pdf', ['vermerk' => $vermerk, 'blatt' => [
+                    $beleg = 'belege/dojo-' . ($q ? 'quittung' : 'rechnung') . '-' . self::dateiname((string) $r['nummer']) . '.pdf';
+                    $dateien[$beleg] = PdfBeleg::erzeugen($this->view->render('datenschutz/beleg_pdf', ['vermerk' => $vermerk . ($q ? ' · ' . t('Kopie ohne Unterschrift') : ''), 'blatt' => [
                         'turnier' => $turnier, 'einstellungen' => $e,
                         'empfaenger' => ['verein' => $r['verein'], 'ansprechpartner' => $r['ansprechpartner'], 'email' => $r['email']],
-                        'nummer' => $r['nummer'], 'datum' => $r['datum'], 'faellig' => $r['faellig'], 'bezahlt' => null,
+                        'nummer' => $r['nummer'], 'datum' => $r['datum'], 'faellig' => $r['bezahlt'] !== null ? null : $r['faellig'], 'bezahlt' => $r['bezahlt'],
                         'preis' => $r['startgeld'], 'teilnehmer' => [], 'teams' => [],
                     ]]));
                 }
-                $zeilen[] = [$r['nummer'], $r['verein'], $r['datum'], $r['faellig'], self::betrag((int) $r['startgeld']['summe']), $beleg];
+                $zeilen[] = [$r['nummer'], $r['verein'], $r['datum'], $q ? (string) ($r['bezahlt']['am'] ?? '') : $r['faellig'], self::betrag((int) $r['startgeld']['summe']), $beleg];
             }
-            $dateien['rechnungen-je-dojo.csv'] = self::csv($zeilen);
+            $dateien[$q ? 'quittungen-je-dojo.csv' : 'rechnungen-je-dojo.csv'] = self::csv($zeilen);
         }
 
         // Versendete E-Mails (Geschäftsbriefe) mit Anhängen
@@ -104,7 +126,7 @@ final class Buchhaltungsexport
         }
         $dateien['verlauf-zahlungen.csv'] = self::csv($zeilen);
 
-        $dateien['LIESMICH.txt'] = $this->liesmich($turnier, $jetzt, count($anmeldungen));
+        $dateien['LIESMICH.txt'] = $this->liesmich($turnier, $jetzt, count($anmeldungen), $this->inhalt($turnierId));
         $summen = '';
         foreach ($dateien as $name => $inhalt) {
             $summen .= hash('sha256', $inhalt) . '  ' . $name . "\n";
@@ -136,10 +158,22 @@ final class Buchhaltungsexport
         return 'buchhaltung-' . self::dateiname((string) $turnier['name']) . '-' . $turnier['datum'] . '-' . date('Ymd-His') . '.zip';
     }
 
-    /** @param array<string, mixed> $turnier */
-    private function liesmich(array $turnier, string $jetzt, int $anmeldungen): string
+    /**
+     * @param array<string, mixed> $turnier
+     * @param array{anmeldungen: int, belege: int, dojos: int, dojoRechnungen: int|null, mails: int, pdf: bool} $inhalt
+     */
+    private function liesmich(array $turnier, string $jetzt, int $anmeldungen, array $inhalt): string
     {
+        $fehlt = [];
+        if (!$inhalt['pdf']) {
+            $fehlt[] = t('Hinweis: Auf dem Server fehlt die PDF-Erzeugung – es sind keine Belege als PDF enthalten.');
+        }
+        if ($inhalt['dojoRechnungen'] === null && $inhalt['dojos'] > 0) {
+            $fehlt[] = t('Hinweis: Rechnungen je Dojo ({n}) fehlen, weil unter „Rechnungen“ kein Absender eingetragen war.', ['n' => $inhalt['dojos']]);
+        }
         return implode("\n", [
+            ...$fehlt,
+            ...($fehlt === [] ? [] : ['']),
             t('Buchhaltungsexport – {turnier} ({datum})', ['turnier' => $turnier['name'], 'datum' => $turnier['datum']]),
             t('Erstellt am {zeit} mit Taikai – Karate.', ['zeit' => self::zeit($jetzt)]),
             '',
