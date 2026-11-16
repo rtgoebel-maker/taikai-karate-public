@@ -112,7 +112,9 @@ final class AuthController extends Controller
                 ZweiterFaktor::warten($id, $zurueck, 'app');
                 return $this->weiter('login/code');
             }
-            if ($this->app->zweiterFaktorPflicht() && !$rechte['demo']) {
+            // Demo-Zugang: Code per E-Mail, sobald ein Mailserver eingerichtet ist; ohne Mailserver keine Pflicht – sein Konto
+            // ist nicht änderbar, eine Authenticator-App ließe sich also nicht einrichten
+            if ($this->app->zweiterFaktorPflicht() && (!$rechte['demo'] || $this->app->postausgang() !== null)) {
                 $email = (string) ($benutzer['email'] ?? '');
                 if ($this->app->postausgang() !== null && filter_var($email, FILTER_VALIDATE_EMAIL) !== false) {
                     $this->codeSenden($id, $email, $rechte['name'], $zurueck);

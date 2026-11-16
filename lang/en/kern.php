@@ -437,7 +437,7 @@ return [
     'Mit einem Demo-Zugang lassen sich keine Turnierleitungen verwalten.' => 'Tournament managers cannot be managed with a demo account.',
     'Demo-Zugang eingerichtet.' => 'Demo account set up.',
     'Demo-Zugang entzogen.' => 'Demo account revoked.',
-    'Demo-Zugang (für Schulungen: alle Demo-Turniere und eigene Turniere mit fast allen Funktionen, keine Konten, keine E-Mail-Zugangsdaten, keine Datenbank-Sicherung; ohne zweiten Faktor, Konto nicht änderbar)' => 'Demo account (for training: all demo tournaments and own tournaments with almost all functions, no accounts, no email credentials, no database backup; without second factor, account cannot be changed)',
+    'Demo-Zugang (für Schulungen: alle Demo-Turniere und eigene Turniere mit fast allen Funktionen, keine Konten, keine E-Mail-Zugangsdaten, keine Datenbank-Sicherung; zweiter Faktor per E-Mail, sobald ein Mailserver eingerichtet ist; Konto nicht änderbar)' => 'Demo account (for training: all demo tournaments and own tournaments with almost all functions, no accounts, no email credentials, no database backup; second factor by email once a mail server is set up; account cannot be changed)',
     'Demo' => 'Demo',
     'Demo-Zugang entziehen' => 'Revoke demo account',
     'Zum Demo-Zugang machen' => 'Make demo account',

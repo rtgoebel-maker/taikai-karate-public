@@ -367,6 +367,9 @@ final class App
         if (!$this->zweiterFaktorPflicht() || $ich === 0) {
             return null;
         }
+        if ($this->postausgang() === null && Session::istDemo()) {
+            return null; // Demo-Zugang ohne Mailserver: kein zweiter Faktor, App nicht einrichtbar
+        }
         if ($this->postausgang() !== null) {
             $datum = (string) ($this->db->wert('SELECT datum FROM turnier WHERE id = ?', [$turnierId]) ?? '');
             $bald = $datum >= date('Y-m-d') && $datum <= date('Y-m-d', strtotime('+14 days'));
