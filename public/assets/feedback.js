@@ -51,10 +51,45 @@
                 const r = el.getBoundingClientRect();
                 return (r.width || r.height) > 0 && (r.bottom < 0 || r.top > window.innerHeight || r.right < 0 || r.left > window.innerWidth);
             },
-            // html2canvas kennt den Zustand von <details> nicht: Inhalt geschlossener Elemente entfernen
-            onclone: (kopie) => kopie.querySelectorAll('details:not([open]) > :not(summary)').forEach((el) => el.remove()),
+            onclone: (kopie) => {
+                // html2canvas kennt den Zustand von <details> nicht: Inhalt geschlossener Elemente entfernen
+                kopie.querySelectorAll('details:not([open]) > :not(summary)').forEach((el) => el.remove());
+                farbenVereinfachen(kopie);
+            },
         });
         return leinwand.toDataURL('image/jpeg', 0.75);
+    }
+
+    const FARB_EIGENSCHAFTEN = ['color', 'background-color', 'background-image', 'border-top-color', 'border-right-color',
+        'border-bottom-color', 'border-left-color', 'outline-color', 'text-decoration-color', 'box-shadow', 'text-shadow'];
+    const MODERNE_FARBE = /\b(?:color|color-mix|oklch|oklab|lch|lab|hwb)\(/;
+
+    /** Kanalwert aus color(srgb …): 0–1 oder Prozent → 0–255 */
+    function kanal(w) {
+        const z = parseFloat(w);
+        return Math.round(Math.min(1, Math.max(0, w.endsWith('%') ? z / 100 : z)) * 255);
+    }
+
+    /**
+     * html2canvas 1.4 bricht bei modernen Farbfunktionen ab (z. B. color-mix(), vom Browser als color(srgb …)
+     * berechnet) – dann gäbe es gar keinen Screenshot. In der Kopie solche Werte in rgba() umrechnen,
+     * was sich nicht umrechnen lässt, neutral ersetzen.
+     */
+    function farbenVereinfachen(kopie) {
+        const fenster = kopie.defaultView || window;
+        kopie.querySelectorAll('*').forEach((el) => {
+            const stil = fenster.getComputedStyle(el);
+            FARB_EIGENSCHAFTEN.forEach((eig) => {
+                const wert = stil.getPropertyValue(eig);
+                if (!MODERNE_FARBE.test(wert)) { return; }
+                let neu = wert.replace(/color\(srgb\s+([\d.]+%?)\s+([\d.]+%?)\s+([\d.]+%?)(?:\s*\/\s*([\d.]+%?))?\)/g,
+                    (_, r, g, b, a) => `rgba(${kanal(r)}, ${kanal(g)}, ${kanal(b)}, ${a === undefined ? 1 : kanal(a) / 255})`);
+                if (MODERNE_FARBE.test(neu)) {
+                    neu = eig === 'color' ? 'rgb(0, 0, 0)' : (eig === 'background-image' || eig.endsWith('shadow') ? 'none' : 'transparent');
+                }
+                el.style.setProperty(eig, neu, 'important');
+            });
+        });
     }
 
     function esc(t) {
